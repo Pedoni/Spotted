@@ -5,9 +5,15 @@ import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChannelsRemoteDataSource {
-  const ChannelsRemoteDataSource(this._client);
+  /// [currentUserId] permette di fornire l'id utente nei test; di default è
+  /// quello della sessione Supabase.
+  ChannelsRemoteDataSource(
+    this._client, {
+    String? Function()? currentUserId,
+  }) : _currentUserId = currentUserId ?? (() => _client.auth.currentUser?.id);
 
   final SupabaseClient _client;
+  final String? Function() _currentUserId;
 
   Future<List<Channel>> getChannels({
     required int offset,
@@ -53,7 +59,7 @@ class ChannelsRemoteDataSource {
     String? place,
     String? topicId,
   }) async {
-    final ownerId = _client.auth.currentUser?.id;
+    final ownerId = _currentUserId();
     if (ownerId == null) {
       throw const AuthFailure(AuthFailureReason.unknown);
     }
