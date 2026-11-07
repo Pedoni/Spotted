@@ -6,7 +6,7 @@ import 'helpers/fake_auth_repository.dart';
 import 'helpers/pump_app.dart';
 
 void main() {
-  const homeText = 'Qui compariranno gli spot dei tuoi canali.';
+  const homeText = 'Non segui ancora nessun canale';
 
   testWidgets('senza sessione mostra il login', (tester) async {
     await pumpApp(tester, auth: FakeAuthRepository());
