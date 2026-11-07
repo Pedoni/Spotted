@@ -40,6 +40,32 @@
   "allTopics": "Tutti",
   "noChannelsFound": "Nessun canale trovato",
   "newChannel": "Nuovo canale",
+  "createChannelTitle": "Nuovo canale",
+  "channelNameLabel": "Nome del canale",
+  "channelDescriptionLabel": "Descrizione (facoltativa)",
+  "channelPlaceLabel": "Luogo (facoltativo)",
+  "channelTopicLabel": "Argomento",
+  "noTopic": "Nessuno",
+  "createChannelButton": "Crea canale",
+  "validationChannelName": "Da {min} a {max} caratteri",
+  "@validationChannelName": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "validationTooLong": "Massimo {max} caratteri",
+  "@validationTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "channelSpotsPlaceholder": "Qui compariranno gli spot del canale.",
   "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
