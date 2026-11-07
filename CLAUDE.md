@@ -41,10 +41,11 @@ lib/
 ```
 
 - State management e DI: **Riverpod** (`flutter_riverpod`, `riverpod_annotation` con `riverpod_generator`, annotazioni `@riverpod`). Niente `get_it`.
-- Routing: `go_router` (`appRouterProvider`). Redirect all'auth da aggiungere con la feature auth.
+- Routing: `go_router` (`appRouterProvider`), rotte in `AppRoutes`. Redirect al login senza sessione. Barra in basso (Home, Canali, Profilo) con `StatefulShellRoute`; le pagine di dettaglio/creazione sono rotte a schermo intero aperte con `context.push`.
 - Modelli: classi Dart con `equatable`; `json_serializable` per i DTO. `freezed` non è usato: la versione stabile è incompatibile con `riverpod_generator` (analyzer); rivalutare in futuro.
-- Errori: `Failure` (sealed, `lib/core/error/failure.dart`). I repository lanciano un `Failure`, `AsyncValue` lo porta alla UI.
-- Paginazione: infinite scroll, 20 elementi, `range()` di Supabase ordinato per `created_at`. Nessuna cache offline.
+- Errori: `Failure` (sealed, `lib/core/error/failure.dart`). I repository lanciano un `Failure` (le eccezioni Supabase/rete si traducono con `guardFailures`), `AsyncValue` lo porta alla UI, `failureMessage` lo traduce in testo. `ErrorView` mostra l'errore con "Riprova".
+- Riverpod 3 riprova da solo i provider che falliscono: disattivato con `retry: noRetry` nel `ProviderScope` (anche nei test), così l'errore arriva subito alla UI.
+- Paginazione: infinite scroll, 20 elementi, `range()` di Supabase ordinato per `created_at` (vedi `ChannelsFeed`). Se il caricamento di una pagina fallisce si smette di caricare; il pull-to-refresh riparte. Nessuna cache offline.
 - Localizzazione: `flutter gen-l10n` (automatico con `flutter pub get`), solo italiano per ora. Testi sempre da `AppLocalizations`.
 - Tema: Material 3, chiaro e scuro, `ColorScheme.fromSeed`.
 - Lint: `very_good_analysis` (`public_member_api_docs` disattivato).
@@ -89,7 +90,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | Versione | Contenuto |
 |---|---|
 | 0.1.0 | Fondamenta (architettura, Supabase, tema, router, CI) e auth (registrazione con username, login, logout) |
-| 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio; iscrizione |
+| 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio, profilo (in lavorazione); iscrizione (da fare) |
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico |
 | 0.5.0 | Strumenti del proprietario (vede gli autori, nasconde/rimuove spot) e segnalazioni |
