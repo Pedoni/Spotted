@@ -34,5 +34,46 @@
   "errorWeakPassword": "La password è troppo debole",
   "errorInvalidInput": "Controlla i dati inseriti",
   "errorNetwork": "Problema di connessione. Riprova.",
-  "errorGeneric": "Qualcosa è andato storto. Riprova."
+  "errorGeneric": "Qualcosa è andato storto. Riprova.",
+  "navHome": "Home",
+  "navChannels": "Canali",
+  "navProfile": "Profilo",
+  "channelsTitle": "Canali",
+  "searchChannelsHint": "Cerca un canale",
+  "allTopics": "Tutti",
+  "noChannelsFound": "Nessun canale trovato",
+  "newChannel": "Nuovo canale",
+  "createChannelTitle": "Nuovo canale",
+  "channelNameLabel": "Nome del canale",
+  "channelDescriptionLabel": "Descrizione (facoltativa)",
+  "channelPlaceLabel": "Luogo (facoltativo)",
+  "channelTopicLabel": "Argomento",
+  "noTopic": "Nessuno",
+  "createChannelButton": "Crea canale",
+  "validationChannelName": "Da {min} a {max} caratteri",
+  "@validationChannelName": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "validationTooLong": "Massimo {max} caratteri",
+  "@validationTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "channelSpotsPlaceholder": "Qui compariranno gli spot del canale.",
+  "myChannelsTitle": "I miei canali",
+  "noMyChannels": "Non hai ancora creato canali",
+  "profileTitle": "Profilo",
+  "retry": "Riprova",
+  "errorConflict": "Esiste già un elemento con questi dati",
+  "errorNotFound": "Contenuto non trovato"
 }

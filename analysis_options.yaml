@@ -8,3 +8,5 @@ analyzer:
 linter:
   rules:
     public_member_api_docs: false
+    # I repository astratti della clean architecture possono avere un solo metodo.
+    one_member_abstracts: false

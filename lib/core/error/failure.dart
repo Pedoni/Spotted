@@ -33,6 +33,16 @@ final class AuthFailure extends Failure {
   List<Object?> get props => [reason, message];
 }
 
+/// Violazione di un vincolo di unicità (es. slug già usato).
+final class ConflictFailure extends Failure {
+  const ConflictFailure([super.message]);
+}
+
+/// Dati non validi (controllo lato dominio).
+final class ValidationFailure extends Failure {
+  const ValidationFailure([super.message]);
+}
+
 final class NotFoundFailure extends Failure {
   const NotFoundFailure([super.message]);
 }
