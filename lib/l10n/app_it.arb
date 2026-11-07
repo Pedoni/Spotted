@@ -40,6 +40,7 @@
   "allTopics": "Tutti",
   "noChannelsFound": "Nessun canale trovato",
   "newChannel": "Nuovo canale",
+  "channelSpotsPlaceholder": "Qui compariranno gli spot del canale.",
   "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
   "errorNotFound": "Contenuto non trovato"
