@@ -21,7 +21,7 @@ Esempio: `feat(auth): add sign up with username`
 
 ## Test e CI
 
-- Ogni feature/fix include test: unit test per la logica, widget test per la UI (`test/`, specchio di `lib/`).
+- Ogni feature/fix include test: unit test per la logica, widget test per la UI (`test/`, specchio di `lib/`). I datasource si testano con `MockSupabase` (`test/helpers/mock_supabase.dart`, client HTTP finto): verificano parametri delle query, parsing e mapping degli errori.
 - Prima della PR, in locale: `dart run build_runner build --delete-conflicting-outputs`, `dart format .`, `flutter analyze`, `flutter test`.
 - La CI (`.github/workflows/ci.yml`) gira su ogni PR verso `develop` e `master`: build_runner, format check, analyze, test. Il check `Analyze & test` va richiesto per il merge.
 - Il repo è privato su piano gratuito: i ruleset GitHub non vengono applicati, quindi il blocco del push su `develop`/`master` dipende dalla disciplina.
@@ -42,13 +42,15 @@ lib/
 
 - State management e DI: **Riverpod** (`flutter_riverpod`, `riverpod_annotation` con `riverpod_generator`, annotazioni `@riverpod`). Niente `get_it`.
 - Routing: `go_router` (`appRouterProvider`), rotte in `AppRoutes`. Redirect al login senza sessione. Barra in basso (Home, Canali, Profilo) con `StatefulShellRoute`; le pagine di dettaglio/creazione sono rotte a schermo intero aperte con `context.push`.
-- Modelli: classi Dart con `equatable`; `json_serializable` per i DTO. `freezed` non è usato: la versione stabile è incompatibile con `riverpod_generator` (analyzer); rivalutare in futuro.
-- Errori: `Failure` (sealed, `lib/core/error/failure.dart`). I repository lanciano un `Failure` (le eccezioni Supabase/rete si traducono con `guardFailures`), `AsyncValue` lo porta alla UI, `failureMessage` lo traduce in testo. `ErrorView` mostra l'errore con "Riprova".
+- Modelli: entità del domain con `equatable`. I dati di Supabase passano da **DTO** in `data/models` con `json_serializable` (`XxxDto.fromJson(...).toEntity()`; per gli insert un DTO con `toJson`). I datasource non costruiscono mappe a mano né fanno cast. `freezed` non è usato: la versione stabile è incompatibile con `riverpod_generator` (analyzer); rivalutare in futuro.
+- Errori: `Failure` (sealed, `lib/core/error/failure.dart`). I repository lanciano un `Failure`: `guardFailures` traduce rete e timeout (`NetworkFailure`), `23505` (`ConflictFailure`), `42501` (`PermissionFailure`), JWT scaduto (`SessionExpiredFailure`), risposte con tipi inattesi (`UnknownFailure`). `AsyncValue` lo porta alla UI, `failureMessage` lo traduce in testo, `ErrorView` mostra l'errore con "Riprova". Un JWT scaduto mostra solo il messaggio: il logout automatico lo gestisce il client Supabase quando non riesce a rinnovare il token (non verificato).
+- Timeout: tutte le richieste Supabase passano da `TimeoutClient` (15 s), che lancia `TimeoutException`.
 - Riverpod 3 riprova da solo i provider che falliscono: disattivato con `retry: noRetry` nel `ProviderScope` (anche nei test), così l'errore arriva subito alla UI.
 - Paginazione: infinite scroll, 20 elementi, `range()` di Supabase ordinato per `created_at` (vedi `ChannelsFeed`). Se il caricamento di una pagina fallisce si smette di caricare; il pull-to-refresh riparte. Nessuna cache offline.
 - Localizzazione: `flutter gen-l10n` (automatico con `flutter pub get`), solo italiano per ora. Testi sempre da `AppLocalizations`.
 - Tema: Material 3, chiaro e scuro, `ColorScheme.fromSeed`.
-- Lint: `very_good_analysis` (`public_member_api_docs` disattivato).
+- Lint: `very_good_analysis` (`public_member_api_docs` e `one_member_abstracts` disattivati).
+- Attenzione al client Dart di Supabase: `.order('col')` ordina per default in modo **decrescente**; passare sempre `ascending` esplicito. Il filtro `ilike` usa `%`, e `.select()` toglie gli spazi dalle colonne.
 - Codice generato (`*.g.dart`, `lib/l10n/app_localizations*.dart`) non è versionato: rigenerare dopo `git pull`/cambio branch.
 
 ## Configurazione e segreti
