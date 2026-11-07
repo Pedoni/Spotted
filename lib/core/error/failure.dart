@@ -15,8 +15,22 @@ final class NetworkFailure extends Failure {
   const NetworkFailure([super.message]);
 }
 
+enum AuthFailureReason {
+  invalidCredentials,
+  emailTaken,
+  usernameTaken,
+  invalidInput,
+  weakPassword,
+  unknown,
+}
+
 final class AuthFailure extends Failure {
-  const AuthFailure([super.message]);
+  const AuthFailure(this.reason, [super.message]);
+
+  final AuthFailureReason reason;
+
+  @override
+  List<Object?> get props => [reason, message];
 }
 
 final class NotFoundFailure extends Failure {
