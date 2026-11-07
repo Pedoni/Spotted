@@ -12,6 +12,9 @@ String failureMessage(AppLocalizations l10n, Object error) {
       AuthFailureReason.invalidInput => l10n.errorInvalidInput,
       AuthFailureReason.unknown => l10n.errorGeneric,
     },
+    ValidationFailure() => l10n.errorInvalidInput,
+    ConflictFailure() => l10n.errorConflict,
+    NotFoundFailure() => l10n.errorNotFound,
     NetworkFailure() => l10n.errorNetwork,
     _ => l10n.errorGeneric,
   };
