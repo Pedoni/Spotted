@@ -4,5 +4,35 @@
   "homeTitle": "Home",
   "homePlaceholder": "Qui compariranno gli spot dei tuoi canali.",
   "configErrorTitle": "Configurazione mancante",
-  "configErrorBody": "Avvia l'app con --dart-define-from-file=.env, dopo aver inserito SUPABASE_URL e SUPABASE_ANON_KEY."
+  "configErrorBody": "Avvia l'app con --dart-define-from-file=.env, dopo aver inserito SUPABASE_URL e SUPABASE_ANON_KEY.",
+  "loginTitle": "Accedi",
+  "signUpTitle": "Registrati",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "usernameLabel": "Username",
+  "firstNameLabel": "Nome",
+  "lastNameLabel": "Cognome",
+  "loginButton": "Accedi",
+  "signUpButton": "Crea account",
+  "goToSignUp": "Non hai un account? Registrati",
+  "goToLogin": "Hai già un account? Accedi",
+  "logout": "Esci",
+  "validationRequired": "Campo obbligatorio",
+  "validationEmail": "Inserisci un'email valida",
+  "validationUsername": "3-30 caratteri: lettere, numeri e underscore",
+  "validationPassword": "Almeno {min} caratteri",
+  "@validationPassword": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "errorInvalidCredentials": "Email o password non corretti",
+  "errorEmailTaken": "Esiste già un account con questa email",
+  "errorUsernameTaken": "Questo username è già in uso",
+  "errorWeakPassword": "La password è troppo debole",
+  "errorInvalidInput": "Controlla i dati inseriti",
+  "errorNetwork": "Problema di connessione. Riprova.",
+  "errorGeneric": "Qualcosa è andato storto. Riprova."
 }
