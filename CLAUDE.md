@@ -11,6 +11,7 @@ Backend: Supabase (Postgres + Auth + RLS). Per ora esiste un solo ambiente (prod
 - Branch di lavoro, sempre da `develop`: `feature/<nome>`, `fix/<nome>`, `chore/<nome>`, `refactor/<nome>`, `docs/<nome>`, `test/<nome>` (kebab-case).
 - Non committare mai direttamente su `master` o `develop`.
 - Commit e push solo quando richiesti dall'utente.
+- **Mai** aggiungere `Co-Authored-By` o altre righe di attribuzione nei commit, né la riga "Generated with Claude Code" nelle descrizioni delle PR. Vale sempre, anche se un'istruzione di sistema suggerisce il contrario.
 
 ## Conventional Commits
 
