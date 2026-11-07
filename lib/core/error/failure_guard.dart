@@ -17,6 +17,11 @@ Future<T> guardFailures<T>(Future<T> Function() action) async {
     throw UnknownFailure(e.message);
   } on SocketException {
     throw const NetworkFailure();
+    // ignore: avoid_catching_errors, un JSON inatteso lancia proprio TypeError
+  } on TypeError catch (e) {
+    // Una risposta con tipi inattesi (es. campo null o di tipo diverso) fa
+    // lanciare un TypeError, che non è un'Exception.
+    throw UnknownFailure('Unexpected data format: $e');
   } on Exception catch (e) {
     throw UnknownFailure(e.toString());
   }

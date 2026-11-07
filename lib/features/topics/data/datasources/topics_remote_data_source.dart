@@ -1,3 +1,4 @@
+import 'package:spotted/features/topics/data/models/topic_dto.dart';
 import 'package:spotted/features/topics/domain/entities/topic.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,16 +10,8 @@ class TopicsRemoteDataSource {
   Future<List<Topic>> getTopics() async {
     final rows = await _client
         .from('topics')
-        .select('id, name, description')
+        .select(topicColumns)
         .order('name');
-    return rows
-        .map(
-          (row) => Topic(
-            id: row['id'] as String,
-            name: row['name'] as String,
-            description: row['description'] as String?,
-          ),
-        )
-        .toList();
+    return rows.map((row) => TopicDto.fromJson(row).toEntity()).toList();
   }
 }

@@ -31,6 +31,23 @@ void main() {
     );
   });
 
+  test('risposte con tipi inattesi (TypeError) diventano UnknownFailure', () {
+    expect(
+      guardFailures<String>(() async {
+        final json = <String, dynamic>{'name': 42};
+        return json['name'] as String;
+      }),
+      throwsA(isA<UnknownFailure>()),
+    );
+  });
+
+  test('FormatException diventa UnknownFailure', () {
+    expect(
+      guardFailures<DateTime>(() async => DateTime.parse('non-una-data')),
+      throwsA(isA<UnknownFailure>()),
+    );
+  });
+
   test('i Failure passano invariati', () {
     expect(
       guardFailures<void>(() => throw const NotFoundFailure()),
