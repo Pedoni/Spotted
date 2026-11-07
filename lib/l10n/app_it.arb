@@ -35,6 +35,7 @@
   "errorInvalidInput": "Controlla i dati inseriti",
   "errorNetwork": "Problema di connessione. Riprova.",
   "errorGeneric": "Qualcosa è andato storto. Riprova.",
+  "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
   "errorNotFound": "Contenuto non trovato"
 }
