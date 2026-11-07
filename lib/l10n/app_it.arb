@@ -69,6 +69,7 @@
   "channelSpotsPlaceholder": "Qui compariranno gli spot del canale.",
   "myChannelsTitle": "I miei canali",
   "noMyChannels": "Non hai ancora creato canali",
+  "profileTitle": "Profilo",
   "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
   "errorNotFound": "Contenuto non trovato"
