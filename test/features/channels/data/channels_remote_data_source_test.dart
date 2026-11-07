@@ -205,11 +205,24 @@ void main() {
       );
     });
 
-    test('permesso negato (42501): UnknownFailure', () async {
+    test('permesso negato (42501): PermissionFailure', () async {
       final repository = repositoryFor(
         MockSupabase(
           (_) async =>
               postgrestError('42501', 'permission denied', status: 403),
+        ),
+      );
+
+      await expectLater(
+        repository.getChannels(offset: 0, limit: 20),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('errore del server sconosciuto: UnknownFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async => postgrestError('XX000', 'boom', status: 500),
         ),
       );
 

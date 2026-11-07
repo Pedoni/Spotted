@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:spotted/core/error/failure.dart';
@@ -90,6 +92,11 @@ void main() {
 
     test('errore di rete', () {
       failSignInWith(AuthRetryableFetchException(message: 'offline'));
+      expect(signIn(), throwsA(isA<NetworkFailure>()));
+    });
+
+    test('timeout della richiesta', () {
+      failSignInWith(TimeoutException('lento'));
       expect(signIn(), throwsA(isA<NetworkFailure>()));
     });
 

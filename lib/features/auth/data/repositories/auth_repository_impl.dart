@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:spotted/core/error/failure.dart';
@@ -71,6 +72,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthException catch (e) {
       throw _mapAuthException(e);
     } on SocketException {
+      throw const NetworkFailure();
+    } on TimeoutException {
       throw const NetworkFailure();
     } on Exception catch (e) {
       throw UnknownFailure(e.toString());
