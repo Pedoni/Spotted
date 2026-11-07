@@ -92,6 +92,32 @@ void main() {
     expect(repo.listCalls.map((c) => c.offset), [0, 20]);
   });
 
+  testWidgets('errore sulla pagina successiva: messaggio e Riprova', (
+    tester,
+  ) async {
+    final repo = FakeChannelsRepository(
+      channels: List.generate(30, makeChannel),
+    );
+    await openChannels(tester, repo);
+
+    repo.listError = const NetworkFailure();
+    await tester.drag(find.byType(ListView).last, const Offset(0, -4000));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Impossibile caricare altri canali'), findsOneWidget);
+    // Non ritenta da sola in loop.
+    final calls = repo.listCalls.length;
+    await tester.pump(const Duration(seconds: 1));
+    expect(repo.listCalls, hasLength(calls));
+
+    repo.listError = null;
+    await tester.tap(find.text('Riprova'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Impossibile caricare altri canali'), findsNothing);
+    expect(repo.listCalls.last.offset, 20);
+  });
+
   testWidgets('errore: messaggio e Riprova', (tester) async {
     final repo = FakeChannelsRepository()..listError = const NetworkFailure();
     await openChannels(tester, repo);

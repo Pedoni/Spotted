@@ -115,6 +115,19 @@ class _ChannelsPageState extends ConsumerState<ChannelsPage> {
                     itemCount: paged.items.length + (paged.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == paged.items.length) {
+                        if (paged.loadMoreFailed) {
+                          return ListTile(
+                            title: Text(l10n.loadMoreError),
+                            trailing: TextButton(
+                              onPressed: () => unawaited(
+                                ref
+                                    .read(channelsFeedProvider.notifier)
+                                    .loadMore(),
+                              ),
+                              child: Text(l10n.retry),
+                            ),
+                          );
+                        }
                         // L'ultimo elemento è il caricamento: quando compare
                         // a schermo si chiede la pagina successiva.
                         WidgetsBinding.instance.addPostFrameCallback((_) {
