@@ -1,17 +1,40 @@
-# spotted
+# Spotted
 
-A new Flutter project.
+App Flutter che riunisce le pagine "spotted" in un unico posto: chiunque può creare un canale e chiunque può pubblicare spot in modo anonimo in qualsiasi canale. Backend su Supabase.
 
-## Getting Started
+Convenzioni di progetto, architettura e roadmap: [CLAUDE.md](CLAUDE.md). Storico delle versioni: [CHANGELOG.md](CHANGELOG.md).
 
-This project is a starting point for a Flutter application.
+## Requisiti
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter 3.44.4 (stable) e Dart ^3.12.2
+- Un progetto Supabase con lo schema di `supabase/migrations/`
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Avvio
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Copia `.env.example` in `.env` e inserisci `SUPABASE_URL` e `SUPABASE_ANON_KEY` (Supabase → Project Settings → API).
+2. Installa le dipendenze e genera il codice (Riverpod e localizzazioni):
+   ```bash
+   flutter pub get
+   dart run build_runner build --delete-conflicting-outputs
+   ```
+3. Avvia l'app:
+   ```bash
+   flutter run --dart-define-from-file=.env
+   ```
+   In VS Code basta F5 sulla configurazione "spotted (debug)".
+
+Il codice generato (`*.g.dart`, `app_localizations*.dart`) non è versionato: va rigenerato dopo un clone o un cambio di branch. Durante lo sviluppo si può lasciare attivo `dart run build_runner watch --delete-conflicting-outputs`.
+
+## Test
+
+```bash
+dart format .
+flutter analyze
+flutter test
+```
+
+La stessa sequenza gira in CI su ogni pull request.
+
+## Workflow
+
+Gitflow con conventional commits: i branch di lavoro partono da `develop` e tornano con una PR; `master` contiene solo le release. Dettagli in [CLAUDE.md](CLAUDE.md).
