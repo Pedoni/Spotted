@@ -2,10 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/router/app_shell.dart';
 import 'package:spotted/features/auth/presentation/pages/login_page.dart';
 import 'package:spotted/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
+import 'package:spotted/features/channels/presentation/pages/channel_detail_page.dart';
+import 'package:spotted/features/channels/presentation/pages/channels_page.dart';
+import 'package:spotted/features/channels/presentation/pages/create_channel_page.dart';
+import 'package:spotted/features/channels/presentation/pages/my_channels_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
+import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 
 part 'app_router.g.dart';
 
@@ -30,9 +36,48 @@ GoRouter appRouter(Ref ref) {
       return null;
     },
     routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => AppShell(navigationShell: shell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const HomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.channels,
+                builder: (context, state) => const ChannelsPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfilePage(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // Pagine a schermo intero, aperte con `push` sopra la barra in basso.
       GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HomePage(),
+        path: AppRoutes.channelNew,
+        builder: (context, state) => const CreateChannelPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.channelDetail,
+        builder: (context, state) =>
+            ChannelDetailPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: AppRoutes.myChannels,
+        builder: (context, state) => const MyChannelsPage(),
       ),
       GoRoute(
         path: AppRoutes.login,

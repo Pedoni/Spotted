@@ -2,7 +2,6 @@
   "@@locale": "it",
   "appTitle": "Spotted",
   "homeTitle": "Home",
-  "homePlaceholder": "Qui compariranno gli spot dei tuoi canali.",
   "configErrorTitle": "Configurazione mancante",
   "configErrorBody": "Avvia l'app con --dart-define-from-file=.env, dopo aver inserito SUPABASE_URL e SUPABASE_ANON_KEY.",
   "loginTitle": "Accedi",
@@ -34,5 +33,62 @@
   "errorWeakPassword": "La password è troppo debole",
   "errorInvalidInput": "Controlla i dati inseriti",
   "errorNetwork": "Problema di connessione. Riprova.",
-  "errorGeneric": "Qualcosa è andato storto. Riprova."
+  "errorGeneric": "Qualcosa è andato storto. Riprova.",
+  "navHome": "Home",
+  "navChannels": "Canali",
+  "navProfile": "Profilo",
+  "channelsTitle": "Canali",
+  "searchChannelsHint": "Cerca un canale",
+  "allTopics": "Tutti",
+  "noChannelsFound": "Nessun canale trovato",
+  "newChannel": "Nuovo canale",
+  "createChannelTitle": "Nuovo canale",
+  "channelNameLabel": "Nome del canale",
+  "channelDescriptionLabel": "Descrizione (facoltativa)",
+  "channelPlaceLabel": "Luogo (facoltativo)",
+  "channelTopicLabel": "Argomento",
+  "noTopic": "Nessuno",
+  "createChannelButton": "Crea canale",
+  "validationChannelName": "Da {min} a {max} caratteri",
+  "@validationChannelName": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "validationTooLong": "Massimo {max} caratteri",
+  "@validationTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "channelSpotsPlaceholder": "Qui compariranno gli spot del canale.",
+  "myChannelsTitle": "I miei canali",
+  "noMyChannels": "Non hai ancora creato canali",
+  "profileTitle": "Profilo",
+  "retry": "Riprova",
+  "errorConflict": "Esiste già un elemento con questi dati",
+  "errorNotFound": "Contenuto non trovato",
+  "loadMoreError": "Impossibile caricare altri canali",
+  "errorPermission": "Non hai i permessi per eseguire questa azione",
+  "errorSessionExpired": "Sessione scaduta. Accedi di nuovo.",
+  "homeEmpty": "Non segui ancora nessun canale",
+  "homeEmptyHint": "Segui un canale per ritrovarlo qui.",
+  "homeDiscoverChannels": "Scopri i canali",
+  "follow": "Segui",
+  "unfollow": "Smetti di seguire",
+  "subscribersCount": "{count, plural, =0{Nessun iscritto} =1{1 iscritto} other{{count} iscritti}}",
+  "@subscribersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -8,7 +8,7 @@ void main() {
   Finder field(String label) => find.widgetWithText(TextFormField, label);
 
   Future<void> openSignUp(WidgetTester tester, FakeAuthRepository repo) async {
-    await pumpApp(tester, repo);
+    await pumpApp(tester, auth: repo);
     await tester.tap(find.text('Non hai un account? Registrati'));
     await tester.pumpAndSettle();
   }
@@ -56,7 +56,10 @@ void main() {
 
     expect(repo.signUpCalls.single['username'], 'mario_88');
     expect(repo.signUpCalls.single['firstName'], 'Mario');
-    expect(find.text('Home'), findsOneWidget);
+    expect(
+      find.text('Non segui ancora nessun canale'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('username occupato mostra l errore', (tester) async {

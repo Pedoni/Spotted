@@ -12,7 +12,7 @@ void main() {
     tester,
   ) async {
     final repo = FakeAuthRepository();
-    await pumpApp(tester, repo);
+    await pumpApp(tester, auth: repo);
 
     await tester.tap(find.byType(FilledButton));
     await tester.pump();
@@ -24,7 +24,7 @@ void main() {
 
   testWidgets('login riuscito porta alla home', (tester) async {
     final repo = FakeAuthRepository();
-    await pumpApp(tester, repo);
+    await pumpApp(tester, auth: repo);
 
     await tester.enterText(field('Email'), 'a@b.it');
     await tester.enterText(field('Password'), 'secret123');
@@ -32,13 +32,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.signInCalls.single.email, 'a@b.it');
-    expect(find.text('Home'), findsOneWidget);
+    expect(
+      find.text('Non segui ancora nessun canale'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('credenziali errate mostrano il messaggio', (tester) async {
     final repo = FakeAuthRepository()
       ..signInError = const AuthFailure(AuthFailureReason.invalidCredentials);
-    await pumpApp(tester, repo);
+    await pumpApp(tester, auth: repo);
 
     await tester.enterText(field('Email'), 'a@b.it');
     await tester.enterText(field('Password'), 'sbagliata');
@@ -50,7 +53,7 @@ void main() {
   });
 
   testWidgets('il link porta alla registrazione', (tester) async {
-    await pumpApp(tester, FakeAuthRepository());
+    await pumpApp(tester, auth: FakeAuthRepository());
 
     await tester.tap(find.text('Non hai un account? Registrati'));
     await tester.pumpAndSettle();

@@ -3,6 +3,26 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.2.0] - 2026-11-08
+
+### Aggiunto
+- Canali: lista con ricerca per nome e filtro per topic, scorrimento infinito, dettaglio, creazione (slug generato dal nome) e "i miei canali".
+- Topic: elenco fisso (Università, Scuola, Città, Sport, Eventi, Musica, Lavoro).
+- Iscrizioni: segui / smetti di seguire un canale, con il numero di iscritti.
+- Home con i canali seguiti.
+- Profilo con username, nome, cognome ed email, e logout.
+- Barra di navigazione in basso (Home, Canali, Profilo).
+- Messaggi per errori di permesso e sessione scaduta; timeout di 15 secondi sulle richieste.
+
+### Modificato
+- Privacy: nome, cognome e data di nascita non sono più leggibili dagli altri utenti; il proprietario di un canale non è mostrato; la tabella delle iscrizioni non è più accessibile ai client (nessuno vede chi segue cosa).
+- I dati di Supabase sono letti con DTO (`json_serializable`) e testati con un client HTTP finto.
+- Disattivati i retry automatici di Riverpod: gli errori arrivano subito alla UI con "Riprova".
+
+### Corretto
+- La lista dei canali non mescola più pagine di filtri diversi quando si cambia filtro durante il caricamento.
+- I topic comparivano in ordine alfabetico inverso.
+
 ## [0.1.0] - 2026-11-07
 
 ### Aggiunto
