@@ -35,6 +35,11 @@
   "errorInvalidInput": "Controlla i dati inseriti",
   "errorNetwork": "Problema di connessione. Riprova.",
   "errorGeneric": "Qualcosa è andato storto. Riprova.",
+  "channelsTitle": "Canali",
+  "searchChannelsHint": "Cerca un canale",
+  "allTopics": "Tutti",
+  "noChannelsFound": "Nessun canale trovato",
+  "newChannel": "Nuovo canale",
   "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
   "errorNotFound": "Contenuto non trovato"
