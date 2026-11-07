@@ -75,5 +75,8 @@
   "profileTitle": "Profilo",
   "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
-  "errorNotFound": "Contenuto non trovato"
+  "errorNotFound": "Contenuto non trovato",
+  "loadMoreError": "Impossibile caricare altri canali",
+  "errorPermission": "Non hai i permessi per eseguire questa azione",
+  "errorSessionExpired": "Sessione scaduta. Accedi di nuovo."
 }

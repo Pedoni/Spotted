@@ -43,6 +43,16 @@ final class ValidationFailure extends Failure {
   const ValidationFailure([super.message]);
 }
 
+/// Operazione non consentita (es. violazione RLS).
+final class PermissionFailure extends Failure {
+  const PermissionFailure([super.message]);
+}
+
+/// Il token di accesso non è più valido.
+final class SessionExpiredFailure extends Failure {
+  const SessionExpiredFailure([super.message]);
+}
+
 final class NotFoundFailure extends Failure {
   const NotFoundFailure([super.message]);
 }

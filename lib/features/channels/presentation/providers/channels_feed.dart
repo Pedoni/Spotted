@@ -38,33 +38,46 @@ class PagedChannels extends Equatable {
     required this.items,
     required this.hasMore,
     this.isLoadingMore = false,
+    this.loadMoreFailed = false,
   });
 
   final List<Channel> items;
   final bool hasMore;
   final bool isLoadingMore;
 
+  /// L'ultimo caricamento di una pagina successiva è fallito: la UI mostra
+  /// "Riprova" invece di ritentare da sola in loop.
+  final bool loadMoreFailed;
+
   PagedChannels copyWith({
     List<Channel>? items,
     bool? hasMore,
     bool? isLoadingMore,
+    bool? loadMoreFailed,
   }) {
     return PagedChannels(
       items: items ?? this.items,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
     );
   }
 
   @override
-  List<Object?> get props => [items, hasMore, isLoadingMore];
+  List<Object?> get props => [items, hasMore, isLoadingMore, loadMoreFailed];
 }
 
 /// Lista paginata dei canali (infinite scroll, [channelsPageSize] per pagina).
 @riverpod
 class ChannelsFeed extends _$ChannelsFeed {
+  /// Cresce a ogni ricarica da capo: una `loadMore` partita prima di una
+  /// ricarica (es. cambio filtro) non deve accodare i suoi risultati alla
+  /// nuova lista.
+  int _generation = 0;
+
   @override
   Future<PagedChannels> build() async {
+    _generation++;
     final filter = ref.watch(channelFilterProvider);
     final items = await ref.read(getChannelsUseCaseProvider)(
       offset: 0,
@@ -83,7 +96,10 @@ class ChannelsFeed extends _$ChannelsFeed {
     if (current == null || !current.hasMore || current.isLoadingMore) return;
 
     final filter = ref.read(channelFilterProvider);
-    state = AsyncData(current.copyWith(isLoadingMore: true));
+    final generation = _generation;
+    state = AsyncData(
+      current.copyWith(isLoadingMore: true, loadMoreFailed: false),
+    );
     try {
       final more = await ref.read(getChannelsUseCaseProvider)(
         offset: current.items.length,
@@ -91,7 +107,7 @@ class ChannelsFeed extends _$ChannelsFeed {
         query: filter.query,
         topicId: filter.topicId,
       );
-      if (!ref.mounted) return;
+      if (!ref.mounted || generation != _generation) return;
       state = AsyncData(
         PagedChannels(
           items: [...current.items, ...more],
@@ -99,10 +115,13 @@ class ChannelsFeed extends _$ChannelsFeed {
         ),
       );
     } on Exception {
-      // Resta la lista già caricata e si smette di caricare altre pagine
-      // (altrimenti il ricaricamento automatico ripeterebbe l'errore in loop);
-      // il pull-to-refresh riparte da capo.
-      if (ref.mounted) state = AsyncData(current.copyWith(hasMore: false));
+      // Resta la lista già caricata; la UI offre "Riprova" (non ritenta da
+      // sola, altrimenti ripeterebbe l'errore in loop).
+      if (ref.mounted && generation == _generation) {
+        state = AsyncData(
+          current.copyWith(isLoadingMore: false, loadMoreFailed: true),
+        );
+      }
     }
   }
 }

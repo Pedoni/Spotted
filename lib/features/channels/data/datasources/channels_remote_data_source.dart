@@ -1,12 +1,19 @@
 import 'package:spotted/core/error/failure.dart';
-import 'package:spotted/features/channels/data/models/channel_model.dart';
+import 'package:spotted/features/channels/data/models/channel_dto.dart';
+import 'package:spotted/features/channels/data/models/create_channel_dto.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChannelsRemoteDataSource {
-  const ChannelsRemoteDataSource(this._client);
+  /// [currentUserId] permette di fornire l'id utente nei test; di default è
+  /// quello della sessione Supabase.
+  ChannelsRemoteDataSource(
+    this._client, {
+    String? Function()? currentUserId,
+  }) : _currentUserId = currentUserId ?? (() => _client.auth.currentUser?.id);
 
   final SupabaseClient _client;
+  final String? Function() _currentUserId;
 
   Future<List<Channel>> getChannels({
     required int offset,
@@ -23,7 +30,7 @@ class ChannelsRemoteDataSource {
         .order('created_at', ascending: false)
         .order('id')
         .range(offset, offset + limit - 1);
-    return rows.map(ChannelModel.fromJson).toList();
+    return rows.map((row) => ChannelDto.fromJson(row).toEntity()).toList();
   }
 
   Future<Channel> getChannelBySlug(String slug) async {
@@ -33,7 +40,7 @@ class ChannelsRemoteDataSource {
         .eq('slug', slug)
         .maybeSingle();
     if (row == null) throw const NotFoundFailure();
-    return ChannelModel.fromJson(row);
+    return ChannelDto.fromJson(row).toEntity();
   }
 
   /// Usa l'RPC `my_channels()`: `owner_id` non è leggibile dalla tabella.
@@ -41,7 +48,7 @@ class ChannelsRemoteDataSource {
     final rows = await _client.rpc<List<dynamic>>('my_channels');
     return rows
         .cast<Map<String, dynamic>>()
-        .map(ChannelModel.fromJson)
+        .map((row) => ChannelDto.fromJson(row).toEntity())
         .toList();
   }
 
@@ -52,24 +59,25 @@ class ChannelsRemoteDataSource {
     String? place,
     String? topicId,
   }) async {
-    final ownerId = _client.auth.currentUser?.id;
+    final ownerId = _currentUserId();
     if (ownerId == null) {
       throw const AuthFailure(AuthFailureReason.unknown);
     }
     // `select(channelColumns)` evita di chiedere `owner_id` in `returning`.
+    final dto = CreateChannelDto(
+      ownerId: ownerId,
+      name: name,
+      slug: slug,
+      description: description,
+      place: place,
+      topicId: topicId,
+    );
     final row = await _client
         .from('channels')
-        .insert({
-          'owner_id': ownerId,
-          'name': name,
-          'slug': slug,
-          'description': description,
-          'place': place,
-          'topic_id': topicId,
-        })
+        .insert(dto.toJson())
         .select(channelColumns)
         .single();
-    return ChannelModel.fromJson(row);
+    return ChannelDto.fromJson(row).toEntity();
   }
 
   /// Rende letterali i caratteri speciali di `like`.

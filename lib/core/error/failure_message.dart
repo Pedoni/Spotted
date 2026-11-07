@@ -14,6 +14,8 @@ String failureMessage(AppLocalizations l10n, Object error) {
     },
     ValidationFailure() => l10n.errorInvalidInput,
     ConflictFailure() => l10n.errorConflict,
+    PermissionFailure() => l10n.errorPermission,
+    SessionExpiredFailure() => l10n.errorSessionExpired,
     NotFoundFailure() => l10n.errorNotFound,
     NetworkFailure() => l10n.errorNetwork,
     _ => l10n.errorGeneric,

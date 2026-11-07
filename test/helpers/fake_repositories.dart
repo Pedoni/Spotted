@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
@@ -104,6 +106,30 @@ class FakeChannelsRepository implements ChannelsRepository {
     channels = [channel, ...channels];
     mine = [channel, ...mine];
     return channel;
+  }
+}
+
+/// Repository in cui le pagine successive alla prima restano in attesa finché
+/// non si completa [gate]: simula una richiesta lenta ancora in volo.
+class SlowPagesChannelsRepository extends FakeChannelsRepository {
+  SlowPagesChannelsRepository({super.channels});
+
+  Completer<void>? gate;
+
+  @override
+  Future<List<Channel>> getChannels({
+    required int offset,
+    required int limit,
+    String? query,
+    String? topicId,
+  }) async {
+    if (offset > 0 && gate != null) await gate!.future;
+    return super.getChannels(
+      offset: offset,
+      limit: limit,
+      query: query,
+      topicId: topicId,
+    );
   }
 }
 

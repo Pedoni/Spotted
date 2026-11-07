@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
@@ -86,14 +88,52 @@ void main() {
     );
   });
 
-  test('errore su loadMore: tiene la lista e smette di caricare', () async {
+  test('errore su loadMore: tiene la lista e permette di riprovare', () async {
     await container.read(channelsFeedProvider.future);
+    final notifier = container.read(channelsFeedProvider.notifier);
     repository.listError = const NetworkFailure();
 
-    await container.read(channelsFeedProvider.notifier).loadMore();
+    await notifier.loadMore();
 
-    final feed = container.read(channelsFeedProvider).value!;
+    var feed = container.read(channelsFeedProvider).value!;
     expect(feed.items, hasLength(20));
-    expect(feed.hasMore, isFalse);
+    expect(feed.hasMore, isTrue);
+    expect(feed.loadMoreFailed, isTrue);
+    expect(feed.isLoadingMore, isFalse);
+
+    repository.listError = null;
+    await notifier.loadMore();
+
+    feed = container.read(channelsFeedProvider).value!;
+    expect(feed.items, hasLength(40));
+    expect(feed.loadMoreFailed, isFalse);
   });
+
+  test(
+    'loadMore ancora in volo dopo un cambio filtro non sporca la lista',
+    () async {
+      final slow = SlowPagesChannelsRepository(channels: repository.channels);
+      final c = ProviderContainer(
+        retry: noRetry,
+        overrides: [channelsRepositoryProvider.overrideWithValue(slow)],
+      );
+      addTearDown(c.dispose);
+      c.listen(channelsFeedProvider, (_, _) {});
+      await c.read(channelsFeedProvider.future);
+
+      slow.gate = Completer<void>();
+      final loading = c.read(channelsFeedProvider.notifier).loadMore();
+      await Future<void>.delayed(Duration.zero);
+
+      // Mentre la pagina 2 è in volo l'utente cambia filtro: la lista riparte.
+      c.read(channelFilterProvider.notifier).setTopic('t-sport');
+      await c.read(channelsFeedProvider.future);
+      slow.gate!.complete();
+      await loading;
+
+      final items = c.read(channelsFeedProvider).value!.items;
+      expect(items.every((channel) => channel.topicId == 't-sport'), isTrue);
+      expect(items, hasLength(20));
+    },
+  );
 }
