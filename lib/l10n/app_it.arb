@@ -78,5 +78,15 @@
   "errorNotFound": "Contenuto non trovato",
   "loadMoreError": "Impossibile caricare altri canali",
   "errorPermission": "Non hai i permessi per eseguire questa azione",
-  "errorSessionExpired": "Sessione scaduta. Accedi di nuovo."
+  "errorSessionExpired": "Sessione scaduta. Accedi di nuovo.",
+  "follow": "Segui",
+  "unfollow": "Smetti di seguire",
+  "subscribersCount": "{count, plural, =0{Nessun iscritto} =1{1 iscritto} other{{count} iscritti}}",
+  "@subscribersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
