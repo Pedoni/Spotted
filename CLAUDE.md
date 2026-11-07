@@ -73,6 +73,7 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 - Nel client non usare mai `select()` senza colonne esplicite su `spots`, `channels`, `profiles`, e non chiedere colonne nascoste in `returning` né nei filtri (`where`).
 - Le policy RLS che usano colonne nascoste (es. `author_id`, `owner_id`) funzionano comunque: verificato con un dry run su prod.
 - I **topic** sono un elenco fisso: si aggiungono solo con una migrazione (i client non possono scriverli).
+- **Iscrizioni**: la tabella `subscriptions` non è accessibile ai client (nessun grant né policy). Si usano solo le funzioni `subscribe_to_channel`, `unsubscribe_from_channel`, `channel_subscription_info` (iscritti e stato dell'utente) e `my_subscribed_channels` (max 100, senza `owner_id`): nessuno vede chi segue cosa.
 - I **commenti non sono anonimi**. Se l'autore dello spot commenta il proprio spot, il commento appare come "Autore del post" senza nome.
 - **Chat**: nasce solo da uno spot. L'autore dello spot può avviare una chat con chi ha commentato; l'autore vede l'identità dell'altro, l'altro non vede quella dell'autore finché l'autore non preme "Rivela identità". Non esistono chat libere tra utenti.
 - **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
@@ -81,7 +82,7 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
 - `chats` e `messages` oggi espongono gli id dei partecipanti: serve ridisegnare `chats` (`spot_id`, `author_id`, `commenter_id`, `identity_revealed`, unico su `(spot_id, commenter_id)`) e leggere via RPC/view che nascondono l'identità finché non rivelata. Nello schema attuale `chats` ha `user_a_id < user_b_id`.
-- `user_id` esposto in `spot_likes`, `comment_likes`, `subscriptions`.
+- `user_id` esposto in `spot_likes` e `comment_likes` (le iscrizioni sono già a posto).
 - Mancano la moderazione degli spot, i trigger `updated_at`, un vincolo anti-duplicati sulle segnalazioni.
 - `handle_new_user` fallisce se lo username è duplicato o non valido: validare prima del signup.
 
@@ -92,7 +93,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | Versione | Contenuto |
 |---|---|
 | 0.1.0 | Fondamenta (architettura, Supabase, tema, router, CI) e auth (registrazione con username, login, logout) |
-| 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio, profilo (in lavorazione); iscrizione (da fare) |
+| 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio, profilo, iscrizione con conteggio e Home con i canali seguiti (fatto) |
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico |
 | 0.5.0 | Strumenti del proprietario (vede gli autori, nasconde/rimuove spot) e segnalazioni |

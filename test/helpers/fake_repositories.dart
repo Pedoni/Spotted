@@ -5,6 +5,8 @@ import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
+import 'package:spotted/features/subscriptions/domain/entities/subscription_info.dart';
+import 'package:spotted/features/subscriptions/domain/repositories/subscriptions_repository.dart';
 import 'package:spotted/features/topics/domain/entities/topic.dart';
 import 'package:spotted/features/topics/domain/repositories/topics_repository.dart';
 
@@ -162,4 +164,60 @@ class FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<Profile> getMyProfile() async => profile;
+}
+
+/// Iscrizioni in memoria. [counts] è il numero di iscritti per canale (compreso
+/// l'utente, se iscritto). Se [gate] è impostato, subscribe/unsubscribe restano
+/// in attesa finché non si completa.
+class FakeSubscriptionsRepository implements SubscriptionsRepository {
+  FakeSubscriptionsRepository({
+    List<Channel>? channels,
+    Set<String>? subscribedIds,
+    Map<String, int>? counts,
+  }) : channels = channels ?? [],
+       subscribedIds = subscribedIds ?? {},
+       counts = counts ?? {};
+
+  List<Channel> channels;
+  Set<String> subscribedIds;
+  Map<String, int> counts;
+  Failure? toggleError;
+  Failure? listError;
+  Completer<void>? gate;
+
+  final calls = <String>[];
+
+  @override
+  Future<SubscriptionInfo> getInfo(String channelId) async {
+    return SubscriptionInfo(
+      subscriberCount: counts[channelId] ?? 0,
+      isSubscribed: subscribedIds.contains(channelId),
+    );
+  }
+
+  @override
+  Future<void> subscribe(String channelId) async {
+    calls.add('subscribe:$channelId');
+    if (gate != null) await gate!.future;
+    if (toggleError != null) throw toggleError!;
+    if (subscribedIds.add(channelId)) {
+      counts[channelId] = (counts[channelId] ?? 0) + 1;
+    }
+  }
+
+  @override
+  Future<void> unsubscribe(String channelId) async {
+    calls.add('unsubscribe:$channelId');
+    if (gate != null) await gate!.future;
+    if (toggleError != null) throw toggleError!;
+    if (subscribedIds.remove(channelId)) {
+      counts[channelId] = (counts[channelId] ?? 1) - 1;
+    }
+  }
+
+  @override
+  Future<List<Channel>> getMySubscribedChannels() async {
+    if (listError != null) throw listError!;
+    return channels.where((c) => subscribedIds.contains(c.id)).toList();
+  }
 }

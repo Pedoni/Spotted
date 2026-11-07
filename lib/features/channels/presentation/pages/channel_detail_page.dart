@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
@@ -51,6 +55,8 @@ class ChannelDetailPage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Text(channel.description!),
               ],
+              const SizedBox(height: 24),
+              _SubscriptionRow(channelId: channel.id),
               const SizedBox(height: 32),
               Text(
                 l10n.channelSpotsPlaceholder,
@@ -62,6 +68,50 @@ class ChannelDetailPage extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// Numero di iscritti e pulsante Segui / Smetti di seguire.
+class _SubscriptionRow extends ConsumerWidget {
+  const _SubscriptionRow({required this.channelId});
+
+  final String channelId;
+
+  Future<void> _toggle(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(channelSubscriptionProvider(channelId).notifier).toggle();
+    } on Exception catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failureMessage(l10n, error))),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final info = ref.watch(channelSubscriptionProvider(channelId)).value;
+    // Mentre carica (o se fallisce) non mostriamo niente: il canale resta
+    // consultabile.
+    if (info == null) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        Expanded(child: Text(l10n.subscribersCount(info.subscriberCount))),
+        if (info.isSubscribed)
+          OutlinedButton(
+            onPressed: () => unawaited(_toggle(context, ref)),
+            child: Text(l10n.unfollow),
+          )
+        else
+          FilledButton(
+            onPressed: () => unawaited(_toggle(context, ref)),
+            child: Text(l10n.follow),
+          ),
+      ],
     );
   }
 }
