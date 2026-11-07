@@ -11,7 +11,7 @@ class TopicsRemoteDataSource {
     final rows = await _client
         .from('topics')
         .select(topicColumns)
-        .order('name');
+        .order('name', ascending: true);
     return rows.map((row) => TopicDto.fromJson(row).toEntity()).toList();
   }
 }
