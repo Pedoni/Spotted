@@ -1,0 +1,8 @@
+{
+  "@@locale": "it",
+  "appTitle": "Spotted",
+  "homeTitle": "Home",
+  "homePlaceholder": "Qui compariranno gli spot dei tuoi canali.",
+  "configErrorTitle": "Configurazione mancante",
+  "configErrorBody": "Avvia l'app con --dart-define-from-file=.env, dopo aver inserito SUPABASE_URL e SUPABASE_ANON_KEY."
+}
