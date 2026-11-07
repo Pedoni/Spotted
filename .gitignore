@@ -178,3 +178,7 @@ app.*.symbols
 # Generated code
 *.g.dart
 lib/l10n/app_localizations*.dart
+
+# Supabase CLI
+supabase/.temp/
+supabase/.branches/

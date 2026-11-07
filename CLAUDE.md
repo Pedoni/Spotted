@@ -6,7 +6,7 @@ Backend: Supabase (Postgres + Auth + RLS). Per ora esiste un solo ambiente (prod
 
 ## Git workflow (gitflow)
 
-- `master`: solo codice rilasciato. Ci si arriva chiudendo `develop` a ogni release (tag `vX.Y.Z`).
+- `master`: solo codice rilasciato. Ci si arriva chiudendo `develop` a ogni release (tag `X.Y.Z`, senza `v`, es. `0.1.0`).
 - `develop`: branch principale di sviluppo. Tutti gli altri branch partono da qui e vi ritornano via PR.
 - Branch di lavoro, sempre da `develop`: `feature/<nome>`, `fix/<nome>`, `chore/<nome>`, `refactor/<nome>`, `docs/<nome>`, `test/<nome>` (kebab-case).
 - Non committare mai direttamente su `master` o `develop`.
@@ -58,13 +58,18 @@ lib/
 
 ## Database (Supabase)
 
-Schema di riferimento: `supabase/migrations/20261107120000_baseline.sql` (ricostruito, NON da eseguire su prod). Ogni cambio di schema è una nuova migrazione in `supabase/migrations/`; niente modifiche manuali dalla dashboard. Con un solo ambiente: provare le migrazioni in transazione (`begin; ...; rollback;`) o con Supabase locale (`supabase start`).
+Schema di riferimento: `supabase/migrations/20261107120000_baseline.sql` (stato di prod prima delle migrazioni successive, ricostruito, NON da eseguire su prod). Le migrazioni successive sono già applicate su prod. Ogni cambio di schema è una nuova migrazione in `supabase/migrations/`; niente modifiche manuali dalla dashboard. Con un solo ambiente: provare le migrazioni in transazione (`begin; ...; rollback;`) o con Supabase locale (`supabase start`).
 
 Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, comment_likes, subscriptions, chats, messages, reports. RLS attiva ovunque.
 
 ### Modello di anonimato (decisioni di prodotto)
 
-- Gli spot sono anonimi. Vede l'autore **solo il proprietario del canale**. `spots.author_id` non è leggibile dai client (grant per colonna); i propri spot si leggono con l'RPC `my_spots()`. Nel client non usare mai `select()` senza colonne esplicite.
+- Gli spot sono anonimi. Vede l'autore **solo il proprietario del canale**. `spots.author_id` non è leggibile dai client (grant per colonna); i propri spot si leggono con l'RPC `my_spots()`.
+- Il **proprietario di un canale non è mostrato** a nessuno: `channels.owner_id` non è leggibile dai client; i propri canali si leggono con `my_channels()`.
+- `profiles`: i client leggono solo `id`, `username`, `created_at`; nome, cognome e data di nascita solo con `my_profile()`.
+- Nel client non usare mai `select()` senza colonne esplicite su `spots`, `channels`, `profiles`, e non chiedere colonne nascoste in `returning` né nei filtri (`where`).
+- Le policy RLS che usano colonne nascoste (es. `author_id`, `owner_id`) funzionano comunque: verificato con un dry run su prod.
+- I **topic** sono un elenco fisso: si aggiungono solo con una migrazione (i client non possono scriverli).
 - I **commenti non sono anonimi**. Se l'autore dello spot commenta il proprio spot, il commento appare come "Autore del post" senza nome.
 - **Chat**: nasce solo da uno spot. L'autore dello spot può avviare una chat con chi ha commentato; l'autore vede l'identità dell'altro, l'altro non vede quella dell'autore finché l'autore non preme "Rivela identità". Non esistono chat libere tra utenti.
 - **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
@@ -73,7 +78,6 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
 - `chats` e `messages` oggi espongono gli id dei partecipanti: serve ridisegnare `chats` (`spot_id`, `author_id`, `commenter_id`, `identity_revealed`, unico su `(spot_id, commenter_id)`) e leggere via RPC/view che nascondono l'identità finché non rivelata. Nello schema attuale `chats` ha `user_a_id < user_b_id`.
-- `profiles` espone nome, cognome e data di nascita a tutti.
 - `user_id` esposto in `spot_likes`, `comment_likes`, `subscriptions`.
 - Mancano la moderazione degli spot, i trigger `updated_at`, un vincolo anti-duplicati sulle segnalazioni.
 - `handle_new_user` fallisce se lo username è duplicato o non valido: validare prima del signup.
@@ -85,7 +89,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | Versione | Contenuto |
 |---|---|
 | 0.1.0 | Fondamenta (architettura, Supabase, tema, router, CI) e auth (registrazione con username, login, logout) |
-| 0.2.0 | Canali: crea, elenca, cerca per topic, iscrizione; restrizione di `profiles` |
+| 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio; iscrizione |
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico |
 | 0.5.0 | Strumenti del proprietario (vede gli autori, nasconde/rimuove spot) e segnalazioni |
