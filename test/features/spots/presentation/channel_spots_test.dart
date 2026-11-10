@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
@@ -75,5 +76,63 @@ void main() {
 
     expect(spots.listCalls.map((c) => c.offset), [0, 20]);
     expect(find.text('Spot 29'), findsOneWidget);
+  });
+
+  testWidgets('mostra like e commenti di ogni spot', (tester) async {
+    await openChannel(
+      tester,
+      FakeSpotsRepository(
+        spots: [
+          makeSpot(
+            1,
+            stats: const SpotStats(
+              likeCount: 7,
+              commentCount: 3,
+              likedByMe: true,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    expect(find.text('7'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.byIcon(Icons.favorite), findsOneWidget);
+  });
+
+  testWidgets('toccando il cuore il like si aggiorna subito', (tester) async {
+    final spots = FakeSpotsRepository(
+      spots: [makeSpot(1, stats: const SpotStats(likeCount: 7))],
+    );
+    await openChannel(tester, spots);
+
+    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.pumpAndSettle();
+
+    expect(find.text('8'), findsOneWidget);
+    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(spots.likeCalls.single, (spotId: 's1', liked: true));
+
+    await tester.tap(find.byIcon(Icons.favorite));
+    await tester.pumpAndSettle();
+
+    expect(find.text('7'), findsOneWidget);
+    expect(spots.likeCalls.last, (spotId: 's1', liked: false));
+  });
+
+  testWidgets("like rifiutato: torna com'era e c'è il messaggio", (
+    tester,
+  ) async {
+    final spots = FakeSpotsRepository(
+      spots: [makeSpot(1, stats: const SpotStats(likeCount: 7))],
+    )..likeError = const NetworkFailure();
+    await openChannel(tester, spots);
+
+    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.pumpAndSettle();
+
+    expect(find.text('7'), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
   });
 }

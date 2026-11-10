@@ -25,6 +25,11 @@ class SpotsRepositoryImpl implements SpotsRepository {
   }
 
   @override
+  Future<Spot> getSpot(String spotId) {
+    return guardFailures(() => _dataSource.getSpot(spotId));
+  }
+
+  @override
   Future<List<MySpot>> getMySpots({required int offset, required int limit}) {
     return guardFailures(
       () => _dataSource.getMySpots(offset: offset, limit: limit),
@@ -49,5 +54,12 @@ class SpotsRepositoryImpl implements SpotsRepository {
   @override
   Future<void> deleteSpot(String spotId) {
     return guardFailures(() => _dataSource.deleteSpot(spotId));
+  }
+
+  @override
+  Future<void> setSpotLiked(String spotId, {required bool liked}) {
+    return guardFailures(
+      () => _dataSource.setSpotLiked(spotId, liked: liked),
+    );
   }
 }
