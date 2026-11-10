@@ -75,6 +75,7 @@ class MySpotsPage extends ConsumerWidget {
                   final item = paged.items[index];
                   return SpotCard(
                     spot: item.spot,
+                    onTap: () => context.push(AppRoutes.spotPath(item.spot.id)),
                     channelName: item.channelName,
                     onChannelTap: () =>
                         context.push(AppRoutes.channelPath(item.channelSlug)),

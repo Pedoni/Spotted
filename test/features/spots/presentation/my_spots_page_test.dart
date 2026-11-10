@@ -47,6 +47,19 @@ void main() {
     expect(find.text('Pubblica uno spot'), findsOneWidget);
   });
 
+  testWidgets('toccando uno spot si apre con i suoi commenti', (tester) async {
+    await openMySpots(tester, FakeSpotsRepository(mine: [makeMySpot(1)]));
+
+    await tester.tap(find.text('Spot 1'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Scrivi un commento'), findsOneWidget);
+    expect(
+      find.text('Ancora nessun commento. Scrivi il primo!'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('cancella dopo la conferma', (tester) async {
     final spots = FakeSpotsRepository(mine: [makeMySpot(1), makeMySpot(2)]);
     await openMySpots(tester, spots);
