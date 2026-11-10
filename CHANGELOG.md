@@ -3,6 +3,19 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.3.0] - 2026-11-10
+
+### Aggiunto
+- Spot: feed di ogni canale (dal più recente, scorrimento infinito) nella pagina del canale.
+- Pubblicazione di spot anonimi in qualsiasi canale, con titolo (max 100 caratteri) e testo (max 2000).
+- "I miei spot" nel profilo, con il canale di ogni spot e cancellazione dopo conferma.
+
+### Modificato
+- Gli spot non si modificano: l'autore può solo cancellarli.
+- Database: l'insert sugli spot accetta solo le colonne scrivibili, vincoli di lunghezza su titolo e testo, nuovo RPC `my_spots_page(limit, offset)`.
+- Lo stato delle liste paginate è un `PagedList<T>` condiviso (canali, spot, miei spot).
+- Un vincolo del database violato (es. testo troppo lungo) ora mostra "Controlla i dati inseriti".
+
 ## [0.2.0] - 2026-11-08
 
 ### Aggiunto

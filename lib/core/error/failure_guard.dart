@@ -34,6 +34,8 @@ Failure _fromPostgrest(PostgrestException e) {
   return switch (code) {
     // unique_violation
     '23505' => ConflictFailure(message),
+    // check_violation (es. lunghezza di titolo o testo)
+    '23514' => ValidationFailure(message),
     // insufficient_privilege (anche violazioni di RLS)
     '42501' => PermissionFailure(message),
     // PostgREST: JWT scaduto o non valido

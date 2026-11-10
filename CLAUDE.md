@@ -43,10 +43,10 @@ lib/
 - State management e DI: **Riverpod** (`flutter_riverpod`, `riverpod_annotation` con `riverpod_generator`, annotazioni `@riverpod`). Niente `get_it`.
 - Routing: `go_router` (`appRouterProvider`), rotte in `AppRoutes`. Redirect al login senza sessione. Barra in basso (Home, Canali, Profilo) con `StatefulShellRoute`; le pagine di dettaglio/creazione sono rotte a schermo intero aperte con `context.push`.
 - Modelli: entità del domain con `equatable`. I dati di Supabase passano da **DTO** in `data/models` con `json_serializable` (`XxxDto.fromJson(...).toEntity()`; per gli insert un DTO con `toJson`). I datasource non costruiscono mappe a mano né fanno cast. `freezed` non è usato: la versione stabile è incompatibile con `riverpod_generator` (analyzer); rivalutare in futuro.
-- Errori: `Failure` (sealed, `lib/core/error/failure.dart`). I repository lanciano un `Failure`: `guardFailures` traduce rete e timeout (`NetworkFailure`), `23505` (`ConflictFailure`), `42501` (`PermissionFailure`), JWT scaduto (`SessionExpiredFailure`), risposte con tipi inattesi (`UnknownFailure`). `AsyncValue` lo porta alla UI, `failureMessage` lo traduce in testo, `ErrorView` mostra l'errore con "Riprova". Un JWT scaduto mostra solo il messaggio: il logout automatico lo gestisce il client Supabase quando non riesce a rinnovare il token (non verificato).
+- Errori: `Failure` (sealed, `lib/core/error/failure.dart`). I repository lanciano un `Failure`: `guardFailures` traduce rete e timeout (`NetworkFailure`), `23505` (`ConflictFailure`), `23514` (`ValidationFailure`), `42501` (`PermissionFailure`), JWT scaduto (`SessionExpiredFailure`), risposte con tipi inattesi (`UnknownFailure`). `AsyncValue` lo porta alla UI, `failureMessage` lo traduce in testo, `ErrorView` mostra l'errore con "Riprova". Un JWT scaduto mostra solo il messaggio: il logout automatico lo gestisce il client Supabase quando non riesce a rinnovare il token (non verificato).
 - Timeout: tutte le richieste Supabase passano da `TimeoutClient` (15 s), che lancia `TimeoutException`.
 - Riverpod 3 riprova da solo i provider che falliscono: disattivato con `retry: noRetry` nel `ProviderScope` (anche nei test), così l'errore arriva subito alla UI.
-- Paginazione: infinite scroll, 20 elementi, `range()` di Supabase ordinato per `created_at` (vedi `ChannelsFeed`). Se il caricamento di una pagina fallisce si smette di caricare; il pull-to-refresh riparte. Nessuna cache offline.
+- Paginazione: infinite scroll, 20 elementi, `range()` di Supabase ordinato per `created_at` (vedi `ChannelsFeed`). Lo stato è `PagedList<T>` (`lib/core/pagination`); i feed paginati (`ChannelsFeed`, `ChannelSpotsFeed`, `MySpotsFeed`) condividono lo schema con `_generation` contro le risposte in ritardo. Se il caricamento di una pagina fallisce si smette di caricare; il pull-to-refresh riparte. Nessuna cache offline.
 - Localizzazione: `flutter gen-l10n` (automatico con `flutter pub get`), solo italiano per ora. Testi sempre da `AppLocalizations`.
 - Tema: Material 3, chiaro e scuro, `ColorScheme.fromSeed`.
 - Lint: `very_good_analysis` (`public_member_api_docs` e `one_member_abstracts` disattivati).
@@ -72,6 +72,7 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 - `profiles`: i client leggono solo `id`, `username`, `created_at`; nome, cognome e data di nascita solo con `my_profile()`.
 - Nel client non usare mai `select()` senza colonne esplicite su `spots`, `channels`, `profiles`, e non chiedere colonne nascoste in `returning` né nei filtri (`where`).
 - Le policy RLS che usano colonne nascoste (es. `author_id`, `owner_id`) funzionano comunque: verificato con un dry run su prod.
+- **Spot**: l'insert dai client ammette solo `author_id`, `channel_id`, `title`, `content` (`status` e date le decide il database); gli spot **non si modificano** (nessuna policy né grant di update), l'autore può solo cancellarli. Titolo 1-100 e testo 1-2000 caratteri (check del DB e `SpotValidators`). Il feed di un canale legge `spots` con colonne esplicite; i propri spot, con nome e slug del canale, si leggono con l'RPC `my_spots_page(p_limit, p_offset)`.
 - I **topic** sono un elenco fisso: si aggiungono solo con una migrazione (i client non possono scriverli).
 - **Iscrizioni**: la tabella `subscriptions` non è accessibile ai client (nessun grant né policy). Si usano solo le funzioni `subscribe_to_channel`, `unsubscribe_from_channel`, `channel_subscription_info` (iscritti e stato dell'utente) e `my_subscribed_channels` (max 100, senza `owner_id`): nessuno vede chi segue cosa.
 - I **commenti non sono anonimi**. Se l'autore dello spot commenta il proprio spot, il commento appare come "Autore del post" senza nome.
@@ -94,7 +95,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 |---|---|
 | 0.1.0 | Fondamenta (architettura, Supabase, tema, router, CI) e auth (registrazione con username, login, logout) |
 | 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio, profilo, iscrizione con conteggio e Home con i canali seguiti (fatto) |
-| 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" |
+| 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" (fatto) |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico |
 | 0.5.0 | Strumenti del proprietario (vede gli autori, nasconde/rimuove spot) e segnalazioni |
 | 0.6.0 | Chat con rivelazione dell'identità (migrazione di sicurezza su `chats`/`messages`) |

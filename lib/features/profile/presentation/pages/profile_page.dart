@@ -40,6 +40,12 @@ class ProfilePage extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.myChannels),
             ),
             ListTile(
+              leading: const Icon(Icons.edit_note),
+              title: Text(l10n.mySpotsTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(AppRoutes.mySpots),
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: Text(l10n.logout),
               onTap: () =>

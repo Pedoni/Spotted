@@ -152,6 +152,6 @@ void main() {
 
     expect(find.text('Il canale di Pisa'), findsOneWidget);
     expect(find.text('Università'), findsOneWidget);
-    expect(find.text('Qui compariranno gli spot del canale.'), findsOneWidget);
+    expect(find.text('Ancora nessuno spot. Scrivi il primo!'), findsOneWidget);
   });
 }

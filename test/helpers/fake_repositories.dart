@@ -5,6 +5,9 @@ import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
+import 'package:spotted/features/spots/domain/entities/my_spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/repositories/spots_repository.dart';
 import 'package:spotted/features/subscriptions/domain/entities/subscription_info.dart';
 import 'package:spotted/features/subscriptions/domain/repositories/subscriptions_repository.dart';
 import 'package:spotted/features/topics/domain/entities/topic.dart';
@@ -219,5 +222,104 @@ class FakeSubscriptionsRepository implements SubscriptionsRepository {
   Future<List<Channel>> getMySubscribedChannels() async {
     if (listError != null) throw listError!;
     return channels.where((c) => subscribedIds.contains(c.id)).toList();
+  }
+}
+
+Spot makeSpot(int i, {String channelId = 'c1', String? title}) {
+  return Spot(
+    id: 's$i',
+    channelId: channelId,
+    title: title ?? 'Spot $i',
+    content: 'Testo dello spot $i',
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+  );
+}
+
+MySpot makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
+  return MySpot(
+    spot: makeSpot(i),
+    channelName: channelName,
+    channelSlug: 'canale-1',
+  );
+}
+
+/// Spot in memoria: [spots] sono quelli dei canali, [mine] quelli dell'utente.
+/// Se [gate] è impostato, le pagine successive alla prima restano in attesa
+/// finché non si completa.
+class FakeSpotsRepository implements SpotsRepository {
+  FakeSpotsRepository({List<Spot>? spots, List<MySpot>? mine})
+    : spots = spots ?? [],
+      mine = mine ?? [];
+
+  List<Spot> spots;
+  List<MySpot> mine;
+  Failure? listError;
+  Failure? createError;
+  Failure? deleteError;
+  Completer<void>? gate;
+
+  final listCalls = <({String channelId, int offset, int limit})>[];
+  final mineCalls = <({int offset, int limit})>[];
+  final createCalls = <Map<String, String>>[];
+  final deleteCalls = <String>[];
+
+  @override
+  Future<List<Spot>> getChannelSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    listCalls.add((channelId: channelId, offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    if (offset > 0 && gate != null) await gate!.future;
+    return spots
+        .where((s) => s.channelId == channelId)
+        .skip(offset)
+        .take(limit)
+        .toList();
+  }
+
+  @override
+  Future<List<MySpot>> getMySpots({
+    required int offset,
+    required int limit,
+  }) async {
+    mineCalls.add((offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    if (offset > 0 && gate != null) await gate!.future;
+    return mine.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<Spot> createSpot({
+    required String channelId,
+    required String title,
+    required String content,
+  }) async {
+    createCalls.add({
+      'channelId': channelId,
+      'title': title,
+      'content': content,
+    });
+    if (createError != null) throw createError!;
+    final spot = Spot(
+      id: 'new-${createCalls.length}',
+      channelId: channelId,
+      title: title,
+      content: content,
+      createdAt: DateTime(2026),
+    );
+    spots = [spot, ...spots];
+    return spot;
+  }
+
+  @override
+  Future<void> deleteSpot(String spotId) async {
+    deleteCalls.add(spotId);
+    if (deleteError != null) throw deleteError!;
+    final before = mine.length + spots.length;
+    mine = mine.where((m) => m.spot.id != spotId).toList();
+    spots = spots.where((s) => s.id != spotId).toList();
+    if (mine.length + spots.length == before) throw const NotFoundFailure();
   }
 }
