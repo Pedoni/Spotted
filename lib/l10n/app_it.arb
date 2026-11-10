@@ -68,7 +68,6 @@
       }
     }
   },
-  "channelSpotsPlaceholder": "Qui compariranno gli spot del canale.",
   "myChannelsTitle": "I miei canali",
   "noMyChannels": "Non hai ancora creato canali",
   "profileTitle": "Profilo",
@@ -90,5 +89,20 @@
         "type": "int"
       }
     }
-  }
+  },
+  "publishSpot": "Pubblica uno spot",
+  "publishSpotButton": "Pubblica",
+  "spotTitleLabel": "Titolo",
+  "spotContentLabel": "Testo",
+  "spotAnonymousNote": "Lo spot è anonimo: solo il proprietario del canale può vedere chi lo ha scritto.",
+  "spotPublished": "Spot pubblicato",
+  "noSpotsInChannel": "Ancora nessuno spot. Scrivi il primo!",
+  "loadMoreSpotsError": "Impossibile caricare altri spot",
+  "mySpotsTitle": "I miei spot",
+  "noMySpots": "Non hai ancora pubblicato spot",
+  "deleteSpot": "Cancella",
+  "deleteSpotTitle": "Cancellare lo spot?",
+  "deleteSpotBody": "L'operazione non si può annullare.",
+  "spotDeleted": "Spot cancellato",
+  "cancel": "Annulla"
 }

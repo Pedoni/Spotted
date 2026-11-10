@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
+import 'package:spotted/features/spots/presentation/widgets/channel_spots_sliver.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -16,7 +18,6 @@ class ChannelDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final channel = ref.watch(channelDetailProvider(slug));
     final topics = ref.watch(topicsProvider).value ?? const [];
 
@@ -34,37 +35,46 @@ class ChannelDetailPage extends ConsumerWidget {
               .map((t) => t.name)
               .firstOrNull;
           final theme = Theme.of(context);
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Text(channel.name, style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (topicName != null) Chip(label: Text(topicName)),
-                  if (channel.place != null)
-                    Chip(
-                      avatar: const Icon(Icons.place_outlined, size: 18),
-                      label: Text(channel.place!),
-                    ),
-                ],
-              ),
-              if (channel.description != null) ...[
-                const SizedBox(height: 16),
-                Text(channel.description!),
-              ],
-              const SizedBox(height: 24),
-              _SubscriptionRow(channelId: channel.id),
-              const SizedBox(height: 32),
-              Text(
-                l10n.channelSpotsPlaceholder,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline,
+          return RefreshIndicator(
+            onRefresh: () =>
+                ref.refresh(channelSpotsFeedProvider(channel.id).future),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(24),
+                  sliver: SliverList.list(
+                    children: [
+                      Text(channel.name, style: theme.textTheme.headlineSmall),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (topicName != null) Chip(label: Text(topicName)),
+                          if (channel.place != null)
+                            Chip(
+                              avatar: const Icon(
+                                Icons.place_outlined,
+                                size: 18,
+                              ),
+                              label: Text(channel.place!),
+                            ),
+                        ],
+                      ),
+                      if (channel.description != null) ...[
+                        const SizedBox(height: 16),
+                        Text(channel.description!),
+                      ],
+                      const SizedBox(height: 24),
+                      _SubscriptionRow(channelId: channel.id),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                ChannelSpotsSliver(channelId: channel.id),
+                // Spazio per non coprire l'ultimo spot con il pulsante.
+                const SliverToBoxAdapter(child: SizedBox(height: 88)),
+              ],
+            ),
           );
         },
       ),
