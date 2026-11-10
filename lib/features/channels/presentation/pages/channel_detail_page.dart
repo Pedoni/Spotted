@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
@@ -18,11 +20,20 @@ class ChannelDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final channel = ref.watch(channelDetailProvider(slug));
     final topics = ref.watch(topicsProvider).value ?? const [];
 
     return Scaffold(
       appBar: AppBar(title: Text(channel.value?.name ?? '')),
+      floatingActionButton: channel.hasValue
+          ? FloatingActionButton.extended(
+              onPressed: () =>
+                  context.push(AppRoutes.spotNewPath(channel.value!.slug)),
+              icon: const Icon(Icons.edit_outlined),
+              label: Text(l10n.publishSpot),
+            )
+          : null,
       body: channel.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => ErrorView(

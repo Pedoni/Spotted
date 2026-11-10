@@ -5,8 +5,10 @@ abstract final class AppRoutes {
   static const channels = '/channels';
   static const channelNew = '/channels/new';
   static const channelDetail = '/c/:slug';
+  static const spotNew = '/c/:slug/spot/new';
   static const profile = '/profile';
   static const myChannels = '/profile/channels';
 
   static String channelPath(String slug) => '/c/$slug';
+  static String spotNewPath(String slug) => '/c/$slug/spot/new';
 }

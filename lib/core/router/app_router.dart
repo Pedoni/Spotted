@@ -12,6 +12,7 @@ import 'package:spotted/features/channels/presentation/pages/create_channel_page
 import 'package:spotted/features/channels/presentation/pages/my_channels_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
+import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
 
 part 'app_router.g.dart';
 
@@ -74,6 +75,11 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.channelDetail,
         builder: (context, state) =>
             ChannelDetailPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: AppRoutes.spotNew,
+        builder: (context, state) =>
+            CreateSpotPage(slug: state.pathParameters['slug']!),
       ),
       GoRoute(
         path: AppRoutes.myChannels,
