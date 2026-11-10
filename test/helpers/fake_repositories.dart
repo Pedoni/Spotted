@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
+import 'package:spotted/features/comments/domain/entities/comment.dart';
+import 'package:spotted/features/comments/domain/repositories/comments_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
 import 'package:spotted/features/spots/domain/entities/my_spot.dart';
@@ -347,5 +349,97 @@ class FakeSpotsRepository implements SpotsRepository {
     mine = mine.where((m) => m.spot.id != spotId).toList();
     spots = spots.where((s) => s.id != spotId).toList();
     if (mine.length + spots.length == before) throw const NotFoundFailure();
+  }
+}
+
+Comment makeComment(
+  int i, {
+  String spotId = 's1',
+  String? content,
+  String? authorUsername = 'luigi',
+  bool isSpotAuthor = false,
+  bool isMine = false,
+  int likeCount = 0,
+  bool likedByMe = false,
+}) {
+  return Comment(
+    id: 'k$i',
+    spotId: spotId,
+    content: content ?? 'Commento $i',
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+    authorUsername: isSpotAuthor ? null : authorUsername,
+    isSpotAuthor: isSpotAuthor,
+    isMine: isMine,
+    likeCount: likeCount,
+    likedByMe: likedByMe,
+  );
+}
+
+/// Commenti in memoria. Se [gate] è impostato, le pagine successive alla prima
+/// restano in attesa finché non si completa.
+class FakeCommentsRepository implements CommentsRepository {
+  FakeCommentsRepository({List<Comment>? comments}) : comments = comments ?? [];
+
+  List<Comment> comments;
+  Failure? listError;
+  Failure? addError;
+  Failure? deleteError;
+  Failure? likeError;
+  Completer<void>? gate;
+
+  final listCalls = <({String spotId, int offset, int limit})>[];
+  final addCalls = <({String spotId, String content})>[];
+  final deleteCalls = <String>[];
+  final likeCalls = <({String commentId, bool liked})>[];
+
+  @override
+  Future<List<Comment>> getSpotComments({
+    required String spotId,
+    required int offset,
+    required int limit,
+  }) async {
+    listCalls.add((spotId: spotId, offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    if (offset > 0 && gate != null) await gate!.future;
+    return comments
+        .where((c) => c.spotId == spotId)
+        .skip(offset)
+        .take(limit)
+        .toList();
+  }
+
+  @override
+  Future<Comment> addComment({
+    required String spotId,
+    required String content,
+  }) async {
+    addCalls.add((spotId: spotId, content: content));
+    if (addError != null) throw addError!;
+    final comment = Comment(
+      id: 'new-${addCalls.length}',
+      spotId: spotId,
+      content: content,
+      createdAt: DateTime(2026),
+      authorUsername: 'mario_88',
+      isSpotAuthor: false,
+      isMine: true,
+    );
+    comments = [comment, ...comments];
+    return comment;
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    deleteCalls.add(commentId);
+    if (deleteError != null) throw deleteError!;
+    final before = comments.length;
+    comments = comments.where((c) => c.id != commentId).toList();
+    if (comments.length == before) throw const NotFoundFailure();
+  }
+
+  @override
+  Future<void> setCommentLiked(String commentId, {required bool liked}) async {
+    likeCalls.add((commentId: commentId, liked: liked));
+    if (likeError != null) throw likeError!;
   }
 }

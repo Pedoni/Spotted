@@ -82,3 +82,25 @@ Map<String, dynamic> spotRow(
     'liked_by_me': ?likedByMe,
   };
 }
+
+Map<String, dynamic> commentRow(
+  String id, {
+  String? content,
+  String? authorUsername = 'luigi',
+  bool isSpotAuthor = false,
+  bool isMine = false,
+  int likeCount = 0,
+  bool likedByMe = false,
+}) {
+  return {
+    'id': id,
+    'spot_id': 's1',
+    'content': content ?? 'Commento $id',
+    'created_at': '2026-01-01T10:00:00+00:00',
+    'author_username': isSpotAuthor ? null : authorUsername,
+    'is_spot_author': isSpotAuthor,
+    'is_mine': isMine,
+    'like_count': likeCount,
+    'liked_by_me': likedByMe,
+  };
+}
