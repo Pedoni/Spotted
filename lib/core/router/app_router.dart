@@ -13,6 +13,7 @@ import 'package:spotted/features/channels/presentation/pages/my_channels_page.da
 import 'package:spotted/features/home/presentation/home_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
+import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
 
 part 'app_router.g.dart';
 
@@ -84,6 +85,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.myChannels,
         builder: (context, state) => const MyChannelsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.mySpots,
+        builder: (context, state) => const MySpotsPage(),
       ),
       GoRoute(
         path: AppRoutes.login,
