@@ -1,10 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 
 part 'spot_dto.g.dart';
 
-/// Colonne di `spots` leggibili dai client. `author_id` è escluso di
-/// proposito: gli spot sono anonimi.
+/// Colonne di `spots` leggibili dai client (usate nel `returning` di un
+/// insert). `author_id` è escluso di proposito: gli spot sono anonimi.
 const spotColumns = 'id, channel_id, title, content, created_at';
 
 @JsonSerializable(createToJson: false, fieldRename: FieldRename.snake)
@@ -15,6 +16,9 @@ class SpotDto {
     required this.title,
     required this.content,
     required this.createdAt,
+    this.likeCount = 0,
+    this.commentCount = 0,
+    this.likedByMe = false,
   });
 
   factory SpotDto.fromJson(Map<String, dynamic> json) =>
@@ -26,11 +30,25 @@ class SpotDto {
   final String content;
   final DateTime createdAt;
 
+  /// Assenti nella riga di un insert (uno spot appena creato non ha né like né
+  /// commenti).
+  @JsonKey(defaultValue: 0)
+  final int likeCount;
+  @JsonKey(defaultValue: 0)
+  final int commentCount;
+  @JsonKey(defaultValue: false)
+  final bool likedByMe;
+
   Spot toEntity() => Spot(
     id: id,
     channelId: channelId,
     title: title,
     content: content,
     createdAt: createdAt,
+    stats: SpotStats(
+      likeCount: likeCount,
+      commentCount: commentCount,
+      likedByMe: likedByMe,
+    ),
   );
 }

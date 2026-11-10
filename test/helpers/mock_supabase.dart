@@ -63,12 +63,22 @@ Map<String, dynamic> channelRow(
   };
 }
 
-Map<String, dynamic> spotRow(String id, {String? title, String? content}) {
+Map<String, dynamic> spotRow(
+  String id, {
+  String? title,
+  String? content,
+  int? likeCount,
+  int? commentCount,
+  bool? likedByMe,
+}) {
   return {
     'id': id,
     'channel_id': 'c1',
     'title': title ?? 'Spot $id',
     'content': content ?? 'Testo $id',
     'created_at': '2026-01-01T10:00:00+00:00',
+    'like_count': ?likeCount,
+    'comment_count': ?commentCount,
+    'liked_by_me': ?likedByMe,
   };
 }

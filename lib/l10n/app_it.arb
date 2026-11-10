@@ -104,5 +104,7 @@
   "deleteSpotTitle": "Cancellare lo spot?",
   "deleteSpotBody": "L'operazione non si può annullare.",
   "spotDeleted": "Spot cancellato",
-  "cancel": "Annulla"
+  "cancel": "Annulla",
+  "like": "Mi piace",
+  "unlike": "Non mi piace più"
 }

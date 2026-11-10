@@ -7,6 +7,7 @@ import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
 import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 import 'package:spotted/features/spots/domain/repositories/spots_repository.dart';
 import 'package:spotted/features/subscriptions/domain/entities/subscription_info.dart';
 import 'package:spotted/features/subscriptions/domain/repositories/subscriptions_repository.dart';
@@ -225,13 +226,19 @@ class FakeSubscriptionsRepository implements SubscriptionsRepository {
   }
 }
 
-Spot makeSpot(int i, {String channelId = 'c1', String? title}) {
+Spot makeSpot(
+  int i, {
+  String channelId = 'c1',
+  String? title,
+  SpotStats stats = const SpotStats(),
+}) {
   return Spot(
     id: 's$i',
     channelId: channelId,
     title: title ?? 'Spot $i',
     content: 'Testo dello spot $i',
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+    stats: stats,
   );
 }
 
@@ -256,8 +263,10 @@ class FakeSpotsRepository implements SpotsRepository {
   Failure? listError;
   Failure? createError;
   Failure? deleteError;
+  Failure? likeError;
   Completer<void>? gate;
 
+  final likeCalls = <({String spotId, bool liked})>[];
   final listCalls = <({String channelId, int offset, int limit})>[];
   final mineCalls = <({int offset, int limit})>[];
   final createCalls = <Map<String, String>>[];
@@ -277,6 +286,23 @@ class FakeSpotsRepository implements SpotsRepository {
         .skip(offset)
         .take(limit)
         .toList();
+  }
+
+  @override
+  Future<Spot> getSpot(String spotId) async {
+    return [
+      ...spots,
+      ...mine.map((m) => m.spot),
+    ].firstWhere(
+      (s) => s.id == spotId,
+      orElse: () => throw const NotFoundFailure(),
+    );
+  }
+
+  @override
+  Future<void> setSpotLiked(String spotId, {required bool liked}) async {
+    likeCalls.add((spotId: spotId, liked: liked));
+    if (likeError != null) throw likeError!;
   }
 
   @override

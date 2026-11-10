@@ -6,6 +6,7 @@ import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/spots/data/datasources/spots_remote_data_source.dart';
 import 'package:spotted/features/spots/data/models/spot_dto.dart';
 import 'package:spotted/features/spots/data/repositories/spots_repository_impl.dart';
+import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 
 import '../../../helpers/mock_supabase.dart';
 
@@ -26,8 +27,30 @@ void main() {
   }
 
   group('getChannelSpots', () {
-    test('legge le righe e le converte in entità', () async {
-      respondWith([spotRow('1', title: 'Ciao', content: 'Mondo')]);
+    test("chiama l'RPC channel_spots_page con canale e paginazione", () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(channelId: 'c1', offset: 40, limit: 20);
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/channel_spots_page');
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_channel_id': 'c1',
+        'p_limit': 20,
+        'p_offset': 40,
+      });
+    });
+
+    test('legge gli spot con i conteggi', () async {
+      respondWith([
+        spotRow(
+          '1',
+          title: 'Ciao',
+          content: 'Mondo',
+          likeCount: 3,
+          commentCount: 2,
+          likedByMe: true,
+        ),
+      ]);
 
       final spots = await dataSource.getChannelSpots(
         channelId: 'c1',
@@ -39,33 +62,46 @@ void main() {
       expect(spots.single.content, 'Mondo');
       expect(spots.single.channelId, 'c1');
       expect(spots.single.createdAt, DateTime.utc(2026, 1, 1, 10));
-    });
-
-    test('chiede solo le colonne pubbliche, mai author_id', () async {
-      respondWith(<Object>[]);
-
-      await dataSource.getChannelSpots(channelId: 'c1', offset: 0, limit: 20);
-
-      final query = supabase.lastRequest.url.queryParameters;
-      expect(query['select'], spotColumns.replaceAll(' ', ''));
-      expect(query['select'], isNot(contains('author_id')));
-      expect(supabase.lastRequest.url.path, '/rest/v1/spots');
-    });
-
-    test('filtra per canale, dal più recente, con offset e limite', () async {
-      respondWith(<Object>[]);
-
-      await dataSource.getChannelSpots(channelId: 'c1', offset: 40, limit: 20);
-
-      final query = supabase.lastRequest.url.queryParameters;
-      expect(query['channel_id'], 'eq.c1');
-      expect(query['offset'], '40');
-      expect(query['limit'], '20');
-      final order = supabase.lastRequest.url.queryParametersAll['order']!.join(
-        ',',
+      expect(
+        spots.single.stats,
+        const SpotStats(likeCount: 3, commentCount: 2, likedByMe: true),
       );
-      expect(order, contains('created_at.desc'));
-      expect(order, contains('id'));
+    });
+  });
+
+  group('getSpot', () {
+    test("chiama l'RPC spot_detail", () async {
+      respondWith([spotRow('7', likeCount: 1, commentCount: 0)]);
+
+      final spot = await dataSource.getSpot('7');
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/spot_detail');
+      expect(jsonDecode(supabase.lastRequest.body), {'p_spot_id': '7'});
+      expect(spot.id, '7');
+      expect(spot.stats.likeCount, 1);
+    });
+
+    test('spot inesistente (nessuna riga): NotFoundFailure', () async {
+      respondWith(<Object>[]);
+
+      await expectLater(
+        dataSource.getSpot('7'),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+  });
+
+  group('setSpotLiked', () {
+    test("chiama l'RPC set_spot_liked", () async {
+      respondWith(<String, dynamic>{});
+
+      await dataSource.setSpotLiked('s1', liked: true);
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/set_spot_liked');
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_spot_id': 's1',
+        'p_liked': true,
+      });
     });
   });
 
@@ -76,6 +112,9 @@ void main() {
           ...spotRow('1'),
           'channel_name': 'Spotted Pisa',
           'channel_slug': 'spotted-pisa',
+          'like_count': 5,
+          'comment_count': 1,
+          'liked_by_me': false,
         },
       ]);
 
@@ -89,6 +128,7 @@ void main() {
       expect(spots.single.channelName, 'Spotted Pisa');
       expect(spots.single.channelSlug, 'spotted-pisa');
       expect(spots.single.spot.title, 'Spot 1');
+      expect(spots.single.spot.stats.likeCount, 5);
     });
   });
 
@@ -112,6 +152,7 @@ void main() {
       final query = supabase.lastRequest.url.queryParameters;
       expect(query['select'], spotColumns.replaceAll(' ', ''));
       expect(spot.id, '9');
+      expect(spot.stats, const SpotStats());
     });
 
     test('senza sessione: AuthFailure, nessuna richiesta', () async {
