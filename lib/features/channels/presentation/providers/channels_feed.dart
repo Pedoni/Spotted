@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spotted/core/pagination/paged_list.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 
@@ -33,39 +34,7 @@ class ChannelFilter extends _$ChannelFilter {
   }
 }
 
-class PagedChannels extends Equatable {
-  const PagedChannels({
-    required this.items,
-    required this.hasMore,
-    this.isLoadingMore = false,
-    this.loadMoreFailed = false,
-  });
-
-  final List<Channel> items;
-  final bool hasMore;
-  final bool isLoadingMore;
-
-  /// L'ultimo caricamento di una pagina successiva è fallito: la UI mostra
-  /// "Riprova" invece di ritentare da sola in loop.
-  final bool loadMoreFailed;
-
-  PagedChannels copyWith({
-    List<Channel>? items,
-    bool? hasMore,
-    bool? isLoadingMore,
-    bool? loadMoreFailed,
-  }) {
-    return PagedChannels(
-      items: items ?? this.items,
-      hasMore: hasMore ?? this.hasMore,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
-    );
-  }
-
-  @override
-  List<Object?> get props => [items, hasMore, isLoadingMore, loadMoreFailed];
-}
+typedef PagedChannels = PagedList<Channel>;
 
 /// Lista paginata dei canali (infinite scroll, [channelsPageSize] per pagina).
 @riverpod
