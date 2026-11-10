@@ -10,6 +10,9 @@ abstract interface class SpotsRepository {
     required int limit,
   });
 
+  /// Un singolo spot. Lancia `NotFoundFailure` se non esiste.
+  Future<Spot> getSpot(String spotId);
+
   /// Pagina degli spot scritti dall'utente loggato, dal più recente.
   Future<List<MySpot>> getMySpots({required int offset, required int limit});
 
@@ -23,4 +26,7 @@ abstract interface class SpotsRepository {
   /// Cancella uno spot dell'utente. Lancia `NotFoundFailure` se non esiste o
   /// non è suo.
   Future<void> deleteSpot(String spotId);
+
+  /// Mette o toglie il "mi piace" dell'utente loggato.
+  Future<void> setSpotLiked(String spotId, {required bool liked});
 }

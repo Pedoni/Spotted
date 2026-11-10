@@ -3,6 +3,19 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.4.0] - 2026-11-11
+
+### Aggiunto
+- Pagina di dettaglio dello spot, aperta dal canale e da "I miei spot".
+- Commenti agli spot: con lo username dell'autore, oppure "Autore del post" senza nome se commenta chi ha scritto lo spot. Testo fino a 500 caratteri, scorrimento infinito, cancellazione dei propri commenti dopo conferma.
+- Like su spot e commenti, con conteggio; si aggiornano subito e tornano indietro se la richiesta fallisce.
+- Gli spot mostrano il numero di commenti e di like.
+
+### Modificato
+- Privacy: le tabelle `comments`, `spot_likes` e `comment_likes` non sono più accessibili ai client. Nessuno vede chi mette like e `comments.author_id` non è leggibile (confrontato con l'autore dello spot lo rivelerebbe).
+- Gli spot si leggono da funzioni del database (`channel_spots_page`, `spot_detail`, `my_spots_page`) che restituiscono anche i conteggi.
+- I commenti non si modificano: si possono solo cancellare.
+
 ## [0.3.0] - 2026-11-10
 
 ### Aggiunto

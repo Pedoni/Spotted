@@ -104,5 +104,26 @@
   "deleteSpotTitle": "Cancellare lo spot?",
   "deleteSpotBody": "L'operazione non si può annullare.",
   "spotDeleted": "Spot cancellato",
-  "cancel": "Annulla"
+  "cancel": "Annulla",
+  "like": "Mi piace",
+  "unlike": "Non mi piace più",
+  "spotTitle": "Spot",
+  "spotAuthor": "Autore del post",
+  "commentsCount": "{count, plural, =0{Nessun commento} =1{1 commento} other{{count} commenti}}",
+  "@commentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "writeComment": "Scrivi un commento",
+  "sendComment": "Invia",
+  "noComments": "Ancora nessun commento. Scrivi il primo!",
+  "loadMoreCommentsError": "Impossibile caricare altri commenti",
+  "delete": "Cancella",
+  "deleteComment": "Cancella il commento",
+  "deleteCommentTitle": "Cancellare il commento?",
+  "deleteCommentBody": "L'operazione non si può annullare.",
+  "commentDeleted": "Commento cancellato"
 }

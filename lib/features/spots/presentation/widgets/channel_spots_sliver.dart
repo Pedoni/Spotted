@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
@@ -46,7 +48,11 @@ class ChannelSpotsSliver extends ConsumerWidget {
           itemCount: paged.items.length + (paged.hasMore ? 1 : 0),
           itemBuilder: (context, index) {
             if (index < paged.items.length) {
-              return SpotCard(spot: paged.items[index]);
+              final spot = paged.items[index];
+              return SpotCard(
+                spot: spot,
+                onTap: () => context.push(AppRoutes.spotPath(spot.id)),
+              );
             }
             if (paged.loadMoreFailed) {
               return ListTile(

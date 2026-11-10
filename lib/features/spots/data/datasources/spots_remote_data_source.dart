@@ -17,19 +17,32 @@ class SpotsRemoteDataSource {
   final SupabaseClient _client;
   final String? Function() _currentUserId;
 
+  /// Usa l'RPC `channel_spots_page`: gli spot arrivano con i conteggi di like
+  /// e commenti, senza mai `author_id`.
   Future<List<Spot>> getChannelSpots({
     required String channelId,
     required int offset,
     required int limit,
   }) async {
-    final rows = await _client
-        .from('spots')
-        .select(spotColumns)
-        .eq('channel_id', channelId)
-        .order('created_at', ascending: false)
-        .order('id')
-        .range(offset, offset + limit - 1);
-    return rows.map((row) => SpotDto.fromJson(row).toEntity()).toList();
+    final rows = await _client.rpc<List<dynamic>>(
+      'channel_spots_page',
+      params: {
+        'p_channel_id': channelId,
+        'p_limit': limit,
+        'p_offset': offset,
+      },
+    );
+    return _toSpots(rows);
+  }
+
+  Future<Spot> getSpot(String spotId) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'spot_detail',
+      params: {'p_spot_id': spotId},
+    );
+    final spots = _toSpots(rows);
+    if (spots.isEmpty) throw const NotFoundFailure();
+    return spots.single;
   }
 
   /// Usa l'RPC `my_spots_page`: `author_id` non è leggibile dalla tabella.
@@ -81,4 +94,16 @@ class SpotsRemoteDataSource {
         .select('id');
     if (rows.isEmpty) throw const NotFoundFailure();
   }
+
+  Future<void> setSpotLiked(String spotId, {required bool liked}) async {
+    await _client.rpc<void>(
+      'set_spot_liked',
+      params: {'p_spot_id': spotId, 'p_liked': liked},
+    );
+  }
+
+  List<Spot> _toSpots(List<dynamic> rows) => rows
+      .cast<Map<String, dynamic>>()
+      .map((row) => SpotDto.fromJson(row).toEntity())
+      .toList();
 }
