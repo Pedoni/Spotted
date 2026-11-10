@@ -16,6 +16,15 @@ void main() {
     );
   });
 
+  test('check_violation (23514) diventa ValidationFailure', () {
+    expect(
+      guardFailures<void>(
+        () => throw const PostgrestException(message: 'check', code: '23514'),
+      ),
+      throwsA(isA<ValidationFailure>()),
+    );
+  });
+
   test('altri errori Postgrest diventano UnknownFailure', () {
     expect(
       guardFailures<void>(

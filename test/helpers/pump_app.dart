@@ -6,6 +6,7 @@ import 'package:spotted/features/auth/domain/entities/app_user.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/profile/presentation/providers/profile_providers.dart';
+import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 
@@ -20,6 +21,7 @@ Future<void> pumpApp(
   FakeTopicsRepository? topics,
   FakeProfileRepository? profile,
   FakeSubscriptionsRepository? subscriptions,
+  FakeSpotsRepository? spots,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -39,6 +41,9 @@ Future<void> pumpApp(
         ),
         subscriptionsRepositoryProvider.overrideWithValue(
           subscriptions ?? FakeSubscriptionsRepository(),
+        ),
+        spotsRepositoryProvider.overrideWithValue(
+          spots ?? FakeSpotsRepository(),
         ),
       ],
       child: const App(),

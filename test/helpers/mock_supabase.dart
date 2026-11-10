@@ -62,3 +62,13 @@ Map<String, dynamic> channelRow(
     'created_at': '2026-01-01T10:00:00+00:00',
   };
 }
+
+Map<String, dynamic> spotRow(String id, {String? title, String? content}) {
+  return {
+    'id': id,
+    'channel_id': 'c1',
+    'title': title ?? 'Spot $id',
+    'content': content ?? 'Testo $id',
+    'created_at': '2026-01-01T10:00:00+00:00',
+  };
+}
