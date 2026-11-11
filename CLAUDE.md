@@ -79,6 +79,11 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 - I **commenti non sono anonimi**. Se l'autore dello spot commenta il proprio spot, il commento appare come "Autore del post" senza nome. Per questo `comments.author_id` non è leggibile dai client (confrontato con `spots.author_id` rivelerebbe l'autore dello spot): la tabella `comments` è chiusa ai client e si usano solo `spot_comments`, `add_comment`, `delete_comment`. Testo 1-500 caratteri, non modificabile, cancellabile solo dall'autore del commento.
 - **Like**: `spot_likes` e `comment_likes` sono chiuse ai client (nessuno vede chi mette like). Si usano `set_spot_liked`, `set_comment_liked`; i conteggi e lo stato "mi piace" dell'utente arrivano con `channel_spots_page`, `spot_detail`, `my_spots_page` (spot) e `spot_comments` (commenti). Gli spot si leggono sempre da queste RPC, non da `spots`.
 - **Chat**: nasce solo da uno spot. L'autore dello spot può avviare una chat con chi ha commentato; l'autore vede l'identità dell'altro, l'altro non vede quella dell'autore finché l'autore non preme "Rivela identità". Non esistono chat libere tra utenti.
+  - `chats` (`spot_id`, `author_id`, `commenter_id`, `identity_revealed`, unica su `(spot_id, commenter_id)`) e `messages` sono chiuse ai client: si usano solo `start_chat(comment_id)` (solo l'autore dello spot, idempotente), `reveal_identity(chat_id)` (solo l'autore, **non reversibile**), `my_chats_page`, `chat_detail`, `chat_messages`, `send_message`. Chi non è l'autore dello spot riceve `42501`.
+  - Le funzioni non restituiscono mai id di utenti: al loro posto `i_am_author`, `is_mine` e `other_username` (per il commentatore è nullo finché l'identità non è rivelata). `is_chat_participant` e `visible_chats` sono interne e non chiamabili dai client.
+  - Il commentatore vede la chat solo dopo il primo messaggio dell'autore (niente chat vuote). Sugli spot rimossi non si scrivono nuovi messaggi. Messaggi 1-5000 caratteri.
+  - I messaggi si aggiornano con polling: Supabase Realtime richiede di leggere `messages` direttamente e rivelerebbe gli id. Alternativa futura: canale broadcast dedicato (0.9.0, con le notifiche).
+  - **Limite noto**: nessuna segnalazione dei messaggi, blocco o uscita dalla chat; la moderazione delle chat arriva più avanti (0.8.0).
 - **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale e nasconde i commenti; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
   - Strumenti del proprietario (feature `moderation`), tutti RPC `security definer` che per chi non è proprietario rispondono `42501`: `is_channel_owner` (i client non leggono `channels.owner_id`, quindi la UI chiede all'RPC se mostrare gli strumenti), `channel_spot_author` (solo il proprietario vede l'autore: id e username), `set_spot_status` (`published`/`hidden`/`removed`; `removed` è definitivo), `set_comment_status` (`published`/`hidden`), `channel_moderation_spots_page` (spot nascosti del canale).
   - Spot nascosto: sparisce dal feed del canale, lo vedono ancora il proprietario (dettaglio e pagina Moderazione) e l'autore (in "I miei spot", con etichetta). Commento nascosto: lo vede ancora solo il proprietario; il conteggio dei commenti ignora i nascosti. `spot_detail`, `spot_comments` e `my_spots_page` restituiscono `status`.
@@ -88,7 +93,6 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
-- `chats` e `messages` oggi espongono gli id dei partecipanti: serve ridisegnare `chats` (`spot_id`, `author_id`, `commenter_id`, `identity_revealed`, unico su `(spot_id, commenter_id)`) e leggere via RPC/view che nascondono l'identità finché non rivelata. Nello schema attuale `chats` ha `user_a_id < user_b_id`.
 - Mancano i trigger `updated_at`.
 - `handle_new_user` fallisce se lo username è duplicato o non valido: validare prima del signup.
 
@@ -103,7 +107,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" (fatto) |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico (fatto) |
 | 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
-| 0.6.0 | Chat con rivelazione dell'identità (migrazione di sicurezza su `chats`/`messages`) |
+| 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` (fatto), app (da fare) |
 | 0.7.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
 | 0.8.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
 | 0.9.0 | Rifinitura: accessibilità, notifiche, release candidate |
