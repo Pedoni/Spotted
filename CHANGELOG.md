@@ -3,6 +3,20 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.6.0] - 2026-11-11
+
+### Aggiunto
+- Chat tra l'autore di uno spot e chi lo ha commentato: l'autore la avvia dal pulsante "Chatta" sui commenti degli altri. "Le mie chat" nel Profilo e pagina della chat con i messaggi (fino a 5000 caratteri); i nuovi messaggi arrivano controllando ogni pochi secondi mentre la chat è aperta.
+- Rivelazione dell'identità: l'autore vede lo username del commentatore, mentre il commentatore vede l'autore come "Autore del post" finché l'autore non preme "Rivela identità" (con conferma, non si può annullare).
+
+### Modificato
+- Privacy: le tabelle `chats` e `messages` sono ridisegnate e chiuse ai client. Le funzioni del database non restituiscono mai gli id dei partecipanti, solo se l'utente è l'autore, se un messaggio è suo e, quando è consentito, lo username dell'altro. Chiude il debito di sicurezza su chat e messaggi.
+- Il commentatore vede la chat solo dopo il primo messaggio dell'autore; sugli spot rimossi non si scrivono nuovi messaggi.
+- Nuova funzione `is_spot_author`, che dice solo a chi chiama se è l'autore dello spot.
+
+### Note
+- Limite noto: nessuna segnalazione dei messaggi, blocco o uscita dalla chat; la moderazione delle chat arriva più avanti.
+
 ## [0.5.0] - 2026-11-11
 
 ### Aggiunto
