@@ -3,6 +3,21 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.5.0] - 2026-11-11
+
+### Aggiunto
+- Strumenti del proprietario del canale: vede chi ha scritto uno spot (username), nasconde, ripristina o rimuove gli spot, nasconde e ripristina i commenti.
+- Pagina "Moderazione" del canale (icona scudo, solo per il proprietario) con le schede "Segnalazioni" e "Spot nascosti".
+- Segnalazione di spot e commenti con motivo (spam, offensivo, odio o discriminazione, altro) e dettagli facoltativi fino a 500 caratteri. Una sola segnalazione per contenuto, non si segnalano i propri contenuti.
+- Il proprietario vede le segnalazioni aperte del suo canale e le chiude con "Risolvi" o "Ignora".
+- Gli spot nascosti hanno l'etichetta "Nascosto dal proprietario del canale" in "I miei spot".
+
+### Modificato
+- Privacy: la tabella `reports` non è più accessibile ai client. Nessuno, nemmeno il proprietario, vede chi ha segnalato.
+- Uno spot nascosto sparisce dal feed del canale; un commento nascosto lo vede solo il proprietario e il conteggio dei commenti lo ignora. Rimuovere uno spot è definitivo.
+- `spot_detail`, `spot_comments` e `my_spots_page` restituiscono anche lo stato (`status`).
+- Chiuso il debito di sicurezza sul vincolo anti-duplicati delle segnalazioni.
+
 ## [0.4.0] - 2026-11-11
 
 ### Aggiunto

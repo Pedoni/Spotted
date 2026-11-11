@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
+import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 
 part 'comment_dto.g.dart';
 
@@ -16,6 +17,7 @@ class CommentDto {
     required this.likeCount,
     required this.likedByMe,
     this.authorUsername,
+    this.status = CommentStatus.published,
   });
 
   factory CommentDto.fromJson(Map<String, dynamic> json) =>
@@ -31,6 +33,13 @@ class CommentDto {
   final int likeCount;
   final bool likedByMe;
 
+  /// `add_comment` non lo restituisce: un commento appena scritto è pubblicato.
+  @JsonKey(
+    defaultValue: CommentStatus.published,
+    unknownEnumValue: CommentStatus.published,
+  )
+  final CommentStatus status;
+
   Comment toEntity() => Comment(
     id: id,
     spotId: spotId,
@@ -41,5 +50,6 @@ class CommentDto {
     isMine: isMine,
     likeCount: likeCount,
     likedByMe: likedByMe,
+    status: status,
   );
 }

@@ -70,6 +70,7 @@ Map<String, dynamic> spotRow(
   int? likeCount,
   int? commentCount,
   bool? likedByMe,
+  String? status,
 }) {
   return {
     'id': id,
@@ -80,6 +81,7 @@ Map<String, dynamic> spotRow(
     'like_count': ?likeCount,
     'comment_count': ?commentCount,
     'liked_by_me': ?likedByMe,
+    'status': ?status,
   };
 }
 
@@ -91,6 +93,7 @@ Map<String, dynamic> commentRow(
   bool isMine = false,
   int likeCount = 0,
   bool likedByMe = false,
+  String? status,
 }) {
   return {
     'id': id,
@@ -102,5 +105,24 @@ Map<String, dynamic> commentRow(
     'is_mine': isMine,
     'like_count': likeCount,
     'liked_by_me': likedByMe,
+    'status': ?status,
+  };
+}
+
+Map<String, dynamic> reportRow(
+  String id, {
+  String kind = 'spot',
+  String reason = 'spam',
+  String? details,
+}) {
+  return {
+    'id': id,
+    'kind': kind,
+    'spot_id': 's1',
+    'spot_title': 'Titolo $id',
+    'content': kind == 'spot' ? 'Testo $id' : 'Commento $id',
+    'reason': reason,
+    'details': details,
+    'created_at': '2026-01-01T10:00:00+00:00',
   };
 }

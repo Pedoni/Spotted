@@ -7,6 +7,7 @@ import 'package:spotted/features/spots/data/datasources/spots_remote_data_source
 import 'package:spotted/features/spots/data/models/spot_dto.dart';
 import 'package:spotted/features/spots/data/repositories/spots_repository_impl.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
+import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 
 import '../../../helpers/mock_supabase.dart';
 
@@ -228,6 +229,39 @@ void main() {
         repository.getChannelSpots(channelId: 'c1', offset: 0, limit: 20),
         throwsA(isA<NetworkFailure>()),
       );
+    });
+  });
+
+  group('status', () {
+    test('getSpot legge lo stato nascosto', () async {
+      respondWith([spotRow('1', status: 'hidden')]);
+
+      final spot = await dataSource.getSpot('1');
+
+      expect(spot.status, SpotStatus.hidden);
+    });
+
+    test('senza status lo spot è pubblicato', () async {
+      respondWith([spotRow('1')]);
+
+      final spot = await dataSource.getSpot('1');
+
+      expect(spot.status, SpotStatus.published);
+    });
+
+    test('getMySpots legge lo stato dei propri spot', () async {
+      respondWith([
+        {
+          ...spotRow('1', likeCount: 0, commentCount: 0, likedByMe: false),
+          'channel_name': 'Spotted Pisa',
+          'channel_slug': 'spotted-pisa',
+          'status': 'hidden',
+        },
+      ]);
+
+      final spots = await dataSource.getMySpots(offset: 0, limit: 20);
+
+      expect(spots.single.spot.status, SpotStatus.hidden);
     });
   });
 }
