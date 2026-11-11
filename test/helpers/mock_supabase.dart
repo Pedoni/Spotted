@@ -108,3 +108,21 @@ Map<String, dynamic> commentRow(
     'status': ?status,
   };
 }
+
+Map<String, dynamic> reportRow(
+  String id, {
+  String kind = 'spot',
+  String reason = 'spam',
+  String? details,
+}) {
+  return {
+    'id': id,
+    'kind': kind,
+    'spot_id': 's1',
+    'spot_title': 'Titolo $id',
+    'content': kind == 'spot' ? 'Testo $id' : 'Commento $id',
+    'reason': reason,
+    'details': details,
+    'created_at': '2026-01-01T10:00:00+00:00',
+  };
+}
