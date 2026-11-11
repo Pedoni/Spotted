@@ -63,6 +63,26 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Font inclusi nell'app (licenza OFL, testi in assets/fonts). Sono istanze
+  # statiche ricavate dai font variabili di Google Fonts: Bricolage Grotesque
+  # a 36 pt di dimensione ottica, Plus Jakarta Sans con i pesi usati dal tema.
+  fonts:
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
+    - family: BricolageGrotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf
+          weight: 800
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
