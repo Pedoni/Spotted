@@ -11,6 +11,7 @@ import 'package:spotted/features/moderation/domain/usecases/is_channel_owner.dar
 import 'package:spotted/features/moderation/domain/usecases/set_comment_hidden.dart';
 import 'package:spotted/features/moderation/domain/usecases/set_spot_status.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
+import 'package:spotted/features/reports/presentation/providers/channel_reports_feed.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/my_spots_feed.dart';
@@ -80,6 +81,7 @@ class SpotModeration extends _$SpotModeration {
       ..invalidate(spotDetailProvider(spot.id))
       ..invalidate(channelSpotsFeedProvider(spot.channelId))
       ..invalidate(hiddenSpotsFeedProvider(spot.channelId))
+      ..invalidate(channelReportsFeedProvider(spot.channelId))
       ..invalidate(mySpotsFeedProvider);
   }
 }

@@ -83,12 +83,13 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
   - Strumenti del proprietario (feature `moderation`), tutti RPC `security definer` che per chi non è proprietario rispondono `42501`: `is_channel_owner` (i client non leggono `channels.owner_id`, quindi la UI chiede all'RPC se mostrare gli strumenti), `channel_spot_author` (solo il proprietario vede l'autore: id e username), `set_spot_status` (`published`/`hidden`/`removed`; `removed` è definitivo), `set_comment_status` (`published`/`hidden`), `channel_moderation_spots_page` (spot nascosti del canale).
   - Spot nascosto: sparisce dal feed del canale, lo vedono ancora il proprietario (dettaglio e pagina Moderazione) e l'autore (in "I miei spot", con etichetta). Commento nascosto: lo vede ancora solo il proprietario; il conteggio dei commenti ignora i nascosti. `spot_detail`, `spot_comments` e `my_spots_page` restituiscono `status`.
   - `SpotModeration` (Riverpod) è `keepAlive`: nessuno lo ascolta e, se si distruggesse a metà operazione, le liste non verrebbero aggiornate.
+  - **Segnalazioni** (feature `reports`): chiunque segnala spot e commenti visibili, non i propri. `reports` è chiusa ai client (nessuno vede chi segnala, nemmeno il proprietario) e si usano solo `report_spot`, `report_comment`, `channel_reports_page` (segnalazioni aperte del canale, solo proprietario) e `resolve_report` (`resolved`/`dismissed`, solo proprietario). Motivi fissi (`spam`, `offensive`, `hate`, `other`), dettagli facoltativi fino a 500 caratteri, una sola segnalazione per utente e contenuto (`23505` → `ConflictFailure`). Segnalare un proprio contenuto dà `42501`. Il proprietario le vede nella scheda "Segnalazioni" della pagina Moderazione; le chiude ma non nasconde il contenuto in automatico (lo fa dal dettaglio). La vista globale è dell'admin (0.8.0).
 - Auth: email e password.
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
 - `chats` e `messages` oggi espongono gli id dei partecipanti: serve ridisegnare `chats` (`spot_id`, `author_id`, `commenter_id`, `identity_revealed`, unico su `(spot_id, commenter_id)`) e leggere via RPC/view che nascondono l'identità finché non rivelata. Nello schema attuale `chats` ha `user_a_id < user_b_id`.
-- Mancano la moderazione degli spot, i trigger `updated_at`, un vincolo anti-duplicati sulle segnalazioni.
+- Mancano i trigger `updated_at`.
 - `handle_new_user` fallisce se lo username è duplicato o non valido: validare prima del signup.
 
 ## Roadmap
@@ -101,7 +102,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio, profilo, iscrizione con conteggio e Home con i canali seguiti (fatto) |
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" (fatto) |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico (fatto) |
-| 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti (fatto); segnalazioni (da fare) |
+| 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
 | 0.6.0 | Chat con rivelazione dell'identità (migrazione di sicurezza su `chats`/`messages`) |
 | 0.7.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
 | 0.8.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |

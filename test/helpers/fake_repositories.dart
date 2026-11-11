@@ -11,6 +11,11 @@ import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
+import 'package:spotted/features/reports/domain/entities/channel_report.dart';
+import 'package:spotted/features/reports/domain/entities/report_kind.dart';
+import 'package:spotted/features/reports/domain/entities/report_reason.dart';
+import 'package:spotted/features/reports/domain/entities/report_resolution.dart';
+import 'package:spotted/features/reports/domain/repositories/reports_repository.dart';
 import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
@@ -556,5 +561,81 @@ class FakeModerationRepository implements ModerationRepository {
         .skip(offset)
         .take(limit)
         .toList();
+  }
+}
+
+ChannelReport makeReport(
+  int i, {
+  ReportKind kind = ReportKind.spot,
+  ReportReason reason = ReportReason.spam,
+  String? details,
+}) {
+  return ChannelReport(
+    id: 'r$i',
+    kind: kind,
+    spotId: 's1',
+    spotTitle: 'Spot segnalato $i',
+    content: kind == ReportKind.spot ? 'Testo spot $i' : 'Testo commento $i',
+    reason: reason,
+    details: details,
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+  );
+}
+
+/// Segnalazioni in memoria: [reports] sono quelle aperte del canale.
+class FakeReportsRepository implements ReportsRepository {
+  FakeReportsRepository({List<ChannelReport>? reports})
+    : reports = reports ?? [];
+
+  List<ChannelReport> reports;
+  Failure? reportError;
+  Failure? listError;
+  Failure? resolveError;
+
+  final spotCalls = <({String spotId, ReportReason reason, String? details})>[];
+  final commentCalls =
+      <({String commentId, ReportReason reason, String? details})>[];
+  final listCalls = <({String channelId, int offset, int limit})>[];
+  final resolveCalls = <({String reportId, ReportResolution resolution})>[];
+
+  @override
+  Future<void> reportSpot({
+    required String spotId,
+    required ReportReason reason,
+    String? details,
+  }) async {
+    spotCalls.add((spotId: spotId, reason: reason, details: details));
+    if (reportError != null) throw reportError!;
+  }
+
+  @override
+  Future<void> reportComment({
+    required String commentId,
+    required ReportReason reason,
+    String? details,
+  }) async {
+    commentCalls.add((commentId: commentId, reason: reason, details: details));
+    if (reportError != null) throw reportError!;
+  }
+
+  @override
+  Future<List<ChannelReport>> getChannelReports({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    listCalls.add((channelId: channelId, offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    return reports.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<void> resolveReport(
+    String reportId,
+    ReportResolution resolution,
+  ) async {
+    resolveCalls.add((reportId: reportId, resolution: resolution));
+    if (resolveError != null) throw resolveError!;
+    reports = reports.where((r) => r.id != reportId).toList();
   }
 }
