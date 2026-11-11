@@ -9,6 +9,7 @@ import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/presentation/providers/spot_comments_feed.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_tile.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
+import 'package:spotted/features/reports/presentation/widgets/report_actions.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/providers/spot_interaction.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -141,6 +142,11 @@ class SpotCommentsSliver extends ConsumerWidget {
                 comment: comment,
                 onLike: () => unawaited(_like(context, ref, comment)),
                 onDelete: () => unawaited(_delete(context, ref, comment)),
+                onReport: comment.isMine
+                    ? null
+                    : () => unawaited(
+                        reportCommentFlow(context, ref, comment.id),
+                      ),
                 onToggleHidden: isOwner
                     ? () => unawaited(_toggleHidden(context, ref, comment))
                     : null,

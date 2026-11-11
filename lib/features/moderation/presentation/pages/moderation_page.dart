@@ -10,6 +10,7 @@ import 'package:spotted/features/channels/presentation/providers/channels_provid
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
+import 'package:spotted/features/reports/presentation/widgets/channel_reports_list.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -41,17 +42,33 @@ class ModerationPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final channel = ref.watch(channelDetailProvider(slug));
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.moderationTitle)),
-      body: channel.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => ErrorView(
-          error: error,
-          onRetry: () => ref.invalidate(channelDetailProvider(slug)),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.moderationTitle),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.reportsTab),
+              Tab(text: l10n.moderationHiddenSpots),
+            ],
+          ),
         ),
-        data: (channel) => _HiddenSpotsList(
-          channelId: channel.id,
-          onRestore: (spot) => unawaited(_restore(context, ref, spot)),
+        body: channel.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => ErrorView(
+            error: error,
+            onRetry: () => ref.invalidate(channelDetailProvider(slug)),
+          ),
+          data: (channel) => TabBarView(
+            children: [
+              ChannelReportsList(channelId: channel.id),
+              _HiddenSpotsList(
+                channelId: channel.id,
+                onRestore: (spot) => unawaited(_restore(context, ref, spot)),
+              ),
+            ],
+          ),
         ),
       ),
     );

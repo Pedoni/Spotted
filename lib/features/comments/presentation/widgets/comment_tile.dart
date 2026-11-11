@@ -12,6 +12,7 @@ class CommentTile extends StatelessWidget {
     required this.onLike,
     required this.onDelete,
     this.onToggleHidden,
+    this.onReport,
     super.key,
   });
 
@@ -22,6 +23,9 @@ class CommentTile extends StatelessWidget {
   /// Nasconde o ripristina il commento. Presente solo per il proprietario del
   /// canale.
   final VoidCallback? onToggleHidden;
+
+  /// Segnala il commento. Assente per i propri commenti.
+  final VoidCallback? onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +98,12 @@ class CommentTile extends StatelessWidget {
                       size: 20,
                     ),
                     onPressed: onToggleHidden,
+                  ),
+                if (onReport != null)
+                  IconButton(
+                    tooltip: l10n.report,
+                    icon: const Icon(Icons.flag_outlined, size: 20),
+                    onPressed: onReport,
                   ),
                 if (comment.isMine)
                   IconButton(

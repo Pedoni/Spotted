@@ -255,6 +255,8 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.shield_outlined));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Spot nascosti'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Moderazione'), findsOneWidget);
       expect(find.text('Ombrello perso'), findsOneWidget);
@@ -276,6 +278,8 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.shield_outlined));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Spot nascosti'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Nessuno spot nascosto'), findsOneWidget);
     });
@@ -285,6 +289,8 @@ void main() {
       moderation.listError = const NetworkFailure();
 
       await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Spot nascosti'));
       await tester.pumpAndSettle();
 
       expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);

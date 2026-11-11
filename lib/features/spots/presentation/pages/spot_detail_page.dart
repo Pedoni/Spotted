@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/widgets/error_view.dart';
@@ -5,6 +7,7 @@ import 'package:spotted/features/comments/presentation/providers/spot_comments_f
 import 'package:spotted/features/comments/presentation/widgets/comment_composer.dart';
 import 'package:spotted/features/comments/presentation/widgets/spot_comments_sliver.dart';
 import 'package:spotted/features/moderation/presentation/widgets/spot_moderation_menu.dart';
+import 'package:spotted/features/reports/presentation/widgets/report_actions.dart';
 import 'package:spotted/features/spots/presentation/providers/spot_interaction.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
@@ -25,7 +28,15 @@ class SpotDetailPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.spotTitle),
         actions: [
-          if (spot.value case final loaded?) SpotModerationMenu(spot: loaded),
+          if (spot.value case final loaded?) ...[
+            IconButton(
+              tooltip: l10n.report,
+              icon: const Icon(Icons.flag_outlined),
+              onPressed: () =>
+                  unawaited(reportSpotFlow(context, ref, loaded.id)),
+            ),
+            SpotModerationMenu(spot: loaded),
+          ],
         ],
       ),
       body: spot.when(
