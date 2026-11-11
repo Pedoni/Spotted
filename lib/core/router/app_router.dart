@@ -11,6 +11,7 @@ import 'package:spotted/features/channels/presentation/pages/channels_page.dart'
 import 'package:spotted/features/channels/presentation/pages/create_channel_page.dart';
 import 'package:spotted/features/channels/presentation/pages/my_channels_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
+import 'package:spotted/features/moderation/presentation/pages/moderation_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
 import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
@@ -82,6 +83,11 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotNew,
         builder: (context, state) =>
             CreateSpotPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: AppRoutes.channelModeration,
+        builder: (context, state) =>
+            ModerationPage(slug: state.pathParameters['slug']!),
       ),
       GoRoute(
         path: AppRoutes.spotDetail,

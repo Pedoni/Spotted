@@ -79,7 +79,10 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 - I **commenti non sono anonimi**. Se l'autore dello spot commenta il proprio spot, il commento appare come "Autore del post" senza nome. Per questo `comments.author_id` non è leggibile dai client (confrontato con `spots.author_id` rivelerebbe l'autore dello spot): la tabella `comments` è chiusa ai client e si usano solo `spot_comments`, `add_comment`, `delete_comment`. Testo 1-500 caratteri, non modificabile, cancellabile solo dall'autore del commento.
 - **Like**: `spot_likes` e `comment_likes` sono chiuse ai client (nessuno vede chi mette like). Si usano `set_spot_liked`, `set_comment_liked`; i conteggi e lo stato "mi piace" dell'utente arrivano con `channel_spots_page`, `spot_detail`, `my_spots_page` (spot) e `spot_comments` (commenti). Gli spot si leggono sempre da queste RPC, non da `spots`.
 - **Chat**: nasce solo da uno spot. L'autore dello spot può avviare una chat con chi ha commentato; l'autore vede l'identità dell'altro, l'altro non vede quella dell'autore finché l'autore non preme "Rivela identità". Non esistono chat libere tra utenti.
-- **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
+- **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale e nasconde i commenti; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
+  - Strumenti del proprietario (feature `moderation`), tutti RPC `security definer` che per chi non è proprietario rispondono `42501`: `is_channel_owner` (i client non leggono `channels.owner_id`, quindi la UI chiede all'RPC se mostrare gli strumenti), `channel_spot_author` (solo il proprietario vede l'autore: id e username), `set_spot_status` (`published`/`hidden`/`removed`; `removed` è definitivo), `set_comment_status` (`published`/`hidden`), `channel_moderation_spots_page` (spot nascosti del canale).
+  - Spot nascosto: sparisce dal feed del canale, lo vedono ancora il proprietario (dettaglio e pagina Moderazione) e l'autore (in "I miei spot", con etichetta). Commento nascosto: lo vede ancora solo il proprietario; il conteggio dei commenti ignora i nascosti. `spot_detail`, `spot_comments` e `my_spots_page` restituiscono `status`.
+  - `SpotModeration` (Riverpod) è `keepAlive`: nessuno lo ascolta e, se si distruggesse a metà operazione, le liste non verrebbero aggiornate.
 - Auth: email e password.
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
@@ -98,7 +101,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | 0.2.0 | Privacy di `profiles` e proprietario dei canali (fatto), topic (fatto); canali: crea, elenca, cerca per topic, dettaglio, profilo, iscrizione con conteggio e Home con i canali seguiti (fatto) |
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" (fatto) |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico (fatto) |
-| 0.5.0 | Strumenti del proprietario (vede gli autori, nasconde/rimuove spot) e segnalazioni |
+| 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti (fatto); segnalazioni (da fare) |
 | 0.6.0 | Chat con rivelazione dell'identità (migrazione di sicurezza su `chats`/`messages`) |
 | 0.7.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
 | 0.8.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |

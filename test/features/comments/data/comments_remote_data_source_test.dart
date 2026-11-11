@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/comments/data/datasources/comments_remote_data_source.dart';
 import 'package:spotted/features/comments/data/repositories/comments_repository_impl.dart';
+import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 
 import '../../../helpers/mock_supabase.dart';
 
@@ -155,6 +156,32 @@ void main() {
         repository.getSpotComments(spotId: 's1', offset: 0, limit: 20),
         throwsA(isA<UnknownFailure>()),
       );
+    });
+  });
+
+  group('status', () {
+    test('legge i commenti nascosti', () async {
+      respondWith([
+        commentRow('1', status: 'hidden'),
+        commentRow('2', status: 'published'),
+      ]);
+
+      final comments = await dataSource.getSpotComments(
+        spotId: 's1',
+        offset: 0,
+        limit: 20,
+      );
+
+      expect(comments[0].status, CommentStatus.hidden);
+      expect(comments[1].status, CommentStatus.published);
+    });
+
+    test('un commento senza status (add_comment) è pubblicato', () async {
+      respondWith([commentRow('9', isMine: true)]);
+
+      final comment = await dataSource.addComment(spotId: 's1', content: 'x');
+
+      expect(comment.status, CommentStatus.published);
     });
   });
 }

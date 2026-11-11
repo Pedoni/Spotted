@@ -1,7 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/core/pagination/paged_list.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
+import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
+import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 
 part 'spot_comments_feed.g.dart';
 
@@ -114,6 +116,22 @@ class SpotCommentsFeed extends _$SpotCommentsFeed {
     } finally {
       _liking.remove(commentId);
     }
+  }
+
+  /// Nasconde o ripristina un commento (solo il proprietario del canale). Se
+  /// fallisce rilancia l'errore e la lista non cambia.
+  Future<void> setHidden(String commentId, {required bool hidden}) async {
+    await ref.read(setCommentHiddenUseCaseProvider)(commentId, hidden: hidden);
+    final original = state.value?.items
+        .where((c) => c.id == commentId)
+        .firstOrNull;
+    if (original == null) return;
+    _replace(
+      commentId,
+      original.withStatus(
+        hidden ? CommentStatus.hidden : CommentStatus.published,
+      ),
+    );
   }
 
   void _replace(String commentId, Comment comment) {

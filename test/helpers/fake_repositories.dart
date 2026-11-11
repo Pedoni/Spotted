@@ -4,12 +4,17 @@ import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
+import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/domain/repositories/comments_repository.dart';
+import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
+import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
+import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
 import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
+import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 import 'package:spotted/features/spots/domain/repositories/spots_repository.dart';
 import 'package:spotted/features/subscriptions/domain/entities/subscription_info.dart';
 import 'package:spotted/features/subscriptions/domain/repositories/subscriptions_repository.dart';
@@ -233,6 +238,7 @@ Spot makeSpot(
   String channelId = 'c1',
   String? title,
   SpotStats stats = const SpotStats(),
+  SpotStatus status = SpotStatus.published,
 }) {
   return Spot(
     id: 's$i',
@@ -241,6 +247,7 @@ Spot makeSpot(
     content: 'Testo dello spot $i',
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     stats: stats,
+    status: status,
   );
 }
 
@@ -284,7 +291,9 @@ class FakeSpotsRepository implements SpotsRepository {
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
     return spots
-        .where((s) => s.channelId == channelId)
+        .where(
+          (s) => s.channelId == channelId && s.status == SpotStatus.published,
+        )
         .skip(offset)
         .take(limit)
         .toList();
@@ -361,6 +370,7 @@ Comment makeComment(
   bool isMine = false,
   int likeCount = 0,
   bool likedByMe = false,
+  CommentStatus status = CommentStatus.published,
 }) {
   return Comment(
     id: 'k$i',
@@ -372,6 +382,7 @@ Comment makeComment(
     isMine: isMine,
     likeCount: likeCount,
     likedByMe: likedByMe,
+    status: status,
   );
 }
 
@@ -441,5 +452,109 @@ class FakeCommentsRepository implements CommentsRepository {
   Future<void> setCommentLiked(String commentId, {required bool liked}) async {
     likeCalls.add((commentId: commentId, liked: liked));
     if (likeError != null) throw likeError!;
+  }
+}
+
+/// Strumenti del proprietario in memoria. [ownedChannelIds] sono i canali di
+/// cui l'utente è proprietario. Se sono passati [spotsRepository] e
+/// [commentsRepository], le modifiche di stato si riflettono lì.
+class FakeModerationRepository implements ModerationRepository {
+  FakeModerationRepository({
+    this.ownedChannelIds = const {},
+    this.spotsRepository,
+    this.commentsRepository,
+  });
+
+  Set<String> ownedChannelIds;
+  final FakeSpotsRepository? spotsRepository;
+  final FakeCommentsRepository? commentsRepository;
+
+  SpotAuthor author = const SpotAuthor(id: 'u9', username: 'giulia_77');
+  Failure? ownerError;
+  Failure? authorError;
+  Failure? statusError;
+  Failure? commentError;
+  Failure? listError;
+
+  final statusCalls = <({String spotId, ModerationStatus status})>[];
+  final commentCalls = <({String commentId, bool hidden})>[];
+  final authorCalls = <String>[];
+  final hiddenCalls = <({String channelId, int offset, int limit})>[];
+
+  @override
+  Future<bool> isChannelOwner(String channelId) async {
+    if (ownerError != null) throw ownerError!;
+    return ownedChannelIds.contains(channelId);
+  }
+
+  @override
+  Future<SpotAuthor> getSpotAuthor(String spotId) async {
+    authorCalls.add(spotId);
+    if (authorError != null) throw authorError!;
+    return author;
+  }
+
+  @override
+  Future<void> setSpotStatus(String spotId, ModerationStatus status) async {
+    statusCalls.add((spotId: spotId, status: status));
+    if (statusError != null) throw statusError!;
+    final repository = spotsRepository;
+    if (repository == null) return;
+    if (status == ModerationStatus.removed) {
+      repository.spots = repository.spots.where((s) => s.id != spotId).toList();
+      return;
+    }
+    repository.spots = [
+      for (final s in repository.spots)
+        if (s.id == spotId)
+          Spot(
+            id: s.id,
+            channelId: s.channelId,
+            title: s.title,
+            content: s.content,
+            createdAt: s.createdAt,
+            stats: s.stats,
+            status: status == ModerationStatus.hidden
+                ? SpotStatus.hidden
+                : SpotStatus.published,
+          )
+        else
+          s,
+    ];
+  }
+
+  @override
+  Future<void> setCommentHidden(
+    String commentId, {
+    required bool hidden,
+  }) async {
+    commentCalls.add((commentId: commentId, hidden: hidden));
+    if (commentError != null) throw commentError!;
+    final repository = commentsRepository;
+    if (repository == null) return;
+    repository.comments = [
+      for (final c in repository.comments)
+        if (c.id == commentId)
+          c.withStatus(hidden ? CommentStatus.hidden : CommentStatus.published)
+        else
+          c,
+    ];
+  }
+
+  @override
+  Future<List<Spot>> getHiddenSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    hiddenCalls.add((channelId: channelId, offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    return (spotsRepository?.spots ?? const <Spot>[])
+        .where(
+          (s) => s.channelId == channelId && s.status == SpotStatus.hidden,
+        )
+        .skip(offset)
+        .take(limit)
+        .toList();
   }
 }

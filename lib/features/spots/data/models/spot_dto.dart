@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
+import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 
 part 'spot_dto.g.dart';
 
@@ -19,6 +20,7 @@ class SpotDto {
     this.likeCount = 0,
     this.commentCount = 0,
     this.likedByMe = false,
+    this.status = SpotStatus.published,
   });
 
   factory SpotDto.fromJson(Map<String, dynamic> json) =>
@@ -39,6 +41,13 @@ class SpotDto {
   @JsonKey(defaultValue: false)
   final bool likedByMe;
 
+  /// Solo `spot_detail` lo restituisce; altrove lo spot è pubblicato.
+  @JsonKey(
+    defaultValue: SpotStatus.published,
+    unknownEnumValue: SpotStatus.published,
+  )
+  final SpotStatus status;
+
   Spot toEntity() => Spot(
     id: id,
     channelId: channelId,
@@ -50,5 +59,6 @@ class SpotDto {
       commentCount: commentCount,
       likedByMe: likedByMe,
     ),
+    status: status,
   );
 }

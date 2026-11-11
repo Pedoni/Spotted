@@ -125,5 +125,34 @@
   "deleteComment": "Cancella il commento",
   "deleteCommentTitle": "Cancellare il commento?",
   "deleteCommentBody": "L'operazione non si può annullare.",
-  "commentDeleted": "Commento cancellato"
+  "commentDeleted": "Commento cancellato",
+  "moderationTitle": "Moderazione",
+  "moderationHiddenSpots": "Spot nascosti",
+  "noHiddenSpots": "Nessuno spot nascosto",
+  "hiddenSpotLabel": "Nascosto dal proprietario del canale",
+  "hiddenCommentLabel": "Nascosto",
+  "ownerTools": "Strumenti del proprietario",
+  "viewSpotAuthor": "Vedi autore",
+  "spotAuthorDialogTitle": "Autore dello spot",
+  "spotAuthorDialogBody": "@{username}",
+  "@spotAuthorDialogBody": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "close": "Chiudi",
+  "hideSpot": "Nascondi spot",
+  "restoreSpot": "Ripristina spot",
+  "removeSpot": "Rimuovi spot",
+  "removeSpotTitle": "Rimuovere lo spot?",
+  "removeSpotBody": "Lo spot sparirà per tutti. L'operazione non si può annullare.",
+  "spotHidden": "Spot nascosto",
+  "spotRestored": "Spot ripristinato",
+  "spotRemoved": "Spot rimosso",
+  "hideComment": "Nascondi commento",
+  "restoreComment": "Ripristina commento",
+  "commentHidden": "Commento nascosto",
+  "commentRestored": "Commento ripristinato"
 }

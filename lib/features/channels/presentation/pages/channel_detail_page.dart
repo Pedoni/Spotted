@@ -7,6 +7,7 @@ import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/channel_spots_sliver.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
@@ -25,7 +26,13 @@ class ChannelDetailPage extends ConsumerWidget {
     final topics = ref.watch(topicsProvider).value ?? const [];
 
     return Scaffold(
-      appBar: AppBar(title: Text(channel.value?.name ?? '')),
+      appBar: AppBar(
+        title: Text(channel.value?.name ?? ''),
+        actions: [
+          if (channel.value case final loaded?)
+            _ModerationAction(channelId: loaded.id, slug: loaded.slug),
+        ],
+      ),
       floatingActionButton: channel.hasValue
           ? FloatingActionButton.extended(
               onPressed: () =>
@@ -133,6 +140,25 @@ class _SubscriptionRow extends ConsumerWidget {
             child: Text(l10n.follow),
           ),
       ],
+    );
+  }
+}
+
+/// Pulsante "Moderazione": compare solo al proprietario del canale.
+class _ModerationAction extends ConsumerWidget {
+  const _ModerationAction({required this.channelId, required this.slug});
+
+  final String channelId;
+  final String slug;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOwner = ref.watch(isChannelOwnerProvider(channelId)).value;
+    if (isOwner != true) return const SizedBox.shrink();
+    return IconButton(
+      tooltip: AppLocalizations.of(context).moderationTitle,
+      icon: const Icon(Icons.shield_outlined),
+      onPressed: () => context.push(AppRoutes.channelModerationPath(slug)),
     );
   }
 }
