@@ -62,8 +62,9 @@ class CommentTile extends StatelessWidget {
                         TextSpan(
                           text: author,
                           style: theme.textTheme.labelLarge?.copyWith(
+                            // L'autore dello spot è anonimo: indaco.
                             color: comment.isSpotAuthor
-                                ? theme.colorScheme.primary
+                                ? theme.colorScheme.secondary
                                 : null,
                           ),
                         ),

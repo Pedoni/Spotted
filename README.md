@@ -6,7 +6,7 @@ Convenzioni di progetto, architettura e roadmap: [CLAUDE.md](CLAUDE.md). Storico
 
 ## Requisiti
 
-- Flutter 3.44.4 (stable) e Dart ^3.12.2
+- Flutter 3.47.9 (stable) e Dart ^3.12.2
 - Un progetto Supabase con lo schema di `supabase/migrations/`
 
 ## Avvio

@@ -10,6 +10,7 @@ import 'package:spotted/features/chat/presentation/providers/chat_providers.dart
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/presentation/providers/spot_comments_feed.dart';
+import 'package:spotted/features/comments/presentation/widgets/comment_skeletons.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_tile.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_actions.dart';
@@ -141,12 +142,7 @@ class SpotCommentsSliver extends ConsumerWidget {
         ref.watch(isChannelOwnerProvider(spot.channelId)).value ?? false;
 
     return feed.when(
-      loading: () => const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
+      loading: () => const SliverToBoxAdapter(child: CommentsSkeleton()),
       error: (error, _) => SliverToBoxAdapter(
         child: ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
       ),
@@ -198,10 +194,7 @@ class SpotCommentsSliver extends ConsumerWidget {
                 unawaited(ref.read(provider.notifier).loadMore());
               }
             });
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
+            return const CommentsSkeleton(count: 1);
           },
         );
       },

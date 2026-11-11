@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/theme/app_shapes.dart';
+import 'package:spotted/core/widgets/channel_avatar.dart';
 import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
@@ -58,17 +60,30 @@ class SpotCard extends ConsumerWidget {
     ).formatShortDate(spot.createdAt.toLocal());
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
+      // A fumetto: l'angolo in basso a sinistra è quasi dritto.
+      shape: RoundedRectangleBorder(
+        borderRadius: AppShapes.bubbleRadius,
+        side: BorderSide(color: theme.colorScheme.outlineVariant, width: 1.5),
+      ),
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
+                  if (channelName != null) ...[
+                    ChannelAvatar(
+                      name: channelName!,
+                      seed: spot.channelId,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   Expanded(
                     child: channelName == null
                         ? Text(date, style: theme.textTheme.labelSmall)
@@ -107,9 +122,12 @@ class SpotCard extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 8),
-              Text(spot.title, style: theme.textTheme.titleMedium),
+              Text(
+                spot.title,
+                style: theme.textTheme.titleLarge?.copyWith(fontSize: 20),
+              ),
               const SizedBox(height: 8),
-              Text(spot.content),
+              Text(spot.content, style: theme.textTheme.bodyLarge),
               const SizedBox(height: 4),
               Row(
                 children: [

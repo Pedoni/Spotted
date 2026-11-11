@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_feed.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tile.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -63,7 +65,6 @@ class _ChannelsPageState extends ConsumerState<ChannelsPage> {
               decoration: InputDecoration(
                 hintText: l10n.searchChannelsHint,
                 prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
                 isDense: true,
               ),
             ),
@@ -99,7 +100,8 @@ class _ChannelsPageState extends ConsumerState<ChannelsPage> {
           ),
           Expanded(
             child: feed.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () =>
+                  const SkeletonScroll(child: ChannelTilesSkeleton()),
               error: (error, _) => ErrorView(
                 error: error,
                 onRetry: () => ref.invalidate(channelsFeedProvider),
@@ -139,10 +141,7 @@ class _ChannelsPageState extends ConsumerState<ChannelsPage> {
                             );
                           }
                         });
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
+                        return const ChannelTilesSkeleton(count: 1);
                       }
                       final channel = paged.items[index];
                       return ChannelTile(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/chat/domain/message_validators.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_messages_feed.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -69,7 +70,6 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     hintText: l10n.writeMessage,
-                    border: const OutlineInputBorder(),
                     isDense: true,
                     counterText: '',
                   ),
@@ -78,10 +78,7 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
               if (_sending)
                 const Padding(
                   padding: EdgeInsets.all(12),
-                  child: SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
+                  child: InlineProgress(),
                 )
               else
                 IconButton(

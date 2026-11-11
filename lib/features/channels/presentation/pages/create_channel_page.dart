@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/channels/domain/channel_validators.dart';
 import 'package:spotted/features/channels/presentation/providers/create_channel_controller.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
@@ -71,7 +72,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: l10n.channelNameLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       validator: (v) => ChannelValidators.isValidName(v ?? '')
                           ? null
@@ -85,7 +85,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       initialValue: _topicId,
                       decoration: InputDecoration(
                         labelText: l10n.channelTopicLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       items: [
                         DropdownMenuItem(child: Text(l10n.noTopic)),
@@ -103,7 +102,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: l10n.channelPlaceLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       validator: (v) => ChannelValidators.isValidPlace(v ?? '')
                           ? null
@@ -119,7 +117,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
                         labelText: l10n.channelDescriptionLabel,
-                        border: const OutlineInputBorder(),
                         alignLabelWithHint: true,
                       ),
                       validator: (v) =>
@@ -142,10 +139,7 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                     FilledButton(
                       onPressed: state.isLoading ? null : _submit,
                       child: state.isLoading
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                          ? const InlineProgress()
                           : Text(l10n.createChannelButton),
                     ),
                   ],

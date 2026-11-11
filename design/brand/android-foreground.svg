@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+
+<g transform="translate(512 512) scale(0.91) translate(-512 -512)">
+
+    <!-- radar sweep -->
+    <path d="M512 512 L704.5 179.8 A384 384 0 0 1 820.5 320.0 Z"
+          fill="#FFC93C" opacity="0.98"/>
+    <!-- concentric radar rings -->
+    <circle cx="512" cy="512" r="350" fill="none" stroke="#FFF8F3" stroke-width="30"
+            />
+    <circle cx="512" cy="512" r="205" fill="none" stroke="#FFF8F3" stroke-width="30"/>
+    <!-- signal points -->
+    <circle cx="285" cy="312" r="40" fill="#D92B48"/>
+    <circle cx="704" cy="644" r="40" fill="#5B49D9"/>
+    <circle cx="330" cy="720" r="40" fill="#FFC93C"/>
+    <!-- radar origin -->
+    <circle cx="512" cy="512" r="55" fill="#FFC93C"/>
+    
+</g>
+
+</svg>

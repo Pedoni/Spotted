@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:spotted/features/spots/presentation/providers/create_spot_controller.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 /// Form per pubblicare uno spot (anonimo) nel canale [slug].
@@ -57,7 +60,7 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.publishSpot)),
       body: channel.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonScroll(child: SpotFormSkeleton()),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(channelDetailProvider(widget.slug)),
@@ -90,7 +93,6 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
                         textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
                           labelText: l10n.spotTitleLabel,
-                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) => SpotValidators.isValidTitle(v ?? '')
                             ? null
@@ -105,7 +107,6 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
                         textCapitalization: TextCapitalization.sentences,
                         decoration: InputDecoration(
                           labelText: l10n.spotContentLabel,
-                          border: const OutlineInputBorder(),
                           alignLabelWithHint: true,
                         ),
                         validator: (v) => SpotValidators.isValidContent(v ?? '')
@@ -127,12 +128,7 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
                             ? null
                             : () => _submit(channel.id),
                         child: state.isLoading
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
+                            ? const InlineProgress()
                             : Text(l10n.publishSpotButton),
                       ),
                     ],

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:spotted/core/theme/app_shapes.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
 
-/// Un messaggio: a destra se è dell'utente, a sinistra se è dell'altro.
+/// Un messaggio: a destra se è dell'utente, a sinistra se è dell'altro. È un
+/// fumetto: l'angolo dalla parte di chi scrive è quasi dritto. La larghezza
+/// segue il testo, fino all'80% dello schermo.
 class MessageBubble extends StatelessWidget {
   const MessageBubble({required this.message, super.key});
 
@@ -16,6 +20,10 @@ class MessageBubble extends StatelessWidget {
       TimeOfDay.fromDateTime(message.createdAt.toLocal()),
       alwaysUse24HourFormat: true,
     );
+    // Nello scheletro le bolle sono tutte neutre.
+    final color = mine && !isSkeleton(context)
+        ? scheme.primaryContainer
+        : scheme.surfaceContainerHigh;
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
@@ -25,18 +33,16 @@ class MessageBubble extends StatelessWidget {
         ),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
           decoration: BoxDecoration(
-            color: mine ? scheme.primaryContainer : scheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(16),
+            color: color,
+            borderRadius: AppShapes.messageRadius(mine: mine),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(message.content),
-              ),
+              Text(message.content),
               const SizedBox(height: 2),
               Text(time, style: theme.textTheme.labelSmall),
             ],
