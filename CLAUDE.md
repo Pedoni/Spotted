@@ -110,7 +110,8 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico (fatto) |
 | 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
 | 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` e app (fatto) |
-| 0.7.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
-| 0.8.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
-| 0.9.0 | Rifinitura: accessibilità, notifiche, release candidate |
+| 0.7.0 | UI: palette, font, tema chiaro/scuro, widget condivisi, restyling di tutte le schermate, icona e splash |
+| 0.8.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
+| 0.9.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
+| 0.10.0 | Rifinitura: accessibilità, notifiche, release candidate |
 | 1.0.0 | Prima release completa |
