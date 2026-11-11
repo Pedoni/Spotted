@@ -11,15 +11,19 @@ abstract final class AppTheme {
 
   static ThemeData get dark => _build(AppColors.dark);
 
+  /// Il colore delle superfici "sollevate" (card, campi, barra, finestre):
+  /// bianco nel tema chiaro e più chiaro dello sfondo in quello scuro.
+  static Color raised(ColorScheme scheme) {
+    return scheme.brightness == Brightness.dark
+        ? scheme.surfaceContainer
+        : scheme.surfaceContainerLowest;
+  }
+
   static ThemeData _build(ColorScheme scheme) {
     final text = AppTextTheme.build(scheme);
     const stadium = StadiumBorder();
     final outlineSide = BorderSide(color: scheme.outlineVariant, width: 1.5);
-    // Le superfici "sollevate" (card, campi, barra, finestre) sono più chiare
-    // dello sfondo nel tema scuro e bianche nel chiaro.
-    final raised = scheme.brightness == Brightness.dark
-        ? scheme.surfaceContainer
-        : scheme.surfaceContainerLowest;
+    final raised = AppTheme.raised(scheme);
 
     return ThemeData(
       useMaterial3: true,

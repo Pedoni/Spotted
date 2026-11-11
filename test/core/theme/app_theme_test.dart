@@ -124,6 +124,44 @@ void main() {
       },
     );
 
+    test(
+      'raised dà bianco nel chiaro e una superficie più chiara nello scuro',
+      () {
+        expect(
+          AppTheme.raised(AppColors.light),
+          AppColors.light.surfaceContainerLowest,
+        );
+        expect(
+          AppTheme.raised(AppColors.dark),
+          AppColors.dark.surfaceContainer,
+        );
+        expect(
+          AppTheme.raised(AppColors.light),
+          AppTheme.light.cardTheme.color,
+        );
+        expect(AppTheme.raised(AppColors.dark), AppTheme.dark.cardTheme.color);
+      },
+    );
+
+    test('inchiostro e crema sono gli sfondi dei due temi', () {
+      expect(AppColors.ink, AppColors.dark.surface);
+      expect(AppColors.cream, AppColors.light.surface);
+      expect(AppColors.ink, const Color(0xFF16131C));
+      expect(AppColors.cream, const Color(0xFFFFF8F3));
+    });
+
+    test('la tinta più scura del giallo resta gialla, non arancio', () {
+      HSLColor hsl(Color c) => HSLColor.fromColor(c);
+      final base = hsl(AppColors.highlight).hue;
+      final deep = hsl(AppColors.highlightDeep).hue;
+      // Pochi gradi di differenza: è lo stesso giallo, solo più scuro.
+      expect((base - deep).abs(), lessThan(8));
+      expect(
+        hsl(AppColors.highlightDeep).lightness,
+        lessThan(hsl(AppColors.highlight).lightness),
+      );
+    });
+
     test('nel tema chiaro le card sono bianche sullo sfondo crema', () {
       expect(AppTheme.light.cardTheme.color, const Color(0xFFFFFFFF));
       expect(AppTheme.light.scaffoldBackgroundColor, AppColors.light.surface);
