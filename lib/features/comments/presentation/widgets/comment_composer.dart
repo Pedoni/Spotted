@@ -75,7 +75,6 @@ class _CommentComposerState extends ConsumerState<CommentComposer> {
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     hintText: l10n.writeComment,
-                    border: const OutlineInputBorder(),
                     isDense: true,
                   ),
                 ),

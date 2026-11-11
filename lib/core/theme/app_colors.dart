@@ -26,6 +26,15 @@ abstract final class AppColors {
   /// Giallo evidenziatore, uguale nei due temi.
   static const highlight = Color(0xFFFFC93C);
 
+  /// Una tinta più scura dello stesso giallo, solo per le sfumature del
+  /// marchio (nessun testo).
+  static const highlightDeep = Color(0xFFF0B021);
+
+  /// L'inchiostro viola (sfondo del tema scuro, della splash e dell'icona) e
+  /// il crema (sfondo del tema chiaro e colore del logo sull'inchiostro).
+  static const ink = Color(0xFF16131C);
+  static const cream = Color(0xFFFFF8F3);
+
   static const light = ColorScheme(
     brightness: Brightness.light,
     primary: raspberry,
@@ -44,10 +53,10 @@ abstract final class AppColors {
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFFFFDAD6),
     onErrorContainer: Color(0xFF410002),
-    surface: Color(0xFFFFF8F3),
+    surface: cream,
     onSurface: Color(0xFF1F1B24),
     surfaceDim: Color(0xFFEFDFD6),
-    surfaceBright: Color(0xFFFFF8F3),
+    surfaceBright: cream,
     surfaceContainerLowest: Color(0xFFFFFFFF),
     surfaceContainerLow: Color(0xFFFFF1EA),
     surfaceContainer: Color(0xFFFBEAE2),
@@ -82,9 +91,9 @@ abstract final class AppColors {
     onError: Color(0xFF690005),
     errorContainer: Color(0xFF93000A),
     onErrorContainer: Color(0xFFFFDAD6),
-    surface: Color(0xFF16131C),
+    surface: ink,
     onSurface: Color(0xFFF6F1F7),
-    surfaceDim: Color(0xFF16131C),
+    surfaceDim: ink,
     surfaceBright: Color(0xFF3B3545),
     surfaceContainerLowest: Color(0xFF100E15),
     surfaceContainerLow: Color(0xFF1B1822),

@@ -65,7 +65,6 @@ class _ChannelsPageState extends ConsumerState<ChannelsPage> {
               decoration: InputDecoration(
                 hintText: l10n.searchChannelsHint,
                 prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
                 isDense: true,
               ),
             ),
