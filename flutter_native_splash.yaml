@@ -1,0 +1,21 @@
+# Splash nativa (Android e iOS): sfondo inchiostro viola con il logo. Si
+# rigenera con:
+#   dart run flutter_native_splash:create
+# I file del marchio stanno in design/brand (vedi il README lì).
+flutter_native_splash:
+  # La splash è scura anche con il tema chiaro: è il marchio.
+  color: "#16131C"
+  color_dark: "#16131C"
+  # Radar con la scritta "Spotted".
+  image: design/brand/splash-logo.png
+  image_dark: design/brand/splash-logo.png
+  # Android 12 mostra solo un'icona al centro (niente scritta) su un colore
+  # pieno: il primo piano dell'icona, senza sfondo.
+  android_12:
+    color: "#16131C"
+    color_dark: "#16131C"
+    image: design/brand/android-foreground.png
+    image_dark: design/brand/android-foreground.png
+    icon_background_color: "#16131C"
+    icon_background_color_dark: "#16131C"
+  web: false
