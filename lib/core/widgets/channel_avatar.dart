@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:spotted/core/theme/app_text.dart';
+import 'package:spotted/core/widgets/squircle_avatar.dart';
 
-/// Avatar di un canale: l'iniziale su un quadrato dagli angoli molto
-/// arrotondati. Il colore viene dalla palette e dipende da [seed] (di norma
-/// l'id del canale): lo stesso canale ha sempre lo stesso colore.
+/// Avatar di un canale (o di una persona di cui si conosce lo username):
+/// l'iniziale su un quadrato dagli angoli molto arrotondati. Il colore viene
+/// dalla palette e dipende da [seed] (di norma l'id del canale): lo stesso
+/// canale ha sempre lo stesso colore.
 class ChannelAvatar extends StatelessWidget {
   const ChannelAvatar({
     required this.name,
@@ -46,26 +48,17 @@ class ChannelAvatar extends StatelessWidget {
         ? '?'
         : name.trim().characters.first.toUpperCase();
 
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: ShapeDecoration(
-          color: background,
-          shape: RoundedSuperellipseBorder(
-            borderRadius: BorderRadius.circular(size * 0.36),
-          ),
-        ),
-        child: Text(
-          initial,
-          style: TextStyle(
-            fontFamily: AppFonts.display,
-            fontWeight: FontWeight.w800,
-            fontSize: size * 0.46,
-            color: foreground,
-            height: 1,
-          ),
+    return SquircleAvatar(
+      background: background,
+      size: size,
+      child: Text(
+        initial,
+        style: TextStyle(
+          fontFamily: AppFonts.display,
+          fontWeight: FontWeight.w800,
+          fontSize: size * 0.46,
+          color: foreground,
+          height: 1,
         ),
       ),
     );

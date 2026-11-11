@@ -42,7 +42,7 @@ class HomePage extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(l10n.homeEmptyHint, textAlign: TextAlign.center),
                     const SizedBox(height: 16),
-                    FilledButton.tonal(
+                    FilledButton(
                       onPressed: () => context.go(AppRoutes.channels),
                       child: Text(l10n.homeDiscoverChannels),
                     ),

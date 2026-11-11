@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/user_avatar.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/presentation/providers/chats_feed.dart';
 import 'package:spotted/features/chat/presentation/widgets/chat_names.dart';
@@ -86,7 +87,7 @@ class _ChatTile extends StatelessWidget {
         : last;
 
     return ListTile(
-      leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+      leading: UserAvatar(username: chat.otherUsername),
       title: Text(chatPartnerName(l10n, chat)),
       subtitle: Text(
         '${chat.spotTitle}\n$preview',
