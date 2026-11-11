@@ -50,12 +50,16 @@ void main() {
   });
 
   test('nessun colore scritto a mano: si usa il ColorScheme', () {
-    expect(find(RegExp(r'Colors\.(?!transparent)')), isEmpty);
+    expect(find(RegExp(r'(?<![A-Za-z])Colors\.(?!transparent)')), isEmpty);
     expect(find(RegExp(r'\bColor\(0x')), isEmpty);
   });
 
   test('nessun font scritto a mano: si usa il tema o AppFonts', () {
     expect(find(RegExp(r"fontFamily:\s*'")), isEmpty);
+  });
+
+  test('nessun bordo dei campi scritto a mano: vale quello del tema', () {
+    expect(find(RegExp(r'\b(Outline|Underline)InputBorder\(')), isEmpty);
   });
 
   test('nessuno spinner: i caricamenti sono scheletri', () {

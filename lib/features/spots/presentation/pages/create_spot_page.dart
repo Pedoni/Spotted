@@ -93,7 +93,6 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
                         textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
                           labelText: l10n.spotTitleLabel,
-                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) => SpotValidators.isValidTitle(v ?? '')
                             ? null
@@ -108,7 +107,6 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
                         textCapitalization: TextCapitalization.sentences,
                         decoration: InputDecoration(
                           labelText: l10n.spotContentLabel,
-                          border: const OutlineInputBorder(),
                           alignLabelWithHint: true,
                         ),
                         validator: (v) => SpotValidators.isValidContent(v ?? '')

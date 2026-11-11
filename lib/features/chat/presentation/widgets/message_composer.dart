@@ -70,7 +70,6 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     hintText: l10n.writeMessage,
-                    border: const OutlineInputBorder(),
                     isDense: true,
                     counterText: '',
                   ),

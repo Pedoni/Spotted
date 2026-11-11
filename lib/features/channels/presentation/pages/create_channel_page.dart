@@ -72,7 +72,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: l10n.channelNameLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       validator: (v) => ChannelValidators.isValidName(v ?? '')
                           ? null
@@ -86,7 +85,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       initialValue: _topicId,
                       decoration: InputDecoration(
                         labelText: l10n.channelTopicLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       items: [
                         DropdownMenuItem(child: Text(l10n.noTopic)),
@@ -104,7 +102,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: l10n.channelPlaceLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       validator: (v) => ChannelValidators.isValidPlace(v ?? '')
                           ? null
@@ -120,7 +117,6 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
                         labelText: l10n.channelDescriptionLabel,
-                        border: const OutlineInputBorder(),
                         alignLabelWithHint: true,
                       ),
                       validator: (v) =>

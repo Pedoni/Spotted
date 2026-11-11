@@ -8,6 +8,7 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/auth/domain/auth_validators.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_controllers.dart';
+import 'package:spotted/features/auth/presentation/widgets/auth_error_banner.dart';
 import 'package:spotted/features/auth/presentation/widgets/auth_form_layout.dart';
 import 'package:spotted/features/auth/presentation/widgets/password_field.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -46,6 +47,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final state = ref.watch(signInControllerProvider);
 
     return AuthFormLayout(
+      tall: true,
       title: l10n.loginTitle,
       child: Form(
         key: _formKey,
@@ -60,7 +62,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 autofillHints: const [AutofillHints.email],
                 decoration: InputDecoration(
                   labelText: l10n.emailLabel,
-                  border: const OutlineInputBorder(),
                 ),
                 validator: (v) => AuthValidators.isValidEmail(v ?? '')
                     ? null
@@ -76,10 +77,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               if (state.hasError) ...[
                 const SizedBox(height: 16),
-                Text(
-                  failureMessage(l10n, state.error!),
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+                AuthErrorBanner(message: failureMessage(l10n, state.error!)),
               ],
               const SizedBox(height: 24),
               FilledButton(
