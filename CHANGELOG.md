@@ -3,6 +3,27 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.7.0] - 2026-11-11
+
+### Aggiunto
+- Nuovo aspetto dell'app, tema chiaro e scuro: palette "Crush" con tre colori (lampone per l'azione principale e i "mi piace", indaco per l'anonimato, giallo come evidenziatore) su crema o inchiostro viola, forme morbide (card e finestre arrotondate, bottoni e barra di navigazione a pillola, card degli spot e bolle dei messaggi "a fumetto") e font inclusi nell'app: Bricolage Grotesque per i titoli e Plus Jakarta Sans per il testo.
+- Caricamenti con scheletri: ogni lista e pagina mostra la forma della schermata vera con uno shimmer morbido al posto dello spinner; in fondo agli elenchi compare un elemento scheletro mentre arriva la pagina successiva.
+- Nuova icona (un radar con tre puntini nei colori della palette), con icona adattiva e icona a tema su Android, e splash scura con il logo e la scritta "Spotted".
+- Accesso e registrazione con il marchio in alto (macchie colorate, radar e scritta) e un foglio con il modulo; il radar ruota una volta all'apertura e sta fermo se il sistema riduce le animazioni. Gli errori dei moduli compaiono in un riquadro con icona.
+- Avatar dei canali a quadrato morbido con l'iniziale e un colore della palette sempre uguale per lo stesso canale; nell'elenco delle chat l'autore anonimo è una maschera su indaco.
+- Il cuore dei "mi piace" è lampone e rimbalza quando viene messo.
+
+### Modificato
+- Le bolle dei messaggi seguono la lunghezza del testo (prima erano sempre larghe l'80% dello schermo) e hanno la coda dalla parte di chi scrive.
+- "Autore del post" nei commenti è in indaco, il colore dell'anonimato.
+- Tutti i campi di testo usano lo stesso bordo morbido del tema (tolti i bordi scritti a mano in 15 punti).
+- Il nome dell'app su Android è "Spotted" (era "spotted").
+- Il progetto di sviluppo usa Flutter 3.47.9, anche nella pipeline.
+
+### Note
+- La scelta manuale tra tema chiaro e scuro arriva con le impostazioni (0.8.0): per ora il tema segue il sistema.
+- Le icone dell'interfaccia sono ancora quelle standard di Material, in attesa delle versioni arrotondate.
+
 ## [0.6.0] - 2026-11-11
 
 ### Aggiunto
