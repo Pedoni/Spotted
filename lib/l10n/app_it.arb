@@ -174,5 +174,36 @@
   "reportResolve": "Risolvi",
   "reportResolved": "Segnalazione risolta",
   "reportDismissed": "Segnalazione ignorata",
-  "loadMoreReportsError": "Impossibile caricare altre segnalazioni"
+  "loadMoreReportsError": "Impossibile caricare altre segnalazioni",
+  "myChatsTitle": "Le mie chat",
+  "noChats": "Ancora nessuna chat",
+  "loadMoreChatsError": "Impossibile caricare altre chat",
+  "noMessagesYet": "Nessun messaggio",
+  "youPrefix": "Tu: {message}",
+  "@youPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "startChat": "Chatta",
+  "noMessages": "Nessun messaggio. Scrivi il primo!",
+  "writeMessage": "Scrivi un messaggio",
+  "sendMessage": "Invia",
+  "loadMoreMessagesError": "Impossibile caricare altri messaggi",
+  "chatAuthorAnonymous": "L'autore dello spot è anonimo",
+  "chatIdentityHiddenFromThem": "Non sanno chi sei: sei l'autore anonimo dello spot",
+  "chatIdentityRevealedToThem": "Hai rivelato la tua identità",
+  "revealIdentity": "Rivela identità",
+  "revealIdentityTitle": "Rivelare la tua identità?",
+  "revealIdentityBody": "@{username} vedrà il tuo username. L'operazione non si può annullare.",
+  "@revealIdentityBody": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "identityRevealed": "Identità rivelata"
 }

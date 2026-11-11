@@ -10,6 +10,8 @@ import 'package:spotted/features/channels/presentation/pages/channel_detail_page
 import 'package:spotted/features/channels/presentation/pages/channels_page.dart';
 import 'package:spotted/features/channels/presentation/pages/create_channel_page.dart';
 import 'package:spotted/features/channels/presentation/pages/my_channels_page.dart';
+import 'package:spotted/features/chat/presentation/pages/chat_page.dart';
+import 'package:spotted/features/chat/presentation/pages/chats_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
 import 'package:spotted/features/moderation/presentation/pages/moderation_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
@@ -88,6 +90,15 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.channelModeration,
         builder: (context, state) =>
             ModerationPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: AppRoutes.chats,
+        builder: (context, state) => const ChatsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.chatDetail,
+        builder: (context, state) =>
+            ChatPage(chatId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.spotDetail,
