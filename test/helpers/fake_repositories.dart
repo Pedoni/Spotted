@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
+import 'package:spotted/features/chat/domain/entities/chat_message.dart';
+import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
+import 'package:spotted/features/chat/domain/repositories/chat_repository.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/domain/repositories/comments_repository.dart';
@@ -637,5 +640,148 @@ class FakeReportsRepository implements ReportsRepository {
     resolveCalls.add((reportId: reportId, resolution: resolution));
     if (resolveError != null) throw resolveError!;
     reports = reports.where((r) => r.id != reportId).toList();
+  }
+}
+
+ChatSummary makeChat(
+  int i, {
+  bool iAmAuthor = true,
+  String? otherUsername = 'luigi',
+  bool identityRevealed = false,
+  String? lastMessage,
+  bool? lastMessageIsMine,
+}) {
+  return ChatSummary(
+    id: 'ch$i',
+    spotId: 's1',
+    spotTitle: 'Ombrello perso',
+    channelName: 'Spotted Pisa',
+    channelSlug: 'canale-1',
+    iAmAuthor: iAmAuthor,
+    otherUsername: otherUsername,
+    identityRevealed: identityRevealed,
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+    lastMessage: lastMessage,
+    lastMessageAt: lastMessage == null
+        ? null
+        : DateTime(2026).subtract(Duration(minutes: i)),
+    lastMessageIsMine: lastMessageIsMine,
+  );
+}
+
+ChatMessage makeMessage(int i, {String? content, bool isMine = false}) {
+  return ChatMessage(
+    id: 'm$i',
+    content: content ?? 'Messaggio $i',
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+    isMine: isMine,
+  );
+}
+
+/// Chat in memoria. [messages] sono i messaggi di ogni chat, dal più recente.
+/// Se [gate] è impostato, le pagine successive alla prima restano in attesa
+/// finché non si completa.
+class FakeChatRepository implements ChatRepository {
+  FakeChatRepository({
+    List<ChatSummary>? chats,
+    Map<String, List<ChatMessage>>? messages,
+    this.spotAuthor = false,
+  }) : chats = chats ?? [],
+       messages = messages ?? {};
+
+  List<ChatSummary> chats;
+  Map<String, List<ChatMessage>> messages;
+
+  /// L'utente loggato è l'autore dello spot.
+  bool spotAuthor;
+
+  Failure? authorError;
+  Failure? startError;
+  Failure? revealError;
+  Failure? listError;
+  Failure? detailError;
+  Failure? messagesError;
+  Failure? sendError;
+  Completer<void>? gate;
+
+  final startCalls = <String>[];
+  final revealCalls = <String>[];
+  final listCalls = <({int offset, int limit})>[];
+  final messageCalls = <({String chatId, int offset, int limit})>[];
+  final sendCalls = <({String chatId, String content})>[];
+
+  @override
+  Future<bool> isSpotAuthor(String spotId) async {
+    if (authorError != null) throw authorError!;
+    return spotAuthor;
+  }
+
+  @override
+  Future<String> startChat(String commentId) async {
+    startCalls.add(commentId);
+    if (startError != null) throw startError!;
+    return chats.isEmpty ? 'ch-new' : chats.first.id;
+  }
+
+  @override
+  Future<void> revealIdentity(String chatId) async {
+    revealCalls.add(chatId);
+    if (revealError != null) throw revealError!;
+    chats = [
+      for (final c in chats)
+        if (c.id == chatId) c.withIdentityRevealed() else c,
+    ];
+  }
+
+  @override
+  Future<List<ChatSummary>> getChats({
+    required int offset,
+    required int limit,
+  }) async {
+    listCalls.add((offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    if (offset > 0 && gate != null) await gate!.future;
+    return chats.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<ChatSummary> getChat(String chatId) async {
+    if (detailError != null) throw detailError!;
+    return chats.firstWhere(
+      (c) => c.id == chatId,
+      orElse: () => throw const NotFoundFailure(),
+    );
+  }
+
+  @override
+  Future<List<ChatMessage>> getMessages({
+    required String chatId,
+    required int offset,
+    required int limit,
+  }) async {
+    messageCalls.add((chatId: chatId, offset: offset, limit: limit));
+    if (messagesError != null) throw messagesError!;
+    if (offset > 0 && gate != null) await gate!.future;
+    return (messages[chatId] ?? const <ChatMessage>[])
+        .skip(offset)
+        .take(limit)
+        .toList();
+  }
+
+  @override
+  Future<ChatMessage> sendMessage({
+    required String chatId,
+    required String content,
+  }) async {
+    sendCalls.add((chatId: chatId, content: content));
+    if (sendError != null) throw sendError!;
+    final message = ChatMessage(
+      id: 'new-${sendCalls.length}',
+      content: content,
+      createdAt: DateTime(2026),
+      isMine: true,
+    );
+    messages[chatId] = [message, ...?messages[chatId]];
+    return message;
   }
 }

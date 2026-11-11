@@ -32,7 +32,7 @@ class MockSupabase {
   http.Request get lastRequest => requests.last;
 }
 
-http.Response jsonResponse(Object body, {int status = 200}) {
+http.Response jsonResponse(Object? body, {int status = 200}) {
   return http.Response(
     jsonEncode(body),
     status,
@@ -124,5 +124,46 @@ Map<String, dynamic> reportRow(
     'reason': reason,
     'details': details,
     'created_at': '2026-01-01T10:00:00+00:00',
+  };
+}
+
+/// Riga di `my_chats_page` / `chat_detail`. Per il commentatore
+/// (`iAmAuthor: false`) lo username dell'altro è nullo finché l'identità non è
+/// rivelata.
+Map<String, dynamic> chatRow(
+  String id, {
+  bool iAmAuthor = true,
+  String? otherUsername = 'luigi',
+  bool identityRevealed = false,
+  String? lastMessage,
+  bool? lastMessageIsMine,
+}) {
+  return {
+    'id': id,
+    'spot_id': 's1',
+    'spot_title': 'Ombrello perso',
+    'channel_name': 'Spotted Pisa',
+    'channel_slug': 'spotted-pisa',
+    'i_am_author': iAmAuthor,
+    'other_username': otherUsername,
+    'identity_revealed': identityRevealed,
+    'created_at': '2026-01-01T10:00:00+00:00',
+    'last_message': lastMessage,
+    'last_message_at': lastMessage == null ? null : '2026-01-01T11:00:00+00:00',
+    'last_message_is_mine': lastMessageIsMine,
+  };
+}
+
+/// Riga di `chat_messages` / `send_message`.
+Map<String, dynamic> messageRow(
+  String id, {
+  String? content,
+  bool isMine = false,
+}) {
+  return {
+    'id': id,
+    'content': content ?? 'Messaggio $id',
+    'created_at': '2026-01-01T10:00:00+00:00',
+    'is_mine': isMine,
   };
 }
