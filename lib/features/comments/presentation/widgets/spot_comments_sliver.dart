@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
+import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/presentation/providers/spot_comments_feed.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_tile.dart';
+import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/providers/spot_interaction.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -74,11 +76,42 @@ class SpotCommentsSliver extends ConsumerWidget {
     }
   }
 
+  /// Nasconde o ripristina un commento (solo il proprietario del canale).
+  Future<void> _toggleHidden(
+    BuildContext context,
+    WidgetRef ref,
+    Comment comment,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final hide = comment.status == CommentStatus.published;
+    try {
+      await ref
+          .read(spotCommentsFeedProvider(spot.id).notifier)
+          .setHidden(comment.id, hidden: hide);
+      // Il numero di commenti conta solo quelli visibili a tutti.
+      ref
+          .read(spotInteractionProvider(spot.id).notifier)
+          .addComments(spot, hide ? -1 : 1);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(hide ? l10n.commentHidden : l10n.commentRestored),
+        ),
+      );
+    } on Exception catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failureMessage(l10n, error))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final provider = spotCommentsFeedProvider(spot.id);
     final feed = ref.watch(provider);
+    final isOwner =
+        ref.watch(isChannelOwnerProvider(spot.channelId)).value ?? false;
 
     return feed.when(
       loading: () => const SliverToBoxAdapter(
@@ -108,6 +141,9 @@ class SpotCommentsSliver extends ConsumerWidget {
                 comment: comment,
                 onLike: () => unawaited(_like(context, ref, comment)),
                 onDelete: () => unawaited(_delete(context, ref, comment)),
+                onToggleHidden: isOwner
+                    ? () => unawaited(_toggleHidden(context, ref, comment))
+                    : null,
               );
             }
             if (paged.loadMoreFailed) {
