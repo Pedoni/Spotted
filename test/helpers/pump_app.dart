@@ -31,6 +31,10 @@ Future<void> pumpApp(
   FakeReportsRepository? reports,
   FakeChatRepository? chat,
   Duration? chatPollInterval,
+
+  /// Se è `false` non aspetta che tutto si fermi: serve quando la schermata
+  /// resta in caricamento, perché lo scheletro anima di continuo.
+  bool settle = true,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -71,7 +75,12 @@ Future<void> pumpApp(
       child: const App(),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+  }
 }
 
 const loggedInUser = AppUser(id: '1', email: 'a@b.it');

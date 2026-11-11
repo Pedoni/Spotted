@@ -205,5 +205,6 @@
       }
     }
   },
-  "identityRevealed": "Identità rivelata"
+  "identityRevealed": "Identità rivelata",
+  "loading": "Caricamento in corso"
 }

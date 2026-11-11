@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/channel_spots_sliver.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -42,7 +45,11 @@ class ChannelDetailPage extends ConsumerWidget {
             )
           : null,
       body: channel.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonScroll(
+          child: Column(
+            children: [ChannelHeaderSkeleton(), SpotCardsSkeleton(count: 2)],
+          ),
+        ),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(channelDetailProvider(slug)),

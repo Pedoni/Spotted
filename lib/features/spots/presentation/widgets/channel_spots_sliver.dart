@@ -7,6 +7,7 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 /// Lista a scroll infinito degli spot di un canale, da usare dentro una
@@ -23,12 +24,8 @@ class ChannelSpotsSliver extends ConsumerWidget {
     final feed = ref.watch(provider);
 
     return feed.when(
-      loading: () => const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
+      loading: () =>
+          const SliverToBoxAdapter(child: SpotCardsSkeleton(count: 2)),
       error: (error, _) => SliverToBoxAdapter(
         child: ErrorView(
           error: error,
@@ -71,10 +68,7 @@ class ChannelSpotsSliver extends ConsumerWidget {
                 unawaited(ref.read(provider.notifier).loadMore());
               }
             });
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
+            return const SpotCardsSkeleton(count: 1);
           },
         );
       },
