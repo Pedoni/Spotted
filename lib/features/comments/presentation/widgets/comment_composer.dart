@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/comments/domain/comment_validators.dart';
 import 'package:spotted/features/comments/presentation/providers/spot_comments_feed.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
@@ -84,10 +85,7 @@ class _CommentComposerState extends ConsumerState<CommentComposer> {
                 child: _sending
                     ? const Padding(
                         padding: EdgeInsets.all(12),
-                        child: SizedBox.square(
-                          dimension: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                        child: InlineProgress(),
                       )
                     : IconButton(
                         tooltip: l10n.sendComment,

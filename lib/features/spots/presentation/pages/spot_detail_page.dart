@@ -3,14 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/comments/presentation/providers/spot_comments_feed.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_composer.dart';
+import 'package:spotted/features/comments/presentation/widgets/comment_skeletons.dart';
 import 'package:spotted/features/comments/presentation/widgets/spot_comments_sliver.dart';
 import 'package:spotted/features/moderation/presentation/widgets/spot_moderation_menu.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_actions.dart';
 import 'package:spotted/features/spots/presentation/providers/spot_interaction.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 /// Uno spot con i suoi commenti e il campo per scriverne uno.
@@ -40,7 +43,11 @@ class SpotDetailPage extends ConsumerWidget {
         ],
       ),
       body: spot.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonScroll(
+          child: Column(
+            children: [SpotCardsSkeleton(count: 1), CommentsSkeleton()],
+          ),
+        ),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(spotDetailProvider(spotId)),

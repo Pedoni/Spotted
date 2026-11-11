@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tile.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
@@ -22,7 +24,7 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeTitle)),
       body: channels.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonScroll(child: ChannelTilesSkeleton()),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(mySubscribedChannelsProvider),

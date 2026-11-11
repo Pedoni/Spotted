@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/auth/domain/auth_validators.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_controllers.dart';
 import 'package:spotted/features/auth/presentation/widgets/auth_form_layout.dart';
@@ -138,10 +139,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               FilledButton(
                 onPressed: state.isLoading ? null : _submit,
                 child: state.isLoading
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const InlineProgress()
                     : Text(l10n.signUpButton),
               ),
               const SizedBox(height: 8),

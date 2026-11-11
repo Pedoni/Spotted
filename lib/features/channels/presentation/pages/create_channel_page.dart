@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/channels/domain/channel_validators.dart';
 import 'package:spotted/features/channels/presentation/providers/create_channel_controller.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
@@ -142,10 +143,7 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                     FilledButton(
                       onPressed: state.isLoading ? null : _submit,
                       child: state.isLoading
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                          ? const InlineProgress()
                           : Text(l10n.createChannelButton),
                     ),
                   ],

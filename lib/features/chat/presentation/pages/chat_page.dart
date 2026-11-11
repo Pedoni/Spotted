@@ -10,6 +10,7 @@ import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_messages_feed.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/chat/presentation/widgets/chat_names.dart';
+import 'package:spotted/features/chat/presentation/widgets/chat_skeletons.dart';
 import 'package:spotted/features/chat/presentation/widgets/message_bubble.dart';
 import 'package:spotted/features/chat/presentation/widgets/message_composer.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -34,7 +35,12 @@ class ChatPage extends ConsumerWidget {
         ),
       ),
       body: chat.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Column(
+          children: [
+            ChatHeaderSkeleton(),
+            Expanded(child: MessagesSkeletonView(count: 4)),
+          ],
+        ),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(chatDetailProvider(chatId)),
@@ -145,7 +151,7 @@ class _Messages extends ConsumerWidget {
     final feed = ref.watch(provider);
 
     return feed.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const MessagesSkeletonView(),
       error: (error, _) =>
           ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
       data: (paged) {
@@ -178,10 +184,7 @@ class _Messages extends ConsumerWidget {
                 unawaited(ref.read(provider.notifier).loadMore());
               }
             });
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
+            return const MessagesSkeleton(count: 2);
           },
         );
       },

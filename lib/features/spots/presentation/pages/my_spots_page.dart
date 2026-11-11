@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/presentation/providers/my_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 class MySpotsPage extends ConsumerWidget {
@@ -57,7 +59,8 @@ class MySpotsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.mySpotsTitle)),
       body: feed.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () =>
+            const SkeletonScroll(child: SpotCardsSkeleton(withChannel: true)),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(mySpotsFeedProvider),
@@ -105,10 +108,7 @@ class MySpotsPage extends ConsumerWidget {
                     );
                   }
                 });
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                );
+                return const SpotCardsSkeleton(count: 1, withChannel: true);
               },
             ),
           );

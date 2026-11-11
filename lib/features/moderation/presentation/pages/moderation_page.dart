@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
@@ -13,6 +14,7 @@ import 'package:spotted/features/moderation/presentation/providers/moderation_pr
 import 'package:spotted/features/reports/presentation/widgets/channel_reports_list.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 /// Gli spot nascosti di un canale, da ripristinare. Solo per il proprietario:
@@ -55,7 +57,8 @@ class ModerationPage extends ConsumerWidget {
           ),
         ),
         body: channel.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () =>
+              const SkeletonScroll(child: SpotCardsSkeleton(count: 2)),
           error: (error, _) => ErrorView(
             error: error,
             onRetry: () => ref.invalidate(channelDetailProvider(slug)),
@@ -88,7 +91,7 @@ class _HiddenSpotsList extends ConsumerWidget {
     final feed = ref.watch(provider);
 
     return feed.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const SkeletonScroll(child: SpotCardsSkeleton(count: 2)),
       error: (error, _) =>
           ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
       data: (paged) {
@@ -128,10 +131,7 @@ class _HiddenSpotsList extends ConsumerWidget {
                   unawaited(ref.read(provider.notifier).loadMore());
                 }
               });
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
-              );
+              return const SpotCardsSkeleton(count: 1);
             },
           ),
         );
