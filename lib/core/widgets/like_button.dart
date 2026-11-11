@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
@@ -48,7 +50,14 @@ class _LikeButtonState extends State<LikeButton>
   void didUpdateWidget(LikeButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Solo quando il like viene messo, non quando viene tolto.
-    if (widget.liked && !oldWidget.liked) _controller.forward(from: 0);
+    if (widget.liked && !oldWidget.liked) unawaited(_bounce());
+  }
+
+  /// Il rimbalzo del cuore. È un metodo `async` per non dipendere da come le
+  /// diverse versioni di Flutter annotano `forward` (l'analisi darebbe un
+  /// avviso o con `unawaited` o senza).
+  Future<void> _bounce() async {
+    await _controller.forward(from: 0);
   }
 
   @override
