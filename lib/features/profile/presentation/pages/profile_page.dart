@@ -46,6 +46,12 @@ class ProfilePage extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.mySpots),
             ),
             ListTile(
+              leading: const Icon(Icons.chat_bubble_outline),
+              title: Text(l10n.myChatsTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(AppRoutes.chats),
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: Text(l10n.logout),
               onTap: () =>

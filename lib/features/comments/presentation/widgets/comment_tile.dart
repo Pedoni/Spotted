@@ -13,6 +13,7 @@ class CommentTile extends StatelessWidget {
     required this.onDelete,
     this.onToggleHidden,
     this.onReport,
+    this.onChat,
     super.key,
   });
 
@@ -26,6 +27,10 @@ class CommentTile extends StatelessWidget {
 
   /// Segnala il commento. Assente per i propri commenti.
   final VoidCallback? onReport;
+
+  /// Avvia una chat con chi ha scritto il commento. Presente solo per l'autore
+  /// dello spot, e non sui suoi commenti.
+  final VoidCallback? onChat;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +103,12 @@ class CommentTile extends StatelessWidget {
                       size: 20,
                     ),
                     onPressed: onToggleHidden,
+                  ),
+                if (onChat != null)
+                  IconButton(
+                    tooltip: l10n.startChat,
+                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                    onPressed: onChat,
                   ),
                 if (onReport != null)
                   IconButton(

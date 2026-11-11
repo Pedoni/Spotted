@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
+import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/presentation/providers/spot_comments_feed.dart';
@@ -77,6 +80,27 @@ class SpotCommentsSliver extends ConsumerWidget {
     }
   }
 
+  /// Avvia (o riapre) la chat con chi ha scritto il commento e la apre.
+  Future<void> _startChat(
+    BuildContext context,
+    WidgetRef ref,
+    Comment comment,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    try {
+      final chatId = await ref
+          .read(chatActionsProvider.notifier)
+          .start(comment.id);
+      await router.push<void>(AppRoutes.chatPath(chatId));
+    } on Exception catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failureMessage(l10n, error))),
+      );
+    }
+  }
+
   /// Nasconde o ripristina un commento (solo il proprietario del canale).
   Future<void> _toggleHidden(
     BuildContext context,
@@ -111,6 +135,8 @@ class SpotCommentsSliver extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final provider = spotCommentsFeedProvider(spot.id);
     final feed = ref.watch(provider);
+    final isSpotAuthor =
+        ref.watch(isSpotAuthorProvider(spot.id)).value ?? false;
     final isOwner =
         ref.watch(isChannelOwnerProvider(spot.channelId)).value ?? false;
 
@@ -142,6 +168,9 @@ class SpotCommentsSliver extends ConsumerWidget {
                 comment: comment,
                 onLike: () => unawaited(_like(context, ref, comment)),
                 onDelete: () => unawaited(_delete(context, ref, comment)),
+                onChat: isSpotAuthor && !comment.isMine
+                    ? () => unawaited(_startChat(context, ref, comment))
+                    : null,
                 onReport: comment.isMine
                     ? null
                     : () => unawaited(

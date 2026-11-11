@@ -5,6 +5,7 @@ import 'package:spotted/core/riverpod/no_retry.dart';
 import 'package:spotted/features/auth/domain/entities/app_user.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/profile/presentation/providers/profile_providers.dart';
@@ -28,6 +29,8 @@ Future<void> pumpApp(
   FakeCommentsRepository? comments,
   FakeModerationRepository? moderation,
   FakeReportsRepository? reports,
+  FakeChatRepository? chat,
+  Duration? chatPollInterval,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -60,6 +63,10 @@ Future<void> pumpApp(
         reportsRepositoryProvider.overrideWithValue(
           reports ?? FakeReportsRepository(),
         ),
+        chatRepositoryProvider.overrideWithValue(chat ?? FakeChatRepository()),
+        // Senza polling di default: i timer periodici lascerebbero il test in
+        // attesa.
+        chatPollIntervalProvider.overrideWithValue(chatPollInterval),
       ],
       child: const App(),
     ),
