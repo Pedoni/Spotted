@@ -82,6 +82,8 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
   - `chats` (`spot_id`, `author_id`, `commenter_id`, `identity_revealed`, unica su `(spot_id, commenter_id)`) e `messages` sono chiuse ai client: si usano solo `start_chat(comment_id)` (solo l'autore dello spot, idempotente), `reveal_identity(chat_id)` (solo l'autore, **non reversibile**), `my_chats_page`, `chat_detail`, `chat_messages`, `send_message`. Chi non è l'autore dello spot riceve `42501`.
   - Le funzioni non restituiscono mai id di utenti: al loro posto `i_am_author`, `is_mine` e `other_username` (per il commentatore è nullo finché l'identità non è rivelata). `is_chat_participant` e `visible_chats` sono interne e non chiamabili dai client.
   - Il commentatore vede la chat solo dopo il primo messaggio dell'autore (niente chat vuote). Sugli spot rimossi non si scrivono nuovi messaggi. Messaggi 1-5000 caratteri.
+  - `is_spot_author(spot_id)` dice solo all'utente che chiama se è l'autore dello spot: la UI mostra "Chatta" sui commenti (non sui propri) solo a lui, perché `spots.author_id` non è leggibile. Se la chiamata fallisce l'azione resta nascosta.
+  - App (feature `chat`): "Le mie chat" dal Profilo, pagina della chat con i messaggi (i più recenti in basso), banner sull'identità e "Rivela identità" con conferma. `ChatActions` (Riverpod) è `keepAlive`, come `SpotModeration`: avvia le chat e rivela l'identità aggiornando le liste. Il polling dei messaggi è `chatPollIntervalProvider` (5 s; `null` nei test, così non restano timer pendenti).
   - I messaggi si aggiornano con polling: Supabase Realtime richiede di leggere `messages` direttamente e rivelerebbe gli id. Alternativa futura: canale broadcast dedicato (0.9.0, con le notifiche).
   - **Limite noto**: nessuna segnalazione dei messaggi, blocco o uscita dalla chat; la moderazione delle chat arriva più avanti (0.8.0).
 - **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale e nasconde i commenti; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
@@ -107,7 +109,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | 0.3.0 | Spot: feed del canale, pubblicazione anonima, "i miei spot" (fatto) |
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico (fatto) |
 | 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
-| 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` (fatto), app (da fare) |
+| 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` e app (fatto) |
 | 0.7.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
 | 0.8.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
 | 0.9.0 | Rifinitura: accessibilità, notifiche, release candidate |
