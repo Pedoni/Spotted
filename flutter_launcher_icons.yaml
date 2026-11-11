@@ -1,0 +1,15 @@
+# Icona dell'app (Android e iOS). Si rigenera con:
+#   dart run flutter_launcher_icons
+# I file del marchio stanno in design/brand (vedi il README lì).
+flutter_launcher_icons:
+  android: true
+  ios: true
+  # Icona piena 1024x1024, senza trasparenza.
+  image_path: design/brand/spotted-icon-1024.png
+  # iOS rifiuta le icone con trasparenza.
+  remove_alpha_ios: true
+  # Android adattiva: sfondo pieno, primo piano nella zona sicura e versione
+  # monocolore per le icone a tema di Android 13.
+  adaptive_icon_background: "#16131C"
+  adaptive_icon_foreground: design/brand/android-foreground.png
+  adaptive_icon_monochrome: design/brand/android-monochrome.png
