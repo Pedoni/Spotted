@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
@@ -36,9 +37,7 @@ class CommentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(comment.createdAt.toLocal());
+    final date = formatDateTime(context, comment.createdAt);
     final author = comment.isSpotAuthor
         ? l10n.spotAuthor
         : '@${comment.authorUsername}';

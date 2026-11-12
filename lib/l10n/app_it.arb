@@ -206,5 +206,7 @@
     }
   },
   "identityRevealed": "Identità rivelata",
-  "loading": "Caricamento in corso"
+  "loading": "Caricamento in corso",
+  "logoutConfirmTitle": "Uscire dall'account?",
+  "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo."
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
 import 'package:spotted/features/reports/domain/entities/report_kind.dart';
 import 'package:spotted/features/reports/domain/entities/report_resolution.dart';
@@ -23,9 +24,7 @@ class ReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(report.createdAt.toLocal());
+    final date = formatDateTime(context, report.createdAt);
     final isComment = report.kind == ReportKind.comment;
 
     return Card(
