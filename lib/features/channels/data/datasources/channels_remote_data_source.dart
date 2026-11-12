@@ -56,7 +56,7 @@ class ChannelsRemoteDataSource {
     required String name,
     required String slug,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) async {
     final ownerId = _currentUserId();
@@ -69,7 +69,7 @@ class ChannelsRemoteDataSource {
       name: name,
       slug: slug,
       description: description,
-      place: place,
+      municipalityId: municipalityId,
       topicId: topicId,
     );
     final row = await _client

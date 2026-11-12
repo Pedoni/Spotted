@@ -19,12 +19,11 @@ class CreateChannel {
   Future<Channel> call({
     required String name,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) async {
     if (!ChannelValidators.isValidName(name) ||
-        !ChannelValidators.isValidDescription(description ?? '') ||
-        !ChannelValidators.isValidPlace(place ?? '')) {
+        !ChannelValidators.isValidDescription(description ?? '')) {
       throw const ValidationFailure();
     }
 
@@ -38,7 +37,7 @@ class CreateChannel {
           name: name.trim(),
           slug: slug,
           description: _nullIfBlank(description),
-          place: _nullIfBlank(place),
+          municipalityId: _nullIfBlank(municipalityId),
           topicId: topicId,
         );
       } on ConflictFailure {

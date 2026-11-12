@@ -12,6 +12,9 @@ import 'package:spotted/features/comments/domain/repositories/comments_repositor
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
+import 'package:spotted/features/municipalities/domain/entities/municipality.dart';
+import 'package:spotted/features/municipalities/domain/entities/province.dart';
+import 'package:spotted/features/municipalities/domain/repositories/municipalities_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
@@ -34,6 +37,7 @@ Channel makeChannel(
   String? name,
   String? topicId,
   String? place,
+  String? municipalityId,
   String? description,
 }) {
   return Channel(
@@ -42,6 +46,7 @@ Channel makeChannel(
     slug: 'canale-$i',
     topicId: topicId,
     place: place,
+    municipalityId: municipalityId,
     description: description,
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
   );
@@ -57,6 +62,9 @@ class FakeChannelsRepository implements ChannelsRepository {
   List<Channel> channels;
   List<Channel> mine;
   Set<String> takenSlugs = {};
+
+  /// Il testo da mostrare di ogni comune (come lo calcola il database).
+  Map<String, String> municipalityPlaces = {'050026': 'Pisa (PI)'};
   Failure? listError;
   Failure? createError;
 
@@ -103,14 +111,14 @@ class FakeChannelsRepository implements ChannelsRepository {
     required String name,
     required String slug,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) async {
     createCalls.add({
       'name': name,
       'slug': slug,
       'description': description,
-      'place': place,
+      'municipalityId': municipalityId,
       'topicId': topicId,
     });
     if (createError != null) throw createError!;
@@ -120,7 +128,9 @@ class FakeChannelsRepository implements ChannelsRepository {
       name: name,
       slug: slug,
       description: description,
-      place: place,
+      // Come il trigger del database: il luogo da mostrare viene dal comune.
+      place: municipalityId == null ? null : municipalityPlaces[municipalityId],
+      municipalityId: municipalityId,
       topicId: topicId,
       createdAt: DateTime(2026),
     );
@@ -783,5 +793,105 @@ class FakeChatRepository implements ChatRepository {
     );
     messages[chatId] = [message, ...?messages[chatId]];
     return message;
+  }
+}
+
+/// Un comune di prova: di default Pisa.
+Municipality makeMunicipality({
+  String code = '050026',
+  String name = 'Pisa',
+  String provinceCode = 'PI',
+  String provinceName = 'Pisa',
+  String regionName = 'Toscana',
+}) {
+  return Municipality(
+    istatCode: code,
+    name: name,
+    provinceCode: provinceCode,
+    provinceName: provinceName,
+    regionName: regionName,
+  );
+}
+
+/// L'elenco dei comuni in memoria. La ricerca non distingue maiuscole e
+/// accenti e mette prima i nomi che iniziano così, come l'RPC.
+class FakeMunicipalitiesRepository implements MunicipalitiesRepository {
+  FakeMunicipalitiesRepository({List<Municipality>? municipalities})
+    : municipalities =
+          municipalities ??
+          [
+            makeMunicipality(),
+            makeMunicipality(
+              code: '050027',
+              name: 'Pistoia',
+              provinceCode: 'PT',
+              provinceName: 'Pistoia',
+            ),
+            makeMunicipality(
+              code: '033032',
+              name: 'Piacenza',
+              provinceCode: 'PC',
+              provinceName: 'Piacenza',
+              regionName: 'Emilia-Romagna',
+            ),
+            makeMunicipality(
+              code: '008888',
+              name: 'Forlì',
+              provinceCode: 'FC',
+              provinceName: 'Forlì-Cesena',
+              regionName: 'Emilia-Romagna',
+            ),
+          ];
+
+  List<Municipality> municipalities;
+  Failure? searchError;
+  Failure? listError;
+
+  final searchCalls = <({String query, int limit})>[];
+
+  static String _plain(String text) => text
+      .toLowerCase()
+      .replaceAll(RegExp('[àá]'), 'a')
+      .replaceAll(RegExp('[èé]'), 'e')
+      .replaceAll(RegExp('[ìí]'), 'i')
+      .replaceAll(RegExp('[òó]'), 'o')
+      .replaceAll(RegExp('[ùú]'), 'u');
+
+  @override
+  Future<List<Municipality>> search(String query, {required int limit}) async {
+    searchCalls.add((query: query, limit: limit));
+    if (searchError != null) throw searchError!;
+    final q = _plain(query.trim());
+    final found =
+        municipalities.where((m) => _plain(m.name).contains(q)).toList()
+          ..sort((a, b) {
+            final aStarts = _plain(a.name).startsWith(q) ? 0 : 1;
+            final bStarts = _plain(b.name).startsWith(q) ? 0 : 1;
+            return aStarts != bStarts
+                ? aStarts.compareTo(bStarts)
+                : a.name.compareTo(b.name);
+          });
+    return found.take(limit).toList();
+  }
+
+  @override
+  Future<List<String>> getRegions() async {
+    if (listError != null) throw listError!;
+    return ({for (final m in municipalities) m.regionName}.toList()..sort());
+  }
+
+  @override
+  Future<List<Province>> getProvinces({String? region}) async {
+    if (listError != null) throw listError!;
+    final found = <String, Province>{
+      for (final m in municipalities)
+        if (region == null || m.regionName == region)
+          m.provinceCode: Province(
+            code: m.provinceCode,
+            name: m.provinceName,
+            regionName: m.regionName,
+          ),
+    };
+    return found.values.toList()..sort((a, b) => a.name.compareTo(b.name));
   }
 }

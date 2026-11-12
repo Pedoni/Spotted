@@ -51,6 +51,9 @@ Map<String, dynamic> channelRow(
   String? topicId,
   String? place,
   String? description,
+  String? municipalityId,
+  String? provinceCode,
+  String? regionName,
 }) {
   return {
     'id': id,
@@ -58,6 +61,9 @@ Map<String, dynamic> channelRow(
     'slug': 'canale-$id',
     'description': description,
     'place': place,
+    'municipality_id': municipalityId,
+    'province_code': provinceCode,
+    'region_name': regionName,
     'topic_id': topicId,
     'created_at': '2026-01-01T10:00:00+00:00',
   };
@@ -165,5 +171,22 @@ Map<String, dynamic> messageRow(
     'content': content ?? 'Messaggio $id',
     'created_at': '2026-01-01T10:00:00+00:00',
     'is_mine': isMine,
+  };
+}
+
+/// Riga di `search_municipalities`.
+Map<String, dynamic> municipalityRow(
+  String code, {
+  String name = 'Pisa',
+  String provinceCode = 'PI',
+  String provinceName = 'Pisa',
+  String regionName = 'Toscana',
+}) {
+  return {
+    'istat_code': code,
+    'name': name,
+    'province_code': provinceCode,
+    'province_name': provinceName,
+    'region_name': regionName,
   };
 }
