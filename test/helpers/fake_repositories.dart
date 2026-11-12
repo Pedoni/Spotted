@@ -255,6 +255,7 @@ Spot makeSpot(
   int i, {
   String channelId = 'c1',
   String? title,
+  String? content,
   SpotStats stats = const SpotStats(),
   SpotStatus status = SpotStatus.published,
 }) {
@@ -262,7 +263,7 @@ Spot makeSpot(
     id: 's$i',
     channelId: channelId,
     title: title ?? 'Spot $i',
-    content: 'Testo dello spot $i',
+    content: content ?? 'Testo dello spot $i',
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     stats: stats,
     status: status,
@@ -295,22 +296,46 @@ class FakeSpotsRepository implements SpotsRepository {
 
   final likeCalls = <({String spotId, bool liked})>[];
   final listCalls = <({String channelId, int offset, int limit})>[];
+
+  /// Il testo cercato in ogni chiamata di `getChannelSpots` (`null` se non si
+  /// cercava), nello stesso ordine di [listCalls].
+  final queries = <String?>[];
   final mineCalls = <({int offset, int limit})>[];
   final createCalls = <Map<String, String>>[];
   final deleteCalls = <String>[];
+
+  static String _plain(String text) => text
+      .toLowerCase()
+      .replaceAll(RegExp('[àá]'), 'a')
+      .replaceAll(RegExp('[èé]'), 'e')
+      .replaceAll(RegExp('[ìí]'), 'i')
+      .replaceAll(RegExp('[òó]'), 'o')
+      .replaceAll(RegExp('[ùú]'), 'u');
 
   @override
   Future<List<Spot>> getChannelSpots({
     required String channelId,
     required int offset,
     required int limit,
+    String? query,
   }) async {
     listCalls.add((channelId: channelId, offset: offset, limit: limit));
+    queries.add(query);
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
+    final text = query == null ? null : _plain(query.trim());
     return spots
         .where(
           (s) => s.channelId == channelId && s.status == SpotStatus.published,
+        )
+        // Come l'RPC: titolo o testo contengono il testo, senza maiuscole e
+        // accenti.
+        .where(
+          (s) =>
+              text == null ||
+              text.isEmpty ||
+              _plain(s.title).contains(text) ||
+              _plain(s.content).contains(text),
         )
         .skip(offset)
         .take(limit)

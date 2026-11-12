@@ -79,7 +79,8 @@ class SpotModeration extends _$SpotModeration {
     if (!ref.mounted) return;
     ref
       ..invalidate(spotDetailProvider(spot.id))
-      ..invalidate(channelSpotsFeedProvider(spot.channelId))
+      // Tutti: anche le ricerche aperte nel canale.
+      ..invalidate(channelSpotsFeedProvider)
       ..invalidate(hiddenSpotsFeedProvider(spot.channelId))
       ..invalidate(channelReportsFeedProvider(spot.channelId))
       ..invalidate(mySpotsFeedProvider);
