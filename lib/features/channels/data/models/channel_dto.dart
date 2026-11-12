@@ -6,7 +6,8 @@ part 'channel_dto.g.dart';
 /// Colonne di `channels` leggibili dai client. `owner_id` è escluso di
 /// proposito: il proprietario di un canale non è mostrato.
 const channelColumns =
-    'id, topic_id, name, slug, description, place, created_at';
+    'id, topic_id, name, slug, description, place, municipality_id, '
+    'province_code, region_name, created_at';
 
 @JsonSerializable(createToJson: false, fieldRename: FieldRename.snake)
 class ChannelDto {
@@ -17,6 +18,9 @@ class ChannelDto {
     required this.createdAt,
     this.description,
     this.place,
+    this.municipalityId,
+    this.provinceCode,
+    this.regionName,
     this.topicId,
   });
 
@@ -28,6 +32,9 @@ class ChannelDto {
   final String slug;
   final String? description;
   final String? place;
+  final String? municipalityId;
+  final String? provinceCode;
+  final String? regionName;
   final String? topicId;
   final DateTime createdAt;
 
@@ -37,6 +44,9 @@ class ChannelDto {
     slug: slug,
     description: description,
     place: place,
+    municipalityId: municipalityId,
+    provinceCode: provinceCode,
+    regionName: regionName,
     topicId: topicId,
     createdAt: createdAt,
   );

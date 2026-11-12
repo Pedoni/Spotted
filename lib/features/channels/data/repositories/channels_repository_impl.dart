@@ -40,7 +40,7 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
     required String name,
     required String slug,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) {
     return guardFailures(
@@ -48,7 +48,7 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
         name: name,
         slug: slug,
         description: description,
-        place: place,
+        municipalityId: municipalityId,
         topicId: topicId,
       ),
     );

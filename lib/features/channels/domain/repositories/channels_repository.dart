@@ -21,7 +21,7 @@ abstract interface class ChannelsRepository {
     required String name,
     required String slug,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   });
 }

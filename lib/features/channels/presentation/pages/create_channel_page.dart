@@ -6,6 +6,7 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/channels/domain/channel_validators.dart';
 import 'package:spotted/features/channels/presentation/providers/create_channel_controller.dart';
+import 'package:spotted/features/municipalities/presentation/widgets/municipality_field.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
@@ -20,14 +21,13 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _description = TextEditingController();
-  final _place = TextEditingController();
   String? _topicId;
+  MunicipalityChoice? _municipality;
 
   @override
   void dispose() {
     _name.dispose();
     _description.dispose();
-    _place.dispose();
     super.dispose();
   }
 
@@ -38,7 +38,7 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
         .submit(
           name: _name.text,
           description: _description.text,
-          place: _place.text,
+          municipalityId: _municipality?.istatCode,
           topicId: _topicId,
         );
     if (channel != null && mounted) {
@@ -97,17 +97,8 @@ class _CreateChannelPageState extends ConsumerState<CreateChannelPage> {
                       onChanged: (value) => setState(() => _topicId = value),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _place,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: l10n.channelPlaceLabel,
-                      ),
-                      validator: (v) => ChannelValidators.isValidPlace(v ?? '')
-                          ? null
-                          : l10n.validationTooLong(
-                              ChannelValidators.maxPlaceLength,
-                            ),
+                    MunicipalityField(
+                      onChanged: (choice) => _municipality = choice,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
