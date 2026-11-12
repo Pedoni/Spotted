@@ -112,4 +112,91 @@ void main() {
       expect(container.read(provider).value!.items, hasLength(20));
     });
   });
+
+  group('ChannelSpotsFeed: ricerca', () {
+    setUp(() {
+      repository = FakeSpotsRepository(
+        spots: [
+          makeSpot(1, title: 'Ombrello perso'),
+          makeSpot(2, title: 'Perché non rispondi?'),
+          makeSpot(3, title: 'Ombrello trovato'),
+          ...List.generate(30, (i) => makeSpot(100 + i, title: 'Ombrello $i')),
+        ],
+      );
+      container = makeContainer();
+    });
+
+    test('con il testo restano solo gli spot che lo contengono', () async {
+      final feed = await container.read(
+        channelSpotsFeedProvider('c1', query: 'perche').future,
+      );
+
+      expect(feed.items.map((s) => s.title), ['Perché non rispondi?']);
+      expect(repository.queries.last, 'perche');
+    });
+
+    test('senza testo il feed è quello di sempre e non cerca', () async {
+      final feed = await container.read(channelSpotsFeedProvider('c1').future);
+
+      expect(feed.items, isNotEmpty);
+      expect(repository.queries, [null]);
+    });
+
+    test(
+      'ogni testo ha il suo stato, separato da quello senza ricerca',
+      () async {
+        final all = await container.read(channelSpotsFeedProvider('c1').future);
+        final found = await container.read(
+          channelSpotsFeedProvider('c1', query: 'perche').future,
+        );
+
+        expect(all.items.length, greaterThan(found.items.length));
+        expect(found.items, hasLength(1));
+      },
+    );
+
+    test('loadMore continua a cercare lo stesso testo', () async {
+      final provider = channelSpotsFeedProvider('c1', query: 'ombrello');
+      final first = await container.read(provider.future);
+      expect(first.items, hasLength(20));
+      expect(first.hasMore, isTrue);
+
+      await container.read(provider.notifier).loadMore();
+
+      final feed = container.read(provider).value!;
+      expect(feed.items.length, greaterThan(20));
+      // Tutte le richieste cercano 'ombrello', anche la seconda pagina.
+      expect(repository.queries, ['ombrello', 'ombrello']);
+      expect(repository.listCalls.map((c) => c.offset), [0, 20]);
+    });
+
+    test('con meno di 2 lettere non c è nessuna richiesta', () async {
+      final feed = await container.read(
+        channelSpotsFeedProvider('c1', query: 'o').future,
+      );
+
+      expect(feed.items, isEmpty);
+      expect(repository.listCalls, isEmpty);
+    });
+
+    test('nessun risultato: lista vuota e niente "altre pagine"', () async {
+      final feed = await container.read(
+        channelSpotsFeedProvider('c1', query: 'zzzz').future,
+      );
+
+      expect(feed.items, isEmpty);
+      expect(feed.hasMore, isFalse);
+    });
+
+    test('errore nella ricerca: il feed va in errore', () async {
+      repository.listError = const NetworkFailure();
+
+      await expectLater(
+        container.read(
+          channelSpotsFeedProvider('c1', query: 'ombrello').future,
+        ),
+        throwsA(isA<NetworkFailure>()),
+      );
+    });
+  });
 }

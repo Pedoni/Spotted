@@ -264,4 +264,98 @@ void main() {
       expect(spots.single.spot.status, SpotStatus.hidden);
     });
   });
+
+  group('getChannelSpots: ricerca', () {
+    Map<String, dynamic> sentBody() =>
+        jsonDecode(supabase.lastRequest.body) as Map<String, dynamic>;
+
+    test(
+      'senza testo la richiesta è quella di sempre (niente p_query)',
+      () async {
+        respondWith(<Object>[]);
+
+        await dataSource.getChannelSpots(channelId: 'c1', offset: 0, limit: 20);
+
+        expect(sentBody(), {
+          'p_channel_id': 'c1',
+          'p_limit': 20,
+          'p_offset': 0,
+        });
+        expect(sentBody().containsKey('p_query'), isFalse);
+      },
+    );
+
+    test('con un testo lo invia come p_query', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 20,
+        limit: 20,
+        query: 'ombrello',
+      );
+
+      expect(sentBody(), {
+        'p_channel_id': 'c1',
+        'p_limit': 20,
+        'p_offset': 20,
+        'p_query': 'ombrello',
+      });
+    });
+
+    test('toglie gli spazi ai bordi del testo', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        query: '  perché  ',
+      );
+
+      expect(sentBody()['p_query'], 'perché');
+    });
+
+    test('un testo vuoto o di soli spazi non è una ricerca', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        query: '   ',
+      );
+
+      expect(sentBody().containsKey('p_query'), isFalse);
+    });
+
+    test('i simboli speciali partono così come sono', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        query: r'100% a_b \',
+      );
+
+      expect(sentBody()['p_query'], r'100% a_b \');
+    });
+
+    test('legge i risultati come l elenco normale', () async {
+      respondWith([
+        spotRow('1', title: 'Ombrello perso', likeCount: 2, commentCount: 1),
+      ]);
+
+      final spots = await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        query: 'ombrello',
+      );
+
+      expect(spots.single.title, 'Ombrello perso');
+      expect(spots.single.stats.likeCount, 2);
+    });
+  });
 }

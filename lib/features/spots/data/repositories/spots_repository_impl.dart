@@ -14,12 +14,14 @@ class SpotsRepositoryImpl implements SpotsRepository {
     required String channelId,
     required int offset,
     required int limit,
+    String? query,
   }) {
     return guardFailures(
       () => _dataSource.getChannelSpots(
         channelId: channelId,
         offset: offset,
         limit: limit,
+        query: query,
       ),
     );
   }

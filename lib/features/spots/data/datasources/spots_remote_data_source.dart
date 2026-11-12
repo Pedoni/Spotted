@@ -4,6 +4,7 @@ import 'package:spotted/features/spots/data/models/my_spot_dto.dart';
 import 'package:spotted/features/spots/data/models/spot_dto.dart';
 import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SpotsRemoteDataSource {
@@ -23,13 +24,17 @@ class SpotsRemoteDataSource {
     required String channelId,
     required int offset,
     required int limit,
+    String? query,
   }) async {
+    final text = SpotValidators.searchText(query);
     final rows = await _client.rpc<List<dynamic>>(
       'channel_spots_page',
       params: {
         'p_channel_id': channelId,
         'p_limit': limit,
         'p_offset': offset,
+        // Solo se si cerca: senza ricerca la richiesta è quella di sempre.
+        'p_query': ?text,
       },
     );
     return _toSpots(rows);
