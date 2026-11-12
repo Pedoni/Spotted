@@ -210,7 +210,7 @@
   "municipalityHint": "Inizia a scrivere il nome",
   "municipalityChoose": "Scegli un comune dall'elenco",
   "municipalityNoResults": "Nessun comune trovato",
-  "clearMunicipality": "Togli il comune"
+  "clearMunicipality": "Togli il comune",
   "logoutConfirmTitle": "Uscire dall'account?",
   "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo."
 }
