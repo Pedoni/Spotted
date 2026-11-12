@@ -6,6 +6,7 @@ import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/core/theme/app_shapes.dart';
 import 'package:spotted/core/widgets/channel_avatar.dart';
+import 'package:spotted/core/widgets/highlighted_text.dart';
 import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
@@ -21,6 +22,7 @@ class SpotCard extends ConsumerWidget {
     this.channelName,
     this.onChannelTap,
     this.trailing,
+    this.highlight,
     super.key,
   });
 
@@ -34,6 +36,9 @@ class SpotCard extends ConsumerWidget {
   final String? channelName;
   final VoidCallback? onChannelTap;
   final Widget? trailing;
+
+  /// Il testo cercato: nel titolo e nel testo dello spot viene evidenziato.
+  final String? highlight;
 
   Future<void> _toggleLike(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
@@ -121,12 +126,17 @@ class SpotCard extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 8),
-              Text(
+              HighlightedText(
                 spot.title,
+                query: highlight,
                 style: theme.textTheme.titleLarge?.copyWith(fontSize: 20),
               ),
               const SizedBox(height: 8),
-              Text(spot.content, style: theme.textTheme.bodyLarge),
+              HighlightedText(
+                spot.content,
+                query: highlight,
+                style: theme.textTheme.bodyLarge,
+              ),
               const SizedBox(height: 4),
               Row(
                 children: [

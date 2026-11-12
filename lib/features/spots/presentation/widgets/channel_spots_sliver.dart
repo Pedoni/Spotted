@@ -13,14 +13,22 @@ import 'package:spotted/l10n/app_localizations.dart';
 /// Lista a scroll infinito degli spot di un canale, da usare dentro una
 /// `CustomScrollView`.
 class ChannelSpotsSliver extends ConsumerWidget {
-  const ChannelSpotsSliver({required this.channelId, super.key});
+  const ChannelSpotsSliver({
+    required this.channelId,
+    this.query = '',
+    super.key,
+  });
 
   final String channelId;
+
+  /// Il testo cercato: se non è vuoto si vedono solo gli spot che lo
+  /// contengono, con il testo evidenziato.
+  final String query;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final provider = channelSpotsFeedProvider(channelId);
+    final provider = channelSpotsFeedProvider(channelId, query: query);
     final feed = ref.watch(provider);
 
     return feed.when(
@@ -37,7 +45,14 @@ class ChannelSpotsSliver extends ConsumerWidget {
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Center(child: Text(l10n.noSpotsInChannel)),
+              child: Center(
+                child: Text(
+                  query.isEmpty
+                      ? l10n.noSpotsInChannel
+                      : l10n.noSpotResults(query),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ),
           );
         }
@@ -48,6 +63,7 @@ class ChannelSpotsSliver extends ConsumerWidget {
               final spot = paged.items[index];
               return SpotCard(
                 spot: spot,
+                highlight: query.isEmpty ? null : query,
                 onTap: () => context.push(AppRoutes.spotPath(spot.id)),
               );
             }

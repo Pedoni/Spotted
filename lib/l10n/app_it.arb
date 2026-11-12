@@ -212,5 +212,25 @@
   "municipalityNoResults": "Nessun comune trovato",
   "clearMunicipality": "Togli il comune",
   "logoutConfirmTitle": "Uscire dall'account?",
-  "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo."
+  "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo.",
+  "searchSpotsTooltip": "Cerca negli spot",
+  "searchSpotsHint": "Cerca negli spot",
+  "searchSpotsMinChars": "Scrivi almeno {count} lettere per cercare",
+  "@searchSpotsMinChars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noSpotResults": "Nessuno spot per «{query}»",
+  "@noSpotResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "closeSearch": "Chiudi la ricerca",
+  "clearSearch": "Cancella"
 }
