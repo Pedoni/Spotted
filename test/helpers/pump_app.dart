@@ -8,6 +8,7 @@ import 'package:spotted/features/channels/presentation/providers/channels_provid
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
+import 'package:spotted/features/municipalities/presentation/providers/municipalities_providers.dart';
 import 'package:spotted/features/profile/presentation/providers/profile_providers.dart';
 import 'package:spotted/features/reports/presentation/providers/reports_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
@@ -30,6 +31,7 @@ Future<void> pumpApp(
   FakeModerationRepository? moderation,
   FakeReportsRepository? reports,
   FakeChatRepository? chat,
+  FakeMunicipalitiesRepository? municipalities,
   Duration? chatPollInterval,
 
   /// Se è `false` non aspetta che tutto si fermi: serve quando la schermata
@@ -68,6 +70,9 @@ Future<void> pumpApp(
           reports ?? FakeReportsRepository(),
         ),
         chatRepositoryProvider.overrideWithValue(chat ?? FakeChatRepository()),
+        municipalitiesRepositoryProvider.overrideWithValue(
+          municipalities ?? FakeMunicipalitiesRepository(),
+        ),
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),

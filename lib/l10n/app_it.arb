@@ -45,7 +45,6 @@
   "createChannelTitle": "Nuovo canale",
   "channelNameLabel": "Nome del canale",
   "channelDescriptionLabel": "Descrizione (facoltativa)",
-  "channelPlaceLabel": "Luogo (facoltativo)",
   "channelTopicLabel": "Argomento",
   "noTopic": "Nessuno",
   "createChannelButton": "Crea canale",
@@ -206,5 +205,10 @@
     }
   },
   "identityRevealed": "Identità rivelata",
-  "loading": "Caricamento in corso"
+  "loading": "Caricamento in corso",
+  "channelMunicipalityLabel": "Comune (facoltativo)",
+  "municipalityHint": "Inizia a scrivere il nome",
+  "municipalityChoose": "Scegli un comune dall'elenco",
+  "municipalityNoResults": "Nessun comune trovato",
+  "clearMunicipality": "Togli il comune"
 }
