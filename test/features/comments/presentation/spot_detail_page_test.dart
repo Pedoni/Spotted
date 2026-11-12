@@ -228,4 +228,19 @@ void main() {
     expect(comments.deleteCalls, isEmpty);
     expect(find.text('Il mio'), findsOneWidget);
   });
+
+  testWidgets('lo spot e i commenti mostrano data e ora', (tester) async {
+    await openSpot(
+      tester,
+      comments: FakeCommentsRepository(comments: [makeComment(1)]),
+    );
+
+    // Lo spot (makeSpot(1)) e il commento (makeComment(1)) sono di un minuto
+    // prima di mezzanotte.
+    expect(find.text('31 dic 2025 · 23:59'), findsOneWidget);
+    expect(
+      find.textContaining('31 dic 2025 · 23:59', findRichText: true),
+      findsNWidgets(2),
+    );
+  });
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/core/theme/app_shapes.dart';
 import 'package:spotted/core/widgets/channel_avatar.dart';
 import 'package:spotted/core/widgets/like_button.dart';
@@ -55,9 +56,7 @@ class SpotCard extends ConsumerWidget {
       spot,
       ref.watch(spotInteractionProvider(spot.id)),
     );
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(spot.createdAt.toLocal());
+    final date = formatDateTime(context, spot.createdAt);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
