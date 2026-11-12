@@ -11,6 +11,7 @@ class FakeAuthRepository implements AuthRepository {
   final _controller = StreamController<AppUser?>.broadcast();
   AppUser? user;
 
+  int signOutCalls = 0;
   Failure? signInError;
   Failure? signUpError;
   Set<String> takenUsernames = {};
@@ -59,7 +60,10 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() async => _setUser(null);
+  Future<void> signOut() async {
+    signOutCalls++;
+    _setUser(null);
+  }
 
   @override
   Future<bool> isUsernameAvailable(String username) async =>

@@ -220,6 +220,26 @@ void main() {
       expect(reports.listCalls.single.channelId, 'c1');
     });
 
+    testWidgets('ogni segnalazione mostra la data e l ora', (tester) async {
+      await openChannel(
+        tester,
+        owner: true,
+        openSpot: false,
+        seeds: const [ChannelReportSeed(1), ChannelReportSeed(75)],
+      );
+
+      await openReports(tester);
+
+      expect(
+        find.text('Segnalazione su uno spot · 31 dic 2025 · 23:59'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Segnalazione su uno spot · 31 dic 2025 · 22:45'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('senza segnalazioni: messaggio', (tester) async {
       await openChannel(tester, owner: true, openSpot: false);
 

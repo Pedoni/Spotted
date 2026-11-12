@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,31 @@ class ProfilePage extends ConsumerWidget {
     firstName: 'Nome',
     lastName: 'Cognome',
   );
+
+  /// Chiede conferma prima di uscire: un tocco per sbaglio non deve buttare
+  /// fuori l'utente.
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.logoutConfirmTitle),
+        content: Text(l10n.logoutConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.logout),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(signOutControllerProvider.notifier).submit();
+  }
 
   List<Widget> _content(
     BuildContext context,
@@ -55,7 +82,7 @@ class ProfilePage extends ConsumerWidget {
       ListTile(
         leading: const Icon(Icons.logout),
         title: Text(l10n.logout),
-        onTap: () => ref.read(signOutControllerProvider.notifier).submit(),
+        onTap: () => unawaited(_confirmLogout(context, ref)),
       ),
     ];
   }
