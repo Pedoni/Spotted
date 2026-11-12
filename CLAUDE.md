@@ -75,7 +75,7 @@ lib/
 
 Schema di riferimento: `supabase/migrations/20261107120000_baseline.sql` (stato di prod prima delle migrazioni successive, ricostruito, NON da eseguire su prod). Le migrazioni successive sono già applicate su prod. Ogni cambio di schema è una nuova migrazione in `supabase/migrations/`; niente modifiche manuali dalla dashboard. Con un solo ambiente: provare le migrazioni in transazione (`begin; ...; rollback;`) o con Supabase locale (`supabase start`).
 
-Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, comment_likes, subscriptions, chats, messages, reports. RLS attiva ovunque.
+Tabelle in `public`: profiles, channels, topics, municipalities, spots, comments, spot_likes, comment_likes, subscriptions, chats, messages, reports. RLS attiva ovunque.
 
 ### Modello di anonimato (decisioni di prodotto)
 
@@ -86,6 +86,7 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 - Le policy RLS che usano colonne nascoste (es. `author_id`, `owner_id`) funzionano comunque: verificato con un dry run su prod.
 - **Spot**: l'insert dai client ammette solo `author_id`, `channel_id`, `title`, `content` (`status` e date le decide il database); gli spot **non si modificano** (nessuna policy né grant di update), l'autore può solo cancellarli. Titolo 1-100 e testo 1-2000 caratteri (check del DB e `SpotValidators`). Il feed di un canale legge `spots` con colonne esplicite; i propri spot, con nome e slug del canale, si leggono con l'RPC `my_spots_page(p_limit, p_offset)`.
 - I **topic** sono un elenco fisso: si aggiungono solo con una migrazione (i client non possono scriverli).
+- **Comuni e luogo dei canali**: il luogo di un canale non è un testo libero ma un comune di un elenco ufficiale (`municipalities`: i 7.896 comuni dell'ISTAT con provincia e regione, caricati da migrazioni; sola lettura per i client). `channels.municipality_id` è una chiave esterna **facoltativa** (un canale può non avere luogo, per esempio un'università online), quindi il database rifiuta un comune che non esiste. `channels.place` ("Pisa (PI)"), `province_code` e `region_name` li calcola il trigger `channels_sync_municipality` dal comune: i client non li decidono. Suggerimenti mentre si scrive con `search_municipalities(query, limit)` (non distingue maiuscole e accenti, prima i nomi che iniziano così); `municipality_regions()` e `municipality_provinces(region)` per i filtri. I nomi non sono unici (5 omonimi): si mostrano sempre con la sigla. Quando i comuni cambiano (fusioni, nuove province) si aggiunge una migrazione che aggiorna la tabella. Funzioni di servizio: `immutable_unaccent` e `escape_like`.
 - **Iscrizioni**: la tabella `subscriptions` non è accessibile ai client (nessun grant né policy). Si usano solo le funzioni `subscribe_to_channel`, `unsubscribe_from_channel`, `channel_subscription_info` (iscritti e stato dell'utente) e `my_subscribed_channels` (max 100, senza `owner_id`): nessuno vede chi segue cosa.
 - I **commenti non sono anonimi**. Se l'autore dello spot commenta il proprio spot, il commento appare come "Autore del post" senza nome. Per questo `comments.author_id` non è leggibile dai client (confrontato con `spots.author_id` rivelerebbe l'autore dello spot): la tabella `comments` è chiusa ai client e si usano solo `spot_comments`, `add_comment`, `delete_comment`. Testo 1-500 caratteri, non modificabile, cancellabile solo dall'autore del commento.
 - **Like**: `spot_likes` e `comment_likes` sono chiuse ai client (nessuno vede chi mette like). Si usano `set_spot_liked`, `set_comment_liked`; i conteggi e lo stato "mi piace" dell'utente arrivano con `channel_spots_page`, `spot_detail`, `my_spots_page` (spot) e `spot_comments` (commenti). Gli spot si leggono sempre da queste RPC, non da `spots`.
@@ -95,13 +96,13 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
   - Il commentatore vede la chat solo dopo il primo messaggio dell'autore (niente chat vuote). Sugli spot rimossi non si scrivono nuovi messaggi. Messaggi 1-5000 caratteri.
   - `is_spot_author(spot_id)` dice solo all'utente che chiama se è l'autore dello spot: la UI mostra "Chatta" sui commenti (non sui propri) solo a lui, perché `spots.author_id` non è leggibile. Se la chiamata fallisce l'azione resta nascosta.
   - App (feature `chat`): "Le mie chat" dal Profilo, pagina della chat con i messaggi (i più recenti in basso), banner sull'identità e "Rivela identità" con conferma. `ChatActions` (Riverpod) è `keepAlive`, come `SpotModeration`: avvia le chat e rivela l'identità aggiornando le liste. Il polling dei messaggi è `chatPollIntervalProvider` (5 s; `null` nei test, così non restano timer pendenti).
-  - I messaggi si aggiornano con polling: Supabase Realtime richiede di leggere `messages` direttamente e rivelerebbe gli id. Alternativa futura: canale broadcast dedicato (0.9.0, con le notifiche).
-  - **Limite noto**: nessuna segnalazione dei messaggi, blocco o uscita dalla chat; la moderazione delle chat arriva più avanti (0.8.0).
+  - I messaggi si aggiornano con polling: Supabase Realtime richiede di leggere `messages` direttamente e rivelerebbe gli id. Alternativa futura: canale broadcast dedicato (insieme alle notifiche).
+  - **Limite noto**: nessuna segnalazione dei messaggi, blocco o uscita dalla chat; la moderazione delle chat arriva più avanti (con la moderazione AI e il pannello admin).
 - **Moderazione**: il proprietario del canale nasconde/rimuove gli spot del suo canale e nasconde i commenti; un ruolo **admin** (`is_admin` su `profiles`, non modificabile dai client) gestisce le segnalazioni globali. Moderazione AI come ultimo passo.
   - Strumenti del proprietario (feature `moderation`), tutti RPC `security definer` che per chi non è proprietario rispondono `42501`: `is_channel_owner` (i client non leggono `channels.owner_id`, quindi la UI chiede all'RPC se mostrare gli strumenti), `channel_spot_author` (solo il proprietario vede l'autore: id e username), `set_spot_status` (`published`/`hidden`/`removed`; `removed` è definitivo), `set_comment_status` (`published`/`hidden`), `channel_moderation_spots_page` (spot nascosti del canale).
   - Spot nascosto: sparisce dal feed del canale, lo vedono ancora il proprietario (dettaglio e pagina Moderazione) e l'autore (in "I miei spot", con etichetta). Commento nascosto: lo vede ancora solo il proprietario; il conteggio dei commenti ignora i nascosti. `spot_detail`, `spot_comments` e `my_spots_page` restituiscono `status`.
   - `SpotModeration` (Riverpod) è `keepAlive`: nessuno lo ascolta e, se si distruggesse a metà operazione, le liste non verrebbero aggiornate.
-  - **Segnalazioni** (feature `reports`): chiunque segnala spot e commenti visibili, non i propri. `reports` è chiusa ai client (nessuno vede chi segnala, nemmeno il proprietario) e si usano solo `report_spot`, `report_comment`, `channel_reports_page` (segnalazioni aperte del canale, solo proprietario) e `resolve_report` (`resolved`/`dismissed`, solo proprietario). Motivi fissi (`spam`, `offensive`, `hate`, `other`), dettagli facoltativi fino a 500 caratteri, una sola segnalazione per utente e contenuto (`23505` → `ConflictFailure`). Segnalare un proprio contenuto dà `42501`. Il proprietario le vede nella scheda "Segnalazioni" della pagina Moderazione; le chiude ma non nasconde il contenuto in automatico (lo fa dal dettaglio). La vista globale è dell'admin (0.8.0).
+  - **Segnalazioni** (feature `reports`): chiunque segnala spot e commenti visibili, non i propri. `reports` è chiusa ai client (nessuno vede chi segnala, nemmeno il proprietario) e si usano solo `report_spot`, `report_comment`, `channel_reports_page` (segnalazioni aperte del canale, solo proprietario) e `resolve_report` (`resolved`/`dismissed`, solo proprietario). Motivi fissi (`spam`, `offensive`, `hate`, `other`), dettagli facoltativi fino a 500 caratteri, una sola segnalazione per utente e contenuto (`23505` → `ConflictFailure`). Segnalare un proprio contenuto dà `42501`. Il proprietario le vede nella scheda "Segnalazioni" della pagina Moderazione; le chiude ma non nasconde il contenuto in automatico (lo fa dal dettaglio). La vista globale è dell'admin (insieme alla moderazione AI).
 - Auth: email e password.
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
@@ -111,7 +112,7 @@ Tabelle in `public`: profiles, channels, topics, spots, comments, spot_likes, co
 
 ## Roadmap
 
-Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
+Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix. Le release dopo la prossima non hanno un numero finché non escono (le righe "dopo" sono in ordine, il numero si assegna all'uscita): così inserire una release non obbliga a rinumerare tutte le altre.
 
 | Versione | Contenuto |
 |---|---|
@@ -121,8 +122,9 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix.
 | 0.4.0 | Commenti e like (spot e commenti); likes/iscrizioni senza `user_id` pubblico (fatto) |
 | 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
 | 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` e app (fatto) |
-| 0.7.0 | UI: palette, font, tema chiaro/scuro, widget condivisi, restyling di tutte le schermate, icona e splash |
-| 0.8.0 | Home con spot dei canali seguiti, profilo, impostazioni, cancellazione account |
-| 0.9.0 | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
-| 0.10.0 | Rifinitura: accessibilità, notifiche, release candidate |
+| 0.7.0 | UI: palette, font, tema chiaro/scuro, widget condivisi, scheletri di caricamento, icona e splash, accesso e registrazione (fatto) |
+| 0.8.0 | Rifiniture e ricerca: comune dei canali da elenco ISTAT, ricerca di testo negli spot di un canale (con evidenziazione), filtri dei canali in un foglio dal basso, ora oltre alla data, conferma del logout, modifica ed eliminazione dei canali, controllo dello username prima della registrazione, scelta del tema (chiaro, scuro o sistema), icone arrotondate e stati vuoti |
+| dopo | Home con gli spot dei canali seguiti, profilo, impostazioni, cancellazione account |
+| dopo | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
+| dopo | Rifinitura: accessibilità, notifiche, release candidate |
 | 1.0.0 | Prima release completa |
