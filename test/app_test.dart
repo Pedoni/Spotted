@@ -44,6 +44,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Esci'));
     await tester.pumpAndSettle();
+    // Chiede conferma: si esce solo dalla finestra.
+    await tester.tap(find.widgetWithText(TextButton, 'Esci'));
+    await tester.pumpAndSettle();
 
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.text('Accedi'), findsWidgets);
