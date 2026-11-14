@@ -1,9 +1,9 @@
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/spots/data/models/create_spot_dto.dart';
-import 'package:spotted/features/spots/data/models/my_spot_dto.dart';
 import 'package:spotted/features/spots/data/models/spot_dto.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
+import 'package:spotted/features/spots/data/models/spot_with_channel_dto.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -51,7 +51,7 @@ class SpotsRemoteDataSource {
   }
 
   /// Usa l'RPC `my_spots_page`: `author_id` non è leggibile dalla tabella.
-  Future<List<MySpot>> getMySpots({
+  Future<List<SpotWithChannel>> getMySpots({
     required int offset,
     required int limit,
   }) async {
@@ -61,7 +61,22 @@ class SpotsRemoteDataSource {
     );
     return rows
         .cast<Map<String, dynamic>>()
-        .map((row) => MySpotDto.fromJson(row).toEntity())
+        .map((row) => SpotWithChannelDto.fromJson(row).toEntity())
+        .toList();
+  }
+
+  /// Usa l'RPC `followed_spots_page`: gli spot dei canali seguiti.
+  Future<List<SpotWithChannel>> getFollowedSpots({
+    required int offset,
+    required int limit,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'followed_spots_page',
+      params: {'p_limit': limit, 'p_offset': offset},
+    );
+    return rows
+        .cast<Map<String, dynamic>>()
+        .map((row) => SpotWithChannelDto.fromJson(row).toEntity())
         .toList();
   }
 

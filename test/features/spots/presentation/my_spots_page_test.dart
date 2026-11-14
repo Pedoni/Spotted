@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
@@ -33,7 +33,7 @@ void main() {
       FakeSpotsRepository(
         mine: [
           makeMySpot(1),
-          MySpot(
+          SpotWithChannel(
             spot: makeSpot(2, status: SpotStatus.hidden),
             channelName: 'Spotted Pisa',
             channelSlug: 'canale-1',

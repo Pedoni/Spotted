@@ -1,7 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/core/pagination/paged_list.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
+import 'package:spotted/features/spots/presentation/providers/followed_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 
 part 'my_spots_feed.g.dart';
@@ -13,7 +14,7 @@ class MySpotsFeed extends _$MySpotsFeed {
   int _generation = 0;
 
   @override
-  Future<PagedList<MySpot>> build() async {
+  Future<PagedList<SpotWithChannel>> build() async {
     _generation++;
     final items = await ref.read(getMySpotsUseCaseProvider)(
       offset: 0,
@@ -67,6 +68,8 @@ class MySpotsFeed extends _$MySpotsFeed {
       );
     }
     // Il feed dei canali non deve più mostrarlo.
-    ref.invalidate(channelSpotsFeedProvider);
+    ref
+      ..invalidate(channelSpotsFeedProvider)
+      ..invalidate(followedSpotsFeedProvider);
   }
 }

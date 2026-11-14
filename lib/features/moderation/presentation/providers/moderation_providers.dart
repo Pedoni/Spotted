@@ -14,6 +14,7 @@ import 'package:spotted/features/moderation/presentation/providers/hidden_spots_
 import 'package:spotted/features/reports/presentation/providers/channel_reports_feed.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
+import 'package:spotted/features/spots/presentation/providers/followed_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/my_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 
@@ -83,6 +84,7 @@ class SpotModeration extends _$SpotModeration {
       ..invalidate(channelSpotsFeedProvider)
       ..invalidate(hiddenSpotsFeedProvider(spot.channelId))
       ..invalidate(channelReportsFeedProvider(spot.channelId))
+      ..invalidate(followedSpotsFeedProvider)
       ..invalidate(mySpotsFeedProvider);
   }
 }
