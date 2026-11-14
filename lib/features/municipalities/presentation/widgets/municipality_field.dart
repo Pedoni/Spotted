@@ -11,22 +11,42 @@ import 'package:spotted/features/municipalities/domain/usecases/search_municipal
 import 'package:spotted/features/municipalities/presentation/providers/municipalities_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
-/// Un comune scelto: il codice ISTAT e il testo da mostrare ("Pisa (PI)").
+/// Un comune scelto: il codice ISTAT e il testo da mostrare ("Pisa (PI)"),
+/// con la provincia e la regione quando si sa da dove viene la scelta (i
+/// filtri le usano per tenere coerente il luogo).
 class MunicipalityChoice extends Equatable {
-  const MunicipalityChoice({required this.istatCode, required this.label});
+  const MunicipalityChoice({
+    required this.istatCode,
+    required this.label,
+    this.provinceCode,
+    this.provinceName,
+    this.regionName,
+  });
 
   factory MunicipalityChoice.fromMunicipality(Municipality municipality) {
     return MunicipalityChoice(
       istatCode: municipality.istatCode,
       label: municipality.label,
+      provinceCode: municipality.provinceCode,
+      provinceName: municipality.provinceName,
+      regionName: municipality.regionName,
     );
   }
 
   final String istatCode;
   final String label;
+  final String? provinceCode;
+  final String? provinceName;
+  final String? regionName;
 
   @override
-  List<Object?> get props => [istatCode, label];
+  List<Object?> get props => [
+    istatCode,
+    label,
+    provinceCode,
+    provinceName,
+    regionName,
+  ];
 }
 
 /// Campo per scegliere un comune: si scrive il nome e compaiono i suggerimenti
