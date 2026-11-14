@@ -29,6 +29,8 @@ void main() {
     expect(find.text('Account'), findsOneWidget);
     expect(find.text('Esci'), findsOneWidget);
     expect(find.byIcon(Icons.settings_outlined), findsNothing);
+    // I propri spot stanno nella Home.
+    expect(find.text('I miei spot'), findsNothing);
   });
 
   testWidgets('se il profilo non si carica restano tema e uscita', (

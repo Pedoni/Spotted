@@ -19,15 +19,19 @@ void main() {
       tester,
       auth: auth,
       profile: profile,
-      spots: FakeSpotsRepository(followed: [makeMySpot(1)]),
+      spots: FakeSpotsRepository(mine: [makeMySpot(1)]),
       screenSize: tallScreen,
     );
 
     // L'utente A mette un "mi piace", scrive una ricerca nei canali e apre il
     // profilo.
+    await tester.tap(find.byTooltip('Visualizza tutti'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.favorite_border));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.favorite), findsOneWidget);
+    await tester.tap(find.byTooltip('Indietro'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Icons.tag_outlined));
     await tester.pumpAndSettle();
@@ -62,8 +66,12 @@ void main() {
     // Riparte dalla Home, senza il "mi piace" di A.
     final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
     expect(bar.selectedIndex, 0);
+    await tester.tap(find.byTooltip('Visualizza tutti'));
+    await tester.pumpAndSettle();
     expect(find.byIcon(Icons.favorite), findsNothing);
     expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    await tester.tap(find.byTooltip('Indietro'));
+    await tester.pumpAndSettle();
 
     // Senza la ricerca di A nei canali.
     await tester.tap(find.byIcon(Icons.tag_outlined));

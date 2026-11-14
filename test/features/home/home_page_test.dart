@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spotted/core/error/failure.dart';
-import 'package:spotted/features/spots/presentation/pages/spot_detail_page.dart';
+import 'package:spotted/features/spots/presentation/widgets/my_spots_carousel.dart';
 
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
@@ -9,70 +8,42 @@ import '../../helpers/pump_app.dart';
 void main() {
   final channel = makeChannel(1, name: 'Spotted Pisa');
 
-  testWidgets('senza spot: messaggio e invito a scoprire i canali', (
+  testWidgets('senza spot propri: messaggio che invita a pubblicare', (
     tester,
   ) async {
     await pumpApp(tester);
 
-    expect(find.text('Ancora nessuno spot da mostrare'), findsOneWidget);
-
-    await tester.tap(find.text('Scopri i canali'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Cerca un canale'), findsOneWidget);
+    expect(find.text('I miei spot'), findsOneWidget);
+    expect(find.text('Non hai ancora pubblicato spot'), findsOneWidget);
+    expect(find.textContaining('Premi Pubblica'), findsOneWidget);
+    // Non c'è niente da vedere: niente freccia.
+    expect(find.byTooltip('Visualizza tutti'), findsNothing);
   });
 
-  testWidgets('mostra gli spot dei canali seguiti, con il canale', (
+  testWidgets('con spot propri mostra il carosello e non il feed dei canali', (
     tester,
   ) async {
     final spots = FakeSpotsRepository(
-      followed: [makeMySpot(1), makeMySpot(2)],
+      mine: [makeMySpot(1)],
+      followed: [makeMySpot(2)],
     );
     await pumpApp(tester, spots: spots);
 
+    expect(find.byType(MySpotCard), findsOneWidget);
     expect(find.text('Spot 1'), findsOneWidget);
-    expect(find.text('Spot 2'), findsOneWidget);
-    expect(find.textContaining('Spotted Pisa'), findsNWidgets(2));
-    expect(spots.followedCalls.single, (offset: 0, limit: 20));
+    expect(find.text('Spot 2'), findsNothing);
+    expect(spots.followedCalls, isEmpty);
   });
 
-  testWidgets('toccando uno spot si apre il dettaglio', (tester) async {
-    final spots = FakeSpotsRepository(
-      spots: [makeSpot(1)],
-      followed: [makeMySpot(1)],
-    );
+  testWidgets('tirando giù si ricaricano i miei spot', (tester) async {
+    final spots = FakeSpotsRepository(mine: [makeMySpot(1)]);
     await pumpApp(tester, spots: spots);
+    expect(spots.mineCalls, hasLength(1));
 
-    await tester.tap(find.text('Spot 1'));
+    await tester.fling(find.byType(ListView).first, const Offset(0, 400), 1000);
     await tester.pumpAndSettle();
 
-    expect(find.byType(SpotDetailPage), findsOneWidget);
-  });
-
-  testWidgets('scorrendo carica la pagina successiva', (tester) async {
-    final spots = FakeSpotsRepository(
-      followed: List.generate(25, (i) => makeMySpot(i + 1)),
-    );
-    await pumpApp(tester, spots: spots);
-
-    await tester.drag(find.byType(ListView), const Offset(0, -6000));
-    await tester.pumpAndSettle();
-
-    expect(spots.followedCalls.map((call) => call.offset), [0, 20]);
-  });
-
-  testWidgets('errore: messaggio e Riprova', (tester) async {
-    final spots = FakeSpotsRepository(followed: [makeMySpot(1)])
-      ..listError = const NetworkFailure();
-    await pumpApp(tester, spots: spots);
-
-    expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
-
-    spots.listError = null;
-    await tester.tap(find.text('Riprova'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Spot 1'), findsOneWidget);
+    expect(spots.mineCalls, hasLength(2));
   });
 
   group('Pubblica', () {
