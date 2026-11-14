@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_controllers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
@@ -14,6 +16,7 @@ class SettingsPage extends ConsumerWidget {
   /// fuori l'utente.
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -33,6 +36,14 @@ class SettingsPage extends ConsumerWidget {
     );
     if (confirmed != true) return;
     await ref.read(signOutControllerProvider.notifier).submit();
+    // Se esce, il router porta all'accesso e questa pagina non c'è più. Se
+    // fallisce l'utente resta loggato e deve saperlo.
+    final error = ref.read(signOutControllerProvider).error;
+    if (error != null && context.mounted) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failureMessage(l10n, error))),
+      );
+    }
   }
 
   @override
@@ -40,6 +51,7 @@ class SettingsPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final mode = ref.watch(themeModeSettingProvider);
+    final signingOut = ref.watch(signOutControllerProvider).isLoading;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -84,7 +96,10 @@ class SettingsPage extends ConsumerWidget {
             subtitle: Text(l10n.comingSoon),
           ),
           ListTile(
-            leading: const Icon(Icons.logout),
+            enabled: !signingOut,
+            leading: signingOut
+                ? const InlineProgress()
+                : const Icon(Icons.logout),
             title: Text(l10n.logout),
             onTap: () => unawaited(_confirmLogout(context, ref)),
           ),

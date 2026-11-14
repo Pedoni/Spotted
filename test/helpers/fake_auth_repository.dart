@@ -14,6 +14,8 @@ class FakeAuthRepository implements AuthRepository {
   int signOutCalls = 0;
   Failure? signInError;
   Failure? signUpError;
+  Failure? signOutError;
+  Completer<void>? signOutGate;
   Set<String> takenUsernames = {};
 
   final signInCalls = <({String email, String password})>[];
@@ -62,6 +64,8 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     signOutCalls++;
+    if (signOutGate != null) await signOutGate!.future;
+    if (signOutError != null) throw signOutError!;
     _setUser(null);
   }
 
