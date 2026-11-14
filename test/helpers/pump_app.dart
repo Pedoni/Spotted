@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotted/app.dart';
 import 'package:spotted/core/riverpod/no_retry.dart';
+import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/features/auth/domain/entities/app_user.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
@@ -33,15 +35,19 @@ Future<void> pumpApp(
   FakeChatRepository? chat,
   FakeMunicipalitiesRepository? municipalities,
   Duration? chatPollInterval,
+  Map<String, Object> preferences = const {},
 
   /// Se è `false` non aspetta che tutto si fermi: serve quando la schermata
   /// resta in caricamento, perché lo scheletro anima di continuo.
   bool settle = true,
 }) async {
+  SharedPreferences.setMockInitialValues(preferences);
+  final sharedPreferences = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(
       retry: noRetry,
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         authRepositoryProvider.overrideWithValue(
           auth ?? FakeAuthRepository(user: loggedInUser),
         ),

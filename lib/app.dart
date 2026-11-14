@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/router/app_router.dart';
 import 'package:spotted/core/theme/app_theme.dart';
+import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 class App extends ConsumerWidget {
@@ -14,6 +15,7 @@ class App extends ConsumerWidget {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
+      themeMode: ref.watch(themeModeSettingProvider),
       routerConfig: ref.watch(appRouterProvider),
       localizationsDelegates: const [
         AppLocalizations.delegate,
