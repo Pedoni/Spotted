@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
-/// Barra di navigazione in basso (Home, Canali, Profilo).
+/// Barra di navigazione in basso (Home, Canali, Chat, Profilo).
 class AppShell extends StatelessWidget {
   const AppShell({required this.navigationShell, super.key});
 
@@ -30,6 +30,11 @@ class AppShell extends StatelessWidget {
             icon: const Icon(Icons.tag_outlined),
             selectedIcon: const Icon(Icons.tag),
             label: l10n.navChannels,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.chat_bubble_outline),
+            selectedIcon: const Icon(Icons.chat_bubble),
+            label: l10n.navChats,
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),
