@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
-import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
@@ -16,7 +14,7 @@ import 'package:spotted/features/profile/presentation/providers/profile_provider
 import 'package:spotted/l10n/app_localizations.dart';
 
 /// Profilo: foto e nome in alto, poi tema e account (password ed eliminazione
-/// in arrivo) e uscita.
+/// in arrivo) e uscita. I propri spot stanno nella Home.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -121,14 +119,7 @@ class ProfilePage extends ConsumerWidget {
             ),
             data: (profile) => _header(context, profile: profile, email: email),
           ),
-          const SizedBox(height: 24),
-          ListTile(
-            leading: const Icon(Icons.edit_note),
-            title: Text(l10n.mySpotsTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(AppRoutes.mySpots),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 32),
           Text(l10n.settingsAppearance, style: theme.textTheme.titleMedium),
           const SizedBox(height: 12),
           SegmentedButton<ThemeMode>(
