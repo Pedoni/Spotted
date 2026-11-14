@@ -7,11 +7,11 @@ abstract final class AppRoutes {
   static const channelDetail = '/c/:slug';
   static const spotNew = '/c/:slug/spot/new';
   static const channelModeration = '/c/:slug/moderation';
-  static const chats = '/profile/chats';
+  static const chats = '/chats';
   static const chatDetail = '/chats/:id';
   static const spotDetail = '/spots/:id';
   static const profile = '/profile';
-  static const myChannels = '/profile/channels';
+  static const settings = '/profile/settings';
   static const mySpots = '/profile/spots';
 
   static String channelPath(String slug) => '/c/$slug';
