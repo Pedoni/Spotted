@@ -33,7 +33,7 @@ void main() {
 
     expect(repo.signInCalls.single.email, 'a@b.it');
     expect(
-      find.text('Non segui ancora nessun canale'),
+      find.text('Ancora nessuno spot da mostrare'),
       findsOneWidget,
     );
   });

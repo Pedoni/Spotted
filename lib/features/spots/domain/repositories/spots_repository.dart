@@ -1,5 +1,5 @@
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 
 /// Contratto degli spot. Le implementazioni lanciano un `Failure`.
 abstract interface class SpotsRepository {
@@ -17,7 +17,16 @@ abstract interface class SpotsRepository {
   Future<Spot> getSpot(String spotId);
 
   /// Pagina degli spot scritti dall'utente loggato, dal più recente.
-  Future<List<MySpot>> getMySpots({required int offset, required int limit});
+  Future<List<SpotWithChannel>> getMySpots({
+    required int offset,
+    required int limit,
+  });
+
+  /// Gli spot pubblicati nei canali seguiti, dal più recente.
+  Future<List<SpotWithChannel>> getFollowedSpots({
+    required int offset,
+    required int limit,
+  });
 
   /// Pubblica uno spot nel canale a nome (anonimo) dell'utente loggato.
   Future<Spot> createSpot({

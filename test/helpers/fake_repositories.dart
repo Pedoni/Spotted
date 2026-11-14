@@ -22,10 +22,10 @@ import 'package:spotted/features/reports/domain/entities/report_kind.dart';
 import 'package:spotted/features/reports/domain/entities/report_reason.dart';
 import 'package:spotted/features/reports/domain/entities/report_resolution.dart';
 import 'package:spotted/features/reports/domain/repositories/reports_repository.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/domain/repositories/spots_repository.dart';
 import 'package:spotted/features/subscriptions/domain/entities/subscription_info.dart';
 import 'package:spotted/features/subscriptions/domain/repositories/subscriptions_repository.dart';
@@ -270,8 +270,8 @@ Spot makeSpot(
   );
 }
 
-MySpot makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
-  return MySpot(
+SpotWithChannel makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
+  return SpotWithChannel(
     spot: makeSpot(i),
     channelName: channelName,
     channelSlug: 'canale-1',
@@ -282,12 +282,16 @@ MySpot makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
 /// Se [gate] è impostato, le pagine successive alla prima restano in attesa
 /// finché non si completa.
 class FakeSpotsRepository implements SpotsRepository {
-  FakeSpotsRepository({List<Spot>? spots, List<MySpot>? mine})
-    : spots = spots ?? [],
-      mine = mine ?? [];
+  FakeSpotsRepository({
+    List<Spot>? spots,
+    List<SpotWithChannel>? mine,
+    List<SpotWithChannel>? followed,
+  }) : spots = spots ?? [],
+       mine = mine ?? [],
+       followed = followed ?? [];
 
   List<Spot> spots;
-  List<MySpot> mine;
+  List<SpotWithChannel> mine;
   Failure? listError;
   Failure? createError;
   Failure? deleteError;
@@ -360,7 +364,7 @@ class FakeSpotsRepository implements SpotsRepository {
   }
 
   @override
-  Future<List<MySpot>> getMySpots({
+  Future<List<SpotWithChannel>> getMySpots({
     required int offset,
     required int limit,
   }) async {
@@ -368,6 +372,19 @@ class FakeSpotsRepository implements SpotsRepository {
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
     return mine.skip(offset).take(limit).toList();
+  }
+
+  final List<SpotWithChannel> followed;
+  final followedCalls = <({int offset, int limit})>[];
+
+  @override
+  Future<List<SpotWithChannel>> getFollowedSpots({
+    required int offset,
+    required int limit,
+  }) async {
+    followedCalls.add((offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    return followed.skip(offset).take(limit).toList();
   }
 
   @override

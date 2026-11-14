@@ -7,7 +7,7 @@ import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/presentation/providers/my_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
@@ -19,7 +19,7 @@ class MySpotsPage extends ConsumerWidget {
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
-    MySpot item,
+    SpotWithChannel item,
   ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);

@@ -133,6 +133,35 @@ void main() {
     });
   });
 
+  group('getFollowedSpots', () {
+    test(
+      "chiama l'RPC followed_spots_page e legge canale e conteggi",
+      () async {
+        respondWith([
+          {
+            ...spotRow('1', likeCount: 2, commentCount: 3, likedByMe: true),
+            'channel_name': 'Spotted Pisa',
+            'channel_slug': 'spotted-pisa',
+          },
+        ]);
+
+        final spots = await dataSource.getFollowedSpots(offset: 40, limit: 20);
+
+        expect(
+          supabase.lastRequest.url.path,
+          '/rest/v1/rpc/followed_spots_page',
+        );
+        expect(jsonDecode(supabase.lastRequest.body), {
+          'p_limit': 20,
+          'p_offset': 40,
+        });
+        expect(spots.single.channelSlug, 'spotted-pisa');
+        expect(spots.single.spot.stats.commentCount, 3);
+        expect(spots.single.spot.stats.likedByMe, isTrue);
+      },
+    );
+  });
+
   group('createSpot', () {
     test('invia solo le colonne scrivibili e non chiede author_id', () async {
       respondWith(spotRow('9', title: 'Titolo', content: 'Testo'));

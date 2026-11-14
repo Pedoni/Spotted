@@ -6,9 +6,8 @@ import 'package:spotted/features/channels/presentation/widgets/followed_channels
 import 'package:spotted/features/channels/presentation/widgets/my_channels_view.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
-enum _ChannelsSegment { explore, followed, mine }
-
-/// Scheda Canali: tre viste, Esplora (tutti), Seguiti e Miei.
+/// Scheda Canali: tre schede (Esplora, Seguiti, Miei) tra cui si può anche
+/// scorrere di lato.
 class ChannelsPage extends StatefulWidget {
   const ChannelsPage({super.key});
 
@@ -16,58 +15,44 @@ class ChannelsPage extends StatefulWidget {
   State<ChannelsPage> createState() => _ChannelsPageState();
 }
 
-class _ChannelsPageState extends State<ChannelsPage> {
-  _ChannelsSegment _segment = _ChannelsSegment.explore;
+class _ChannelsPageState extends State<ChannelsPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs = TabController(length: 3, vsync: this);
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.channelsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.channelsTitle),
+        bottom: TabBar(
+          controller: _tabs,
+          tabs: [
+            Tab(text: l10n.channelsExplore),
+            Tab(text: l10n.channelsFollowed),
+            Tab(text: l10n.channelsMine),
+          ],
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'channels-new',
         onPressed: () => context.push(AppRoutes.channelNew),
         icon: const Icon(Icons.add),
         label: Text(l10n.newChannel),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabs,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<_ChannelsSegment>(
-                showSelectedIcon: false,
-                segments: [
-                  ButtonSegment(
-                    value: _ChannelsSegment.explore,
-                    label: Text(l10n.channelsExplore),
-                  ),
-                  ButtonSegment(
-                    value: _ChannelsSegment.followed,
-                    label: Text(l10n.channelsFollowed),
-                  ),
-                  ButtonSegment(
-                    value: _ChannelsSegment.mine,
-                    label: Text(l10n.channelsMine),
-                  ),
-                ],
-                selected: {_segment},
-                onSelectionChanged: (selection) =>
-                    setState(() => _segment = selection.first),
-              ),
-            ),
-          ),
-          Expanded(
-            child: switch (_segment) {
-              _ChannelsSegment.explore => const ExploreChannelsView(),
-              _ChannelsSegment.followed => FollowedChannelsView(
-                onExplore: () =>
-                    setState(() => _segment = _ChannelsSegment.explore),
-              ),
-              _ChannelsSegment.mine => const MyChannelsView(),
-            },
-          ),
+          const ExploreChannelsView(),
+          FollowedChannelsView(onExplore: () => _tabs.animateTo(0)),
+          const MyChannelsView(),
         ],
       ),
     );

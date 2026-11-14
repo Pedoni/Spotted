@@ -298,6 +298,28 @@ void main() {
     });
   });
 
+  group('interruttori a segmenti', () {
+    for (final theme in [AppTheme.light, AppTheme.dark]) {
+      test(
+        '${theme.brightness.name}: il selezionato è lampone, non indaco',
+        () {
+          final style = theme.segmentedButtonTheme.style!;
+          final selected = style.backgroundColor!.resolve({
+            WidgetState.selected,
+          });
+          final foreground = style.foregroundColor!.resolve({
+            WidgetState.selected,
+          });
+
+          expect(selected, theme.colorScheme.primaryContainer);
+          expect(foreground, theme.colorScheme.onPrimaryContainer);
+          expect(selected, isNot(theme.colorScheme.secondaryContainer));
+          expect(style.shape!.resolve({}), isA<StadiumBorder>());
+        },
+      );
+    }
+  });
+
   group('forme', () {
     test("il fumetto ha l'angolo in basso a sinistra quasi dritto", () {
       const radius = AppShapes.bubbleRadius;
