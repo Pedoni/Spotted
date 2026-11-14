@@ -13,8 +13,8 @@ import 'package:spotted/features/comments/presentation/widgets/comment_skeletons
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_skeletons.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
 
 import '../../helpers/fake_repositories.dart';
@@ -92,10 +92,20 @@ class HeldProfile extends FakeProfileRepository {
 }
 
 class HeldSpots extends FakeSpotsRepository {
-  HeldSpots(this.hold, {super.spots, super.mine, this.detail = false});
+  HeldSpots(
+    this.hold, {
+    super.spots,
+    super.mine,
+    super.followed,
+    this.detail = false,
+    this.holdFollowed = false,
+  });
 
   final Completer<void> hold;
   final bool detail;
+
+  /// Se è `true` trattiene la Home (gli spot dei canali seguiti), non i miei.
+  final bool holdFollowed;
 
   @override
   Future<Spot> getSpot(String spotId) async {
@@ -104,11 +114,20 @@ class HeldSpots extends FakeSpotsRepository {
   }
 
   @override
-  Future<List<MySpot>> getMySpots({
+  Future<List<SpotWithChannel>> getFollowedSpots({
     required int offset,
     required int limit,
   }) async {
-    if (!detail) await hold.future;
+    if (holdFollowed) await hold.future;
+    return super.getFollowedSpots(offset: offset, limit: limit);
+  }
+
+  @override
+  Future<List<SpotWithChannel>> getMySpots({
+    required int offset,
+    required int limit,
+  }) async {
+    if (!detail && !holdFollowed) await hold.future;
     return super.getMySpots(offset: offset, limit: limit);
   }
 }
@@ -248,22 +267,18 @@ Future<void> openProfileTab(WidgetTester tester) async {
 void main() {
   final channel = makeChannel(1, name: 'Spotted Pisa');
 
-  testWidgets('Home: i canali seguiti', (tester) async {
+  testWidgets('Home: gli spot dei canali seguiti', (tester) async {
     final hold = Completer<void>();
     await pumpApp(
       tester,
-      subscriptions: HeldSubscriptions(
-        hold,
-        channels: [channel],
-        subscribedIds: {'c1'},
-      ),
+      spots: HeldSpots(hold, followed: [makeMySpot(1)], holdFollowed: true),
       settle: false,
     );
 
-    expectSkeleton(find.byType(ChannelTilesSkeleton));
+    expectSkeleton(find.byType(SpotCardsSkeleton));
 
     await release(tester, hold);
-    expect(find.text('Spotted Pisa'), findsOneWidget);
+    expect(find.text('Spot 1'), findsOneWidget);
   });
 
   testWidgets('Canali: l elenco', (tester) async {

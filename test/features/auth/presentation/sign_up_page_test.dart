@@ -57,7 +57,7 @@ void main() {
     expect(repo.signUpCalls.single['username'], 'mario_88');
     expect(repo.signUpCalls.single['firstName'], 'Mario');
     expect(
-      find.text('Non segui ancora nessun canale'),
+      find.text('Ancora nessuno spot da mostrare'),
       findsOneWidget,
     );
   });
