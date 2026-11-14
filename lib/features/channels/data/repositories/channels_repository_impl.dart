@@ -14,6 +14,9 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) {
     return guardFailures(
       () => _dataSource.getChannels(
@@ -21,6 +24,9 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
         limit: limit,
         query: query,
         topicId: topicId,
+        regionName: regionName,
+        provinceCode: provinceCode,
+        municipalityId: municipalityId,
       ),
     );
   }

@@ -63,7 +63,7 @@ void main() {
 
     container.read(channelFilterProvider.notifier)
       ..setQuery('Canale 4')
-      ..setTopic('t-uni');
+      ..apply(const ChannelFilterState(topicId: 't-uni'));
     final feed = await container.read(channelsFeedProvider.future);
 
     expect(feed.items.map((c) => c.name), [
@@ -126,7 +126,9 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       // Mentre la pagina 2 è in volo l'utente cambia filtro: la lista riparte.
-      c.read(channelFilterProvider.notifier).setTopic('t-sport');
+      c
+          .read(channelFilterProvider.notifier)
+          .apply(const ChannelFilterState(topicId: 't-sport'));
       await c.read(channelsFeedProvider.future);
       slow.gate!.complete();
       await loading;

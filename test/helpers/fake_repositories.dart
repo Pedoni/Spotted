@@ -38,6 +38,8 @@ Channel makeChannel(
   String? topicId,
   String? place,
   String? municipalityId,
+  String? provinceCode,
+  String? regionName,
   String? description,
 }) {
   return Channel(
@@ -47,6 +49,8 @@ Channel makeChannel(
     topicId: topicId,
     place: place,
     municipalityId: municipalityId,
+    provinceCode: provinceCode,
+    regionName: regionName,
     description: description,
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
   );
@@ -69,7 +73,17 @@ class FakeChannelsRepository implements ChannelsRepository {
   Failure? createError;
 
   final listCalls =
-      <({int offset, int limit, String? query, String? topicId})>[];
+      <
+        ({
+          int offset,
+          int limit,
+          String? query,
+          String? topicId,
+          String? regionName,
+          String? provinceCode,
+          String? municipalityId,
+        })
+      >[];
   final createCalls = <Map<String, String?>>[];
 
   @override
@@ -78,19 +92,34 @@ class FakeChannelsRepository implements ChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     listCalls.add((
       offset: offset,
       limit: limit,
       query: query,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     ));
     if (listError != null) throw listError!;
     final filtered = channels.where((c) {
       final matchesQuery =
           query == null || c.name.toLowerCase().contains(query.toLowerCase());
       final matchesTopic = topicId == null || c.topicId == topicId;
-      return matchesQuery && matchesTopic;
+      final matchesRegion = regionName == null || c.regionName == regionName;
+      final matchesProvince =
+          provinceCode == null || c.provinceCode == provinceCode;
+      final matchesMunicipality =
+          municipalityId == null || c.municipalityId == municipalityId;
+      return matchesQuery &&
+          matchesTopic &&
+          matchesRegion &&
+          matchesProvince &&
+          matchesMunicipality;
     }).toList();
     return filtered.skip(offset).take(limit).toList();
   }
@@ -153,6 +182,9 @@ class SlowPagesChannelsRepository extends FakeChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     if (offset > 0 && gate != null) await gate!.future;
     return super.getChannels(
@@ -160,6 +192,9 @@ class SlowPagesChannelsRepository extends FakeChannelsRepository {
       limit: limit,
       query: query,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     );
   }
 }
