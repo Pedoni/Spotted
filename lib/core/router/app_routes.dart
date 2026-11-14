@@ -11,7 +11,6 @@ abstract final class AppRoutes {
   static const chatDetail = '/chats/:id';
   static const spotDetail = '/spots/:id';
   static const profile = '/profile';
-  static const settings = '/profile/settings';
   static const mySpots = '/profile/spots';
 
   static String channelPath(String slug) => '/c/$slug';

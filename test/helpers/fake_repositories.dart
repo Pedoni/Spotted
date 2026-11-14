@@ -190,9 +190,13 @@ class FakeProfileRepository implements ProfileRepository {
   });
 
   Profile profile;
+  Failure? error;
 
   @override
-  Future<Profile> getMyProfile() async => profile;
+  Future<Profile> getMyProfile() async {
+    if (error != null) throw error!;
+    return profile;
+  }
 }
 
 /// Iscrizioni in memoria. [counts] è il numero di iscritti per canale (compreso

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,10 +38,19 @@ Future<void> pumpApp(
   Duration? chatPollInterval,
   Map<String, Object> preferences = const {},
 
+  /// Dimensione dello schermo: le liste costruiscono solo ciò che si vede, per
+  /// le pagine lunghe (il profilo) serve uno schermo alto.
+  Size? screenSize,
+
   /// Se è `false` non aspetta che tutto si fermi: serve quando la schermata
   /// resta in caricamento, perché lo scheletro anima di continuo.
   bool settle = true,
 }) async {
+  if (screenSize != null) {
+    tester.view.physicalSize = screenSize;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+  }
   SharedPreferences.setMockInitialValues(preferences);
   final sharedPreferences = await SharedPreferences.getInstance();
   await tester.pumpWidget(
@@ -93,5 +103,8 @@ Future<void> pumpApp(
     await tester.pump(const Duration(milliseconds: 50));
   }
 }
+
+/// Schermo abbastanza alto da mostrare tutto il profilo.
+const tallScreen = Size(800, 2000);
 
 const loggedInUser = AppUser(id: '1', email: 'a@b.it');
