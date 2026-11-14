@@ -53,6 +53,9 @@ class HeldChannels extends FakeChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     if (list) await hold.future;
     return super.getChannels(
@@ -60,6 +63,9 @@ class HeldChannels extends FakeChannelsRepository {
       limit: limit,
       query: query,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     );
   }
 

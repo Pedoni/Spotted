@@ -118,6 +118,23 @@ void main() {
       expect(query['name'], 'ilike.%pisa%');
     });
 
+    test('filtra per regione, provincia e comune', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannels(
+        offset: 0,
+        limit: 20,
+        regionName: 'Emilia-Romagna',
+        provinceCode: 'FC',
+        municipalityId: '008888',
+      );
+
+      final query = supabase.lastRequest.url.queryParameters;
+      expect(query['region_name'], 'eq.Emilia-Romagna');
+      expect(query['province_code'], 'eq.FC');
+      expect(query['municipality_id'], 'eq.008888');
+    });
+
     test('rende letterali % e _ nella ricerca', () async {
       respondWith(<Object>[]);
 
@@ -129,7 +146,7 @@ void main() {
       );
     });
 
-    test('senza filtri non manda topic_id né name', () async {
+    test('senza filtri non manda nessun filtro', () async {
       respondWith(<Object>[]);
 
       await dataSource.getChannels(offset: 0, limit: 20);
@@ -137,6 +154,9 @@ void main() {
       final query = supabase.lastRequest.url.queryParameters;
       expect(query.containsKey('topic_id'), isFalse);
       expect(query.containsKey('name'), isFalse);
+      expect(query.containsKey('region_name'), isFalse);
+      expect(query.containsKey('province_code'), isFalse);
+      expect(query.containsKey('municipality_id'), isFalse);
     });
   });
 

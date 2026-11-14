@@ -20,9 +20,19 @@ class ChannelsRemoteDataSource {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     var request = _client.from('channels').select(channelColumns);
     if (topicId != null) request = request.eq('topic_id', topicId);
+    if (regionName != null) request = request.eq('region_name', regionName);
+    if (provinceCode != null) {
+      request = request.eq('province_code', provinceCode);
+    }
+    if (municipalityId != null) {
+      request = request.eq('municipality_id', municipalityId);
+    }
     if (query != null) {
       request = request.ilike('name', '%${_escapeLike(query)}%');
     }
