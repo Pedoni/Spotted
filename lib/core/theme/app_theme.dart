@@ -112,6 +112,25 @@ abstract final class AppTheme {
         labelStyle: text.labelLarge,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       ),
+      // Come chip e barra: il selezionato è lampone chiaro, mai l'indaco di
+      // default (che è riservato all'anonimato).
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          shape: const WidgetStatePropertyAll(StadiumBorder()),
+          side: WidgetStatePropertyAll(outlineSide),
+          textStyle: WidgetStatePropertyAll(text.labelLarge),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.primaryContainer
+                : raised,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+        ),
+      ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: raised,
         surfaceTintColor: Colors.transparent,

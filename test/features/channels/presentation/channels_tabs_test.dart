@@ -22,7 +22,7 @@ void main() {
     }
   });
 
-  testWidgets('Canali ha tre viste e parte da Esplora', (tester) async {
+  testWidgets('Canali ha tre schede e parte da Esplora', (tester) async {
     await pumpApp(tester);
     await tester.tap(find.byIcon(Icons.tag_outlined));
     await tester.pumpAndSettle();
@@ -47,5 +47,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('si può scorrere di lato tra le schede', (tester) async {
+    await pumpApp(tester);
+    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.fling(find.byType(TabBarView), const Offset(-400, 0), 1000);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TextField), findsNothing);
+    expect(find.text('Non segui ancora nessun canale'), findsOneWidget);
+  });
+
+  testWidgets('cambiando scheda il testo cercato resta nel campo', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'pisa');
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.tap(find.text('Miei'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Esplora'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextField, 'pisa'), findsOneWidget);
   });
 }

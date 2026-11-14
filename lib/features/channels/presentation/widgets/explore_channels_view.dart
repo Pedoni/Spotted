@@ -21,7 +21,8 @@ class ExploreChannelsView extends ConsumerStatefulWidget {
       _ExploreChannelsViewState();
 }
 
-class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView> {
+class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView>
+    with AutomaticKeepAliveClientMixin {
   static const _debounce = Duration(milliseconds: 400);
 
   final _search = TextEditingController();
@@ -41,8 +42,14 @@ class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView> {
     });
   }
 
+  // Cambiando scheda il campo di ricerca non si deve svuotare: il filtro è
+  // rimasto quello di prima.
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(channelsFeedProvider);
     final filter = ref.watch(channelFilterProvider);
