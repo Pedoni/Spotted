@@ -6,7 +6,7 @@ import 'helpers/fake_auth_repository.dart';
 import 'helpers/pump_app.dart';
 
 void main() {
-  const homeText = 'Ancora nessuno spot da mostrare';
+  const homeText = 'Non hai ancora pubblicato spot';
 
   testWidgets('senza sessione mostra il login', (tester) async {
     await pumpApp(tester, auth: FakeAuthRepository());
@@ -38,11 +38,9 @@ void main() {
   });
 
   testWidgets('il logout dal profilo riporta al login', (tester) async {
-    await pumpApp(tester);
+    await pumpApp(tester, screenSize: tallScreen);
 
     await tester.tap(find.byIcon(Icons.person_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Esci'));
     await tester.pumpAndSettle();

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
@@ -19,9 +18,9 @@ void main() {
       ),
       spots: spots,
     );
-    await tester.tap(find.byIcon(Icons.person_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('I miei spot'));
+    // La pagina si apre dalla freccia accanto al titolo "I miei spot" nella
+    // Home.
+    await tester.tap(find.byTooltip('Visualizza tutti'));
     await tester.pumpAndSettle();
   }
 
@@ -51,7 +50,13 @@ void main() {
   });
 
   testWidgets('senza spot: messaggio', (tester) async {
-    await openMySpots(tester, FakeSpotsRepository());
+    // Con zero spot la pagina non si raggiunge dalla Home: ci si arriva con
+    // uno spot e lo si cancella.
+    await openMySpots(tester, FakeSpotsRepository(mine: [makeMySpot(1)]));
+    await tester.tap(find.byTooltip('Cancella'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancella').last);
+    await tester.pumpAndSettle();
 
     expect(find.text('Non hai ancora pubblicato spot'), findsOneWidget);
   });

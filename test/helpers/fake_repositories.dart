@@ -190,9 +190,13 @@ class FakeProfileRepository implements ProfileRepository {
   });
 
   Profile profile;
+  Failure? error;
 
   @override
-  Future<Profile> getMyProfile() async => profile;
+  Future<Profile> getMyProfile() async {
+    if (error != null) throw error!;
+    return profile;
+  }
 }
 
 /// Iscrizioni in memoria. [counts] è il numero di iscritti per canale (compreso
@@ -375,6 +379,9 @@ class FakeSpotsRepository implements SpotsRepository {
   }
 
   final List<SpotWithChannel> followed;
+
+  /// Errore solo per gli spot dei canali seguiti (la Home).
+  Failure? followedError;
   final followedCalls = <({int offset, int limit})>[];
 
   @override
@@ -383,7 +390,7 @@ class FakeSpotsRepository implements SpotsRepository {
     required int limit,
   }) async {
     followedCalls.add((offset: offset, limit: limit));
-    if (listError != null) throw listError!;
+    if (followedError != null) throw followedError!;
     return followed.skip(offset).take(limit).toList();
   }
 

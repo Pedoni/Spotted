@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spotted/core/riverpod/no_retry.dart';
+import 'package:spotted/core/theme/app_theme.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
+import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
@@ -15,8 +19,13 @@ import 'package:spotted/features/reports/domain/entities/channel_report.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_skeletons.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
+import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
+import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
+import 'package:spotted/features/spots/presentation/widgets/my_spots_carousel.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
+import 'package:spotted/l10n/app_localizations.dart';
 
+import '../../helpers/fake_auth_repository.dart';
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
 
@@ -96,16 +105,11 @@ class HeldSpots extends FakeSpotsRepository {
     this.hold, {
     super.spots,
     super.mine,
-    super.followed,
     this.detail = false,
-    this.holdFollowed = false,
   });
 
   final Completer<void> hold;
   final bool detail;
-
-  /// Se è `true` trattiene la Home (gli spot dei canali seguiti), non i miei.
-  final bool holdFollowed;
 
   @override
   Future<Spot> getSpot(String spotId) async {
@@ -114,20 +118,11 @@ class HeldSpots extends FakeSpotsRepository {
   }
 
   @override
-  Future<List<SpotWithChannel>> getFollowedSpots({
-    required int offset,
-    required int limit,
-  }) async {
-    if (holdFollowed) await hold.future;
-    return super.getFollowedSpots(offset: offset, limit: limit);
-  }
-
-  @override
   Future<List<SpotWithChannel>> getMySpots({
     required int offset,
     required int limit,
   }) async {
-    if (!detail && !holdFollowed) await hold.future;
+    if (!detail) await hold.future;
     return super.getMySpots(offset: offset, limit: limit);
   }
 }
@@ -267,20 +262,6 @@ Future<void> openProfileTab(WidgetTester tester) async {
 void main() {
   final channel = makeChannel(1, name: 'Spotted Pisa');
 
-  testWidgets('Home: gli spot dei canali seguiti', (tester) async {
-    final hold = Completer<void>();
-    await pumpApp(
-      tester,
-      spots: HeldSpots(hold, followed: [makeMySpot(1)], holdFollowed: true),
-      settle: false,
-    );
-
-    expectSkeleton(find.byType(SpotCardsSkeleton));
-
-    await release(tester, hold);
-    expect(find.text('Spot 1'), findsOneWidget);
-  });
-
   testWidgets('Canali: l elenco', (tester) async {
     final hold = Completer<void>();
     await pumpApp(
@@ -337,14 +318,41 @@ void main() {
     expect(find.text('@mario_88'), findsOneWidget);
   });
 
-  testWidgets('I miei spot', (tester) async {
+  testWidgets('Home: il carosello dei miei spot', (tester) async {
     final hold = Completer<void>();
     await pumpApp(
       tester,
       spots: HeldSpots(hold, mine: [makeMySpot(1)]),
+      settle: false,
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('I miei spot'));
+
+    expectSkeleton(find.byType(MySpotsCarouselSkeleton));
+
+    await release(tester, hold);
+    expect(find.byType(MySpotCard), findsOneWidget);
+  });
+
+  testWidgets('I miei spot: la pagina', (tester) async {
+    final hold = Completer<void>();
+    await tester.pumpWidget(
+      ProviderScope(
+        retry: noRetry,
+        overrides: [
+          authRepositoryProvider.overrideWithValue(
+            FakeAuthRepository(user: loggedInUser),
+          ),
+          spotsRepositoryProvider.overrideWithValue(
+            HeldSpots(hold, mine: [makeMySpot(1)]),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const MySpotsPage(),
+        ),
+      ),
+    );
     await advance(tester);
 
     expectSkeleton(find.byType(SpotCardsSkeleton));

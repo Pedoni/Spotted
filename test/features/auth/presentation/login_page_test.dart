@@ -33,7 +33,7 @@ void main() {
 
     expect(repo.signInCalls.single.email, 'a@b.it');
     expect(
-      find.text('Ancora nessuno spot da mostrare'),
+      find.text('Non hai ancora pubblicato spot'),
       findsOneWidget,
     );
   });
