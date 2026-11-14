@@ -238,7 +238,13 @@ void main() {
       expect(fieldText(tester), 'Pisa (PI)');
       expect(
         changed,
-        const MunicipalityChoice(istatCode: '050026', label: 'Pisa (PI)'),
+        const MunicipalityChoice(
+          istatCode: '050026',
+          label: 'Pisa (PI)',
+          provinceCode: 'PI',
+          provinceName: 'Pisa',
+          regionName: 'Toscana',
+        ),
       );
       expect(changes, 1);
       // Il suggerimento si chiude e il campo è valido.
