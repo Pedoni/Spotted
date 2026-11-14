@@ -42,6 +42,8 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.person_outline));
     await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Esci'));
     await tester.pumpAndSettle();
     // Chiede conferma: si esce solo dalla finestra.

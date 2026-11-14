@@ -16,7 +16,7 @@ void main() {
     matching: find.widgetWithText(TextButton, 'Rivela identità'),
   );
 
-  /// Apre "Le mie chat" dal Profilo.
+  /// Apre la scheda Chat.
   Future<void> openChats(
     WidgetTester tester,
     FakeChatRepository repository, {
@@ -24,13 +24,11 @@ void main() {
   }) async {
     chat = repository;
     await pumpApp(tester, chat: repository, chatPollInterval: pollInterval);
-    await tester.tap(find.byIcon(Icons.person_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
     await tester.pumpAndSettle();
   }
 
-  /// Apre "Le mie chat" e la prima chat.
+  /// Apre la scheda Chat e la prima chat.
   Future<void> openChat(
     WidgetTester tester,
     FakeChatRepository repository, {
@@ -41,7 +39,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('Le mie chat', () {
+  group('scheda Chat', () {
     testWidgets('senza chat: messaggio', (tester) async {
       await openChats(tester, FakeChatRepository());
 

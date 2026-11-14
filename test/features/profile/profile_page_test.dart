@@ -39,10 +39,12 @@ void main() {
   });
 
   group('uscire dall account', () {
-    Future<FakeAuthRepository> openProfile(WidgetTester tester) async {
+    Future<FakeAuthRepository> openSettings(WidgetTester tester) async {
       final auth = FakeAuthRepository(user: loggedInUser);
       await pumpApp(tester, auth: auth);
       await tester.tap(find.byIcon(Icons.person_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
       return auth;
     }
@@ -50,7 +52,7 @@ void main() {
     testWidgets('toccando Esci chiede conferma e non esce subito', (
       tester,
     ) async {
-      final auth = await openProfile(tester);
+      final auth = await openSettings(tester);
 
       await tester.tap(find.text('Esci'));
       await tester.pumpAndSettle();
@@ -61,13 +63,13 @@ void main() {
         findsOneWidget,
       );
       expect(auth.signOutCalls, 0);
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.text('Impostazioni'), findsOneWidget);
     });
 
     testWidgets('Annulla chiude la finestra e resta nell account', (
       tester,
     ) async {
-      final auth = await openProfile(tester);
+      final auth = await openSettings(tester);
       await tester.tap(find.text('Esci'));
       await tester.pumpAndSettle();
 
@@ -76,11 +78,11 @@ void main() {
 
       expect(find.text("Uscire dall'account?"), findsNothing);
       expect(auth.signOutCalls, 0);
-      expect(find.text('@mario_88'), findsOneWidget);
+      expect(find.text('Impostazioni'), findsOneWidget);
     });
 
     testWidgets('toccando fuori dalla finestra non esce', (tester) async {
-      final auth = await openProfile(tester);
+      final auth = await openSettings(tester);
       await tester.tap(find.text('Esci'));
       await tester.pumpAndSettle();
 
@@ -94,7 +96,7 @@ void main() {
     testWidgets('Esci nella finestra esce e riporta all accesso', (
       tester,
     ) async {
-      final auth = await openProfile(tester);
+      final auth = await openSettings(tester);
       await tester.tap(find.text('Esci'));
       await tester.pumpAndSettle();
 

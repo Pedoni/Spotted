@@ -300,8 +300,9 @@ void main() {
       tester,
       channels: HeldChannels(hold, mine: [channel], mineList: true),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('I miei canali'));
+    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await advance(tester);
+    await tester.tap(find.text('Miei'));
     await advance(tester);
 
     expectSkeleton(find.byType(ChannelTilesSkeleton));
@@ -388,8 +389,7 @@ void main() {
       tester,
       chat: HeldChat(hold, chats: [makeChat(1)], list: true),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
     await advance(tester);
 
     expectSkeleton(find.byType(ChatTilesSkeleton));
@@ -404,8 +404,7 @@ void main() {
       tester,
       chat: HeldChat(hold, chats: [makeChat(1)], detail: true),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ListTile).first);
     await advance(tester);
@@ -429,8 +428,7 @@ void main() {
         messageList: true,
       ),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ListTile).first);
     await advance(tester);
