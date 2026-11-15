@@ -8,6 +8,7 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/presentation/providers/channel_actions.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
@@ -161,7 +162,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
                       icon: const Icon(Icons.search),
                       onPressed: _openSearch,
                     ),
-                    _ModerationAction(channelId: loaded.id, slug: loaded.slug),
+                    _OwnerActions(channel: loaded),
                   ],
                 ],
               ),
@@ -286,21 +287,89 @@ class _SubscriptionRow extends ConsumerWidget {
   }
 }
 
-/// Pulsante "Moderazione": compare solo al proprietario del canale.
-class _ModerationAction extends ConsumerWidget {
-  const _ModerationAction({required this.channelId, required this.slug});
+/// Strumenti del proprietario del canale (gli altri non vedono niente):
+/// "Moderazione" e un menu per modificare o eliminare il canale.
+class _OwnerActions extends ConsumerWidget {
+  const _OwnerActions({required this.channel});
 
-  final String channelId;
-  final String slug;
+  final Channel channel;
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteChannelTitle),
+        content: Text(l10n.deleteChannelBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.deleteChannelConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(channelActionsProvider.notifier).delete(channel);
+    } on Exception catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failureMessage(l10n, error))),
+      );
+      return;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(l10n.channelDeleted)));
+    // Il canale non c'è più: si torna all'elenco dei canali.
+    router.go(AppRoutes.channels);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isOwner = ref.watch(isChannelOwnerProvider(channelId)).value;
+    final l10n = AppLocalizations.of(context);
+    final isOwner = ref.watch(isChannelOwnerProvider(channel.id)).value;
     if (isOwner != true) return const SizedBox.shrink();
-    return IconButton(
-      tooltip: AppLocalizations.of(context).moderationTitle,
-      icon: const Icon(Icons.shield_outlined),
-      onPressed: () => context.push(AppRoutes.channelModerationPath(slug)),
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: l10n.moderationTitle,
+          icon: const Icon(Icons.shield_outlined),
+          onPressed: () =>
+              context.push(AppRoutes.channelModerationPath(channel.slug)),
+        ),
+        PopupMenuButton<_OwnerAction>(
+          tooltip: l10n.channelActionsTooltip,
+          onSelected: (action) {
+            switch (action) {
+              case _OwnerAction.edit:
+                unawaited(
+                  context.push(AppRoutes.channelEditPath(channel.slug)),
+                );
+              case _OwnerAction.delete:
+                unawaited(_confirmDelete(context, ref));
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: _OwnerAction.edit,
+              child: Text(l10n.editChannelAction),
+            ),
+            PopupMenuItem(
+              value: _OwnerAction.delete,
+              child: Text(l10n.deleteChannelAction),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
+
+enum _OwnerAction { edit, delete }

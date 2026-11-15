@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_form.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tile.dart';
 
 /// Scheletro di un elenco di canali.
@@ -74,6 +75,19 @@ class ChannelHeaderSkeleton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Scheletro del modulo del canale (nome, argomento, comune, descrizione e
+/// pulsante): il modulo vero con i campi vuoti.
+class ChannelFormSkeleton extends StatelessWidget {
+  const ChannelFormSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeleton(
+      child: ChannelForm(submitLabel: 'Salva', onSubmit: (_) {}),
     );
   }
 }
