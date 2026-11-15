@@ -30,6 +30,8 @@ class SquircleAvatar extends StatelessWidget {
         width: size,
         height: size,
         alignment: Alignment.center,
+        // Un'immagine dentro l'avatar segue gli angoli arrotondati.
+        clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
           color: background,
           shape: RoundedSuperellipseBorder(
