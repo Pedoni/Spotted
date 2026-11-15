@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
@@ -148,10 +149,15 @@ class SpotCommentsSliver extends ConsumerWidget {
       ),
       data: (paged) {
         if (paged.items.isEmpty) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(child: Text(l10n.noComments)),
+          // Occupa lo spazio rimasto tra il titolo e il campo per scrivere e si
+          // mette al centro.
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: EmptyState(
+                icon: Icons.chat_bubble_outline_rounded,
+                title: l10n.noComments,
+              ),
             ),
           );
         }

@@ -90,7 +90,7 @@ class _Header extends StatelessWidget {
           if (onTap != null)
             IconButton(
               tooltip: l10n.viewAll,
-              icon: const Icon(Icons.chevron_right),
+              icon: const Icon(Icons.chevron_right_rounded),
               onPressed: onTap,
             )
           else
@@ -221,7 +221,7 @@ class MySpotCard extends ConsumerWidget {
                 Row(
                   children: [
                     Icon(
-                      Icons.favorite_border,
+                      Icons.favorite_border_rounded,
                       size: 16,
                       color: theme.colorScheme.outline,
                     ),
@@ -234,7 +234,7 @@ class MySpotCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     Icon(
-                      Icons.chat_bubble_outline,
+                      Icons.chat_bubble_outline_rounded,
                       size: 16,
                       color: theme.colorScheme.outline,
                     ),
@@ -248,7 +248,7 @@ class MySpotCard extends ConsumerWidget {
                     if (hidden) ...[
                       const Spacer(),
                       Icon(
-                        Icons.visibility_off_outlined,
+                        Icons.visibility_off_rounded,
                         size: 16,
                         color: theme.colorScheme.error,
                       ),
@@ -287,7 +287,7 @@ class _ViewAllCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.arrow_forward,
+                  Icons.arrow_forward_rounded,
                   color: theme.colorScheme.onPrimaryContainer,
                 ),
                 const SizedBox(height: 8),

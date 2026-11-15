@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 
 import '../../../helpers/fake_repositories.dart';
@@ -18,7 +19,7 @@ void main() {
       channels: FakeChannelsRepository(channels: [channel]),
       spots: spots,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -46,6 +47,22 @@ void main() {
     await openChannel(tester, FakeSpotsRepository());
 
     expect(find.text('Ancora nessuno spot. Scrivi il primo!'), findsOneWidget);
+  });
+
+  testWidgets('canale senza spot: lo stato vuoto è al centro dello spazio '
+      'sotto l intestazione', (tester) async {
+    await openChannel(tester, FakeSpotsRepository());
+
+    final empty = tester.getRect(find.byType(EmptyState));
+    final screenBottom = tester.getSize(find.byType(Scaffold).last).height;
+    // Sotto l'intestazione del canale (il pulsante "Segui" è il suo ultimo
+    // elemento) e sopra il fondo dello schermo.
+    final headerBottom = tester.getRect(find.text('Segui')).bottom;
+    final above = empty.top - headerBottom;
+    final below = screenBottom - empty.bottom;
+
+    expect(above, greaterThan(0));
+    expect((above - below).abs(), lessThan(48));
   });
 
   testWidgets('errore: messaggio e Riprova', (tester) async {
@@ -97,7 +114,7 @@ void main() {
 
     expect(find.text('7'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
   });
 
   testWidgets('toccando il cuore il like si aggiorna subito', (tester) async {
@@ -106,14 +123,14 @@ void main() {
     );
     await openChannel(tester, spots);
 
-    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('8'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     expect(spots.likeCalls.single, (spotId: 's1', liked: true));
 
-    await tester.tap(find.byIcon(Icons.favorite));
+    await tester.tap(find.byIcon(Icons.favorite_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('7'), findsOneWidget);
@@ -128,11 +145,11 @@ void main() {
     )..likeError = const NetworkFailure();
     await openChannel(tester, spots);
 
-    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('7'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
     expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
   });
 }

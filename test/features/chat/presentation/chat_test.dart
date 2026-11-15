@@ -24,7 +24,7 @@ void main() {
   }) async {
     chat = repository;
     await pumpApp(tester, chat: repository, chatPollInterval: pollInterval);
-    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await tester.pumpAndSettle();
   }
 
@@ -44,6 +44,7 @@ void main() {
       await openChats(tester, FakeChatRepository());
 
       expect(find.text('Ancora nessuna chat'), findsOneWidget);
+      expect(find.textContaining('Le chat nascono dagli spot'), findsOneWidget);
     });
 
     testWidgets("l'autore vede lo username di chi ha commentato", (
@@ -182,7 +183,7 @@ void main() {
       await openChat(tester, FakeChatRepository(chats: [makeChat(1)]));
 
       await tester.enterText(find.byType(TextField), '  Ciao  ');
-      await tester.tap(find.byIcon(Icons.send));
+      await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pumpAndSettle();
 
       expect(chat.sendCalls.single, (chatId: 'ch1', content: 'Ciao'));
@@ -198,7 +199,7 @@ void main() {
       await openChat(tester, FakeChatRepository(chats: [makeChat(1)]));
 
       await tester.enterText(find.byType(TextField), '   ');
-      await tester.tap(find.byIcon(Icons.send));
+      await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pumpAndSettle();
 
       expect(chat.sendCalls, isEmpty);
@@ -212,7 +213,7 @@ void main() {
       await openChat(tester, repository);
 
       await tester.enterText(find.byType(TextField), 'Ciao');
-      await tester.tap(find.byIcon(Icons.send));
+      await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pumpAndSettle();
 
       expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
@@ -389,7 +390,7 @@ void main() {
         ),
         chat: repository,
       );
-      await tester.tap(find.byIcon(Icons.tag_outlined));
+      await tester.tap(find.byIcon(Icons.tag_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Spotted Pisa'));
       await tester.pumpAndSettle();

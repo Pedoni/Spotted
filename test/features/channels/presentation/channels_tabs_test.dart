@@ -24,7 +24,7 @@ void main() {
 
   testWidgets('Canali ha tre schede e parte da Esplora', (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('Esplora'), findsOneWidget);
@@ -37,7 +37,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Seguiti'));
     await tester.pumpAndSettle();
@@ -51,7 +51,7 @@ void main() {
 
   testWidgets('si può scorrere di lato tra le schede', (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     expect(find.byType(TextField), findsOneWidget);
 
@@ -66,7 +66,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'pisa');
     await tester.pump(const Duration(milliseconds: 500));

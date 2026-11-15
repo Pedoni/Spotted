@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
@@ -28,7 +29,19 @@ class MyChannelsView extends ConsumerWidget {
         onRetry: () => ref.invalidate(myChannelsProvider),
       ),
       data: (items) {
-        if (items.isEmpty) return Center(child: Text(l10n.noMyChannels));
+        if (items.isEmpty) {
+          return Center(
+            child: EmptyState(
+              icon: Icons.tag_rounded,
+              title: l10n.noMyChannels,
+              message: l10n.noMyChannelsHint,
+              action: FilledButton(
+                onPressed: () => context.push(AppRoutes.channelNew),
+                child: Text(l10n.createFirstChannel),
+              ),
+            ),
+          );
+        }
         return RefreshIndicator(
           onRefresh: () => ref.refresh(myChannelsProvider.future),
           child: ListView.builder(

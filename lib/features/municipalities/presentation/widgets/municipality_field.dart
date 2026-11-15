@@ -216,7 +216,7 @@ class _MunicipalityFieldState extends ConsumerState<MunicipalityField> {
                       ? null
                       : IconButton(
                           tooltip: l10n.clearMunicipality,
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close_rounded),
                           onPressed: _clear,
                         ),
                 ),

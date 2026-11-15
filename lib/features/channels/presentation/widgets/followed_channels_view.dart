@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
@@ -33,23 +34,13 @@ class FollowedChannelsView extends ConsumerWidget {
       data: (items) {
         if (items.isEmpty) {
           return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l10n.homeEmpty,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(l10n.homeEmptyHint, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: onExplore,
-                    child: Text(l10n.homeDiscoverChannels),
-                  ),
-                ],
+            child: EmptyState(
+              icon: Icons.favorite_border_rounded,
+              title: l10n.homeEmpty,
+              message: l10n.homeEmptyHint,
+              action: FilledButton(
+                onPressed: onExplore,
+                child: Text(l10n.homeDiscoverChannels),
               ),
             ),
           );

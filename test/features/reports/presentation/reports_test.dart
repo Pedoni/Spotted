@@ -55,7 +55,7 @@ void main() {
       ),
       reports: reports,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -188,7 +188,7 @@ void main() {
 
   group('scheda Segnalazioni del proprietario', () {
     Future<void> openReports(WidgetTester tester) async {
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
     }
 
@@ -246,6 +246,8 @@ void main() {
       await openReports(tester);
 
       expect(find.text('Nessuna segnalazione aperta'), findsOneWidget);
+      expect(find.textContaining('Quando qualcuno segnala'), findsOneWidget);
+      expect(find.byIcon(Icons.flag_rounded), findsOneWidget);
     });
 
     testWidgets('Risolvi chiude la segnalazione e la toglie', (tester) async {

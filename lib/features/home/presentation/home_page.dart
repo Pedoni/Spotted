@@ -36,7 +36,7 @@ class HomePage extends ConsumerWidget {
         // transizioni.
         heroTag: 'home-publish',
         onPressed: () => unawaited(_publish(context)),
-        icon: const Icon(Icons.edit_outlined),
+        icon: const Icon(Icons.edit_rounded),
         label: Text(l10n.publishSpotButton),
       ),
       body: RefreshIndicator(

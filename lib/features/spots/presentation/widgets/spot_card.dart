@@ -109,7 +109,7 @@ class SpotCard extends ConsumerWidget {
                 Row(
                   children: [
                     Icon(
-                      Icons.visibility_off_outlined,
+                      Icons.visibility_off_rounded,
                       size: 16,
                       color: theme.colorScheme.error,
                     ),
@@ -147,7 +147,7 @@ class SpotCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    Icons.chat_bubble_outline,
+                    Icons.chat_bubble_outline_rounded,
                     size: 18,
                     color: theme.colorScheme.outline,
                   ),

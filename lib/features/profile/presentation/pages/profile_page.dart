@@ -147,13 +147,13 @@ class ProfilePage extends ConsumerWidget {
           // Per ora non fanno nulla: arrivano più avanti.
           ListTile(
             enabled: false,
-            leading: const Icon(Icons.lock_outline),
+            leading: const Icon(Icons.lock_outline_rounded),
             title: Text(l10n.changePassword),
             subtitle: Text(l10n.comingSoon),
           ),
           ListTile(
             enabled: false,
-            leading: const Icon(Icons.delete_outline),
+            leading: const Icon(Icons.delete_outline_rounded),
             title: Text(l10n.deleteProfile),
             subtitle: Text(l10n.comingSoon),
           ),
@@ -161,7 +161,7 @@ class ProfilePage extends ConsumerWidget {
             enabled: !signingOut,
             leading: signingOut
                 ? const InlineProgress()
-                : const Icon(Icons.logout),
+                : const Icon(Icons.logout_rounded),
             title: Text(l10n.logout),
             onTap: () => unawaited(_confirmLogout(context, ref)),
           ),

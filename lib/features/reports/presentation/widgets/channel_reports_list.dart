@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
@@ -60,7 +61,13 @@ class ChannelReportsList extends ConsumerWidget {
           ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
       data: (paged) {
         if (paged.items.isEmpty) {
-          return Center(child: Text(l10n.noReports));
+          return Center(
+            child: EmptyState(
+              icon: Icons.flag_rounded,
+              title: l10n.noReports,
+              message: l10n.noReportsHint,
+            ),
+          );
         }
         return RefreshIndicator(
           onRefresh: () => ref.refresh(provider.future),

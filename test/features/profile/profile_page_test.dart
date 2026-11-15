@@ -13,7 +13,7 @@ import '../../helpers/pump_app.dart';
 void main() {
   testWidgets('mostra username, nome ed email', (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('@mario_88'), findsOneWidget);
@@ -28,7 +28,7 @@ void main() {
         profile: const Profile(id: '1', username: 'anon_user'),
       ),
     );
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('@anon_user'), findsOneWidget);
@@ -46,7 +46,7 @@ void main() {
     Future<FakeAuthRepository> openProfile(WidgetTester tester) async {
       final auth = FakeAuthRepository(user: loggedInUser);
       await pumpApp(tester, auth: auth, screenSize: tallScreen);
-      await tester.tap(find.byIcon(Icons.person_outline));
+      await tester.tap(find.byIcon(Icons.person_outline_rounded));
       await tester.pumpAndSettle();
       return auth;
     }

@@ -22,7 +22,7 @@ void main() {
       channels: FakeChannelsRepository(channels: [channel]),
       subscriptions: subscriptions,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();

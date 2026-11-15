@@ -256,12 +256,12 @@ Future<void> release(WidgetTester tester, Completer<void> hold) async {
 }
 
 Future<void> openChannelsTab(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.tag_outlined));
+  await tester.tap(find.byIcon(Icons.tag_rounded));
   await advance(tester);
 }
 
 Future<void> openProfileTab(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.person_outline));
+  await tester.tap(find.byIcon(Icons.person_outline_rounded));
   await advance(tester);
 }
 
@@ -302,7 +302,7 @@ void main() {
       tester,
       channels: HeldChannels(hold, mine: [channel], mineList: true),
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await advance(tester);
     await tester.tap(find.text('Miei'));
     await advance(tester);
@@ -418,7 +418,7 @@ void main() {
       tester,
       chat: HeldChat(hold, chats: [makeChat(1)], list: true),
     );
-    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await advance(tester);
 
     expectSkeleton(find.byType(ChatTilesSkeleton));
@@ -433,7 +433,7 @@ void main() {
       tester,
       chat: HeldChat(hold, chats: [makeChat(1)], detail: true),
     );
-    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ListTile).first);
     await advance(tester);
@@ -457,7 +457,7 @@ void main() {
         messageList: true,
       ),
     );
-    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ListTile).first);
     await advance(tester);
@@ -486,7 +486,7 @@ void main() {
       await openChannelsTab(tester);
       await tester.tap(find.text('Spotted Pisa'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await advance(tester);
     }
 

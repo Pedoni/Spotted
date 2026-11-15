@@ -84,7 +84,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
     return AppBar(
       leading: IconButton(
         tooltip: l10n.closeSearch,
-        icon: const Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back_rounded),
         onPressed: _closeSearch,
       ),
       title: TextField(
@@ -103,7 +103,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
         if (_search.text.isNotEmpty)
           IconButton(
             tooltip: l10n.clearSearch,
-            icon: const Icon(Icons.close),
+            icon: const Icon(Icons.close_rounded),
             onPressed: _clearSearch,
           ),
       ],
@@ -128,6 +128,8 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
         channelSpotsFeedProvider(channel.id, query: _query).future,
       ),
       child: CustomScrollView(
+        // Anche con pochi contenuti si può tirare giù per ricaricare.
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           ChannelSpotsSliver(channelId: channel.id, query: _query),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -159,7 +161,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
                   if (channel.value case final loaded?) ...[
                     IconButton(
                       tooltip: l10n.searchSpotsTooltip,
-                      icon: const Icon(Icons.search),
+                      icon: const Icon(Icons.search_rounded),
                       onPressed: _openSearch,
                     ),
                     _OwnerActions(channel: loaded),
@@ -170,7 +172,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
             ? FloatingActionButton.extended(
                 onPressed: () =>
                     context.push(AppRoutes.spotNewPath(channel.value!.slug)),
-                icon: const Icon(Icons.edit_outlined),
+                icon: const Icon(Icons.edit_rounded),
                 label: Text(l10n.publishSpot),
               )
             : null,
@@ -196,6 +198,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
               onRefresh: () =>
                   ref.refresh(channelSpotsFeedProvider(channel.id).future),
               child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.all(24),
@@ -214,7 +217,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
                             if (channel.place != null)
                               Chip(
                                 avatar: const Icon(
-                                  Icons.place_outlined,
+                                  Icons.place_rounded,
                                   size: 18,
                                 ),
                                 label: Text(channel.place!),
@@ -340,7 +343,7 @@ class _OwnerActions extends ConsumerWidget {
       children: [
         IconButton(
           tooltip: l10n.moderationTitle,
-          icon: const Icon(Icons.shield_outlined),
+          icon: const Icon(Icons.shield_rounded),
           onPressed: () =>
               context.push(AppRoutes.channelModerationPath(channel.slug)),
         ),

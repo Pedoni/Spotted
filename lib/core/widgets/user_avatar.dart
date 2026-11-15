@@ -23,7 +23,7 @@ class UserAvatar extends StatelessWidget {
       background: scheme.secondaryContainer,
       size: size,
       child: Icon(
-        Icons.theater_comedy_outlined,
+        Icons.theater_comedy_rounded,
         size: size * 0.52,
         color: scheme.onSecondaryContainer,
       ),

@@ -22,23 +22,23 @@ class AppShell extends StatelessWidget {
         ),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
+            icon: const Icon(Icons.home_rounded),
+            selectedIcon: const Icon(Icons.home_rounded),
             label: l10n.navHome,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.tag_outlined),
-            selectedIcon: const Icon(Icons.tag),
+            icon: const Icon(Icons.tag_rounded),
+            selectedIcon: const Icon(Icons.tag_rounded),
             label: l10n.navChannels,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.chat_bubble_outline),
-            selectedIcon: const Icon(Icons.chat_bubble),
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            selectedIcon: const Icon(Icons.chat_bubble_rounded),
             label: l10n.navChats,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person),
+            icon: const Icon(Icons.person_outline_rounded),
+            selectedIcon: const Icon(Icons.person_rounded),
             label: l10n.navProfile,
           ),
         ],
