@@ -90,6 +90,38 @@ class ChannelsRemoteDataSource {
     return ChannelDto.fromJson(row).toEntity();
   }
 
+  /// Usa l'RPC `update_channel`: la tabella non ha grant di `update`. Lo slug
+  /// non cambia. Per chi non è il proprietario risponde `42501`.
+  Future<Channel> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+    String? topicId,
+    String? municipalityId,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'update_channel',
+      params: {
+        'p_channel_id': channelId,
+        'p_name': name,
+        'p_description': description,
+        'p_topic_id': topicId,
+        'p_municipality_id': municipalityId,
+      },
+    );
+    if (rows.isEmpty) throw const NotFoundFailure();
+    return ChannelDto.fromJson(rows.first as Map<String, dynamic>).toEntity();
+  }
+
+  /// Usa l'RPC `delete_channel`: elimina anche spot, commenti e chat del
+  /// canale. Per chi non è il proprietario risponde `42501`.
+  Future<void> deleteChannel(String channelId) async {
+    await _client.rpc<dynamic>(
+      'delete_channel',
+      params: {'p_channel_id': channelId},
+    );
+  }
+
   /// Rende letterali i caratteri speciali di `like`.
   String _escapeLike(String value) => value
       .replaceAll(r'\', r'\\')

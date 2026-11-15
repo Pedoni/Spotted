@@ -72,6 +72,16 @@
   "channelTopicLabel": "Argomento",
   "noTopic": "Nessuno",
   "createChannelButton": "Crea canale",
+  "editChannelTitle": "Modifica canale",
+  "editChannelAction": "Modifica canale",
+  "deleteChannelAction": "Elimina canale",
+  "saveChannelButton": "Salva",
+  "channelUpdated": "Canale aggiornato",
+  "channelDeleted": "Canale eliminato",
+  "deleteChannelTitle": "Eliminare il canale?",
+  "deleteChannelBody": "Verranno eliminati anche tutti i suoi spot, i commenti e le chat collegate. Non si può annullare.",
+  "deleteChannelConfirm": "Elimina",
+  "channelActionsTooltip": "Altre azioni",
   "validationChannelName": "Da {min} a {max} caratteri",
   "@validationChannelName": {
     "placeholders": {

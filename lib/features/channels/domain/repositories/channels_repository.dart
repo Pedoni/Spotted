@@ -14,6 +14,20 @@ abstract interface class ChannelsRepository {
     String? municipalityId,
   });
 
+  /// Modifica nome, descrizione, argomento e comune di un canale dell'utente
+  /// (lo slug non cambia). `PermissionFailure` se non è il proprietario.
+  Future<Channel> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+    String? topicId,
+    String? municipalityId,
+  });
+
+  /// Elimina un canale dell'utente con tutto ciò che contiene (spot,
+  /// commenti, chat). `PermissionFailure` se non è il proprietario.
+  Future<void> deleteChannel(String channelId);
+
   /// Lancia `NotFoundFailure` se non esiste.
   Future<Channel> getChannelBySlug(String slug);
 

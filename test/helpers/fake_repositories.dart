@@ -71,6 +71,8 @@ class FakeChannelsRepository implements ChannelsRepository {
   Map<String, String> municipalityPlaces = {'050026': 'Pisa (PI)'};
   Failure? listError;
   Failure? createError;
+  Failure? updateError;
+  Failure? deleteError;
 
   final listCalls =
       <
@@ -85,6 +87,8 @@ class FakeChannelsRepository implements ChannelsRepository {
         })
       >[];
   final createCalls = <Map<String, String?>>[];
+  final updateCalls = <Map<String, String?>>[];
+  final deleteCalls = <String>[];
 
   @override
   Future<List<Channel>> getChannels({
@@ -134,6 +138,51 @@ class FakeChannelsRepository implements ChannelsRepository {
 
   @override
   Future<List<Channel>> getMyChannels() async => mine;
+
+  @override
+  Future<Channel> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+    String? topicId,
+    String? municipalityId,
+  }) async {
+    updateCalls.add({
+      'channelId': channelId,
+      'name': name,
+      'description': description,
+      'topicId': topicId,
+      'municipalityId': municipalityId,
+    });
+    if (updateError != null) throw updateError!;
+    final old = [...channels, ...mine].firstWhere((c) => c.id == channelId);
+    final updated = Channel(
+      id: old.id,
+      name: name,
+      // Lo slug non cambia mai.
+      slug: old.slug,
+      description: description,
+      place: municipalityId == null ? null : municipalityPlaces[municipalityId],
+      municipalityId: municipalityId,
+      topicId: topicId,
+      createdAt: old.createdAt,
+    );
+    List<Channel> replace(List<Channel> list) => [
+      for (final c in list)
+        if (c.id == channelId) updated else c,
+    ];
+    channels = replace(channels);
+    mine = replace(mine);
+    return updated;
+  }
+
+  @override
+  Future<void> deleteChannel(String channelId) async {
+    deleteCalls.add(channelId);
+    if (deleteError != null) throw deleteError!;
+    channels = channels.where((c) => c.id != channelId).toList();
+    mine = mine.where((c) => c.id != channelId).toList();
+  }
 
   @override
   Future<Channel> createChannel({

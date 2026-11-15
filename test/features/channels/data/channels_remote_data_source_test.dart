@@ -266,6 +266,73 @@ void main() {
     });
   });
 
+  group('updateChannel', () {
+    final row = channelRow('1', name: 'Nuovo nome', municipalityId: '050026');
+
+    test(
+      "chiama l'RPC update_channel con i parametri e legge il canale",
+      () async {
+        respondWith([row]);
+
+        final channel = await dataSource.updateChannel(
+          channelId: 'c1',
+          name: 'Nuovo nome',
+          description: 'Descrizione',
+          topicId: 't1',
+          municipalityId: '050026',
+        );
+
+        expect(supabase.lastRequest.url.path, '/rest/v1/rpc/update_channel');
+        expect(jsonDecode(supabase.lastRequest.body), {
+          'p_channel_id': 'c1',
+          'p_name': 'Nuovo nome',
+          'p_description': 'Descrizione',
+          'p_topic_id': 't1',
+          'p_municipality_id': '050026',
+        });
+        expect(channel.name, 'Nuovo nome');
+        expect(channel.municipalityId, '050026');
+      },
+    );
+
+    test('non manda lo slug: non si cambia', () async {
+      respondWith([row]);
+
+      await dataSource.updateChannel(channelId: 'c1', name: 'Nuovo nome');
+
+      final body = jsonDecode(supabase.lastRequest.body) as Map;
+      expect(body.keys, isNot(contains('p_slug')));
+      expect(body['p_description'], isNull);
+      expect(body['p_topic_id'], isNull);
+      expect(body['p_municipality_id'], isNull);
+    });
+
+    test('nessuna riga: NotFoundFailure', () async {
+      respondWith(<Object>[]);
+
+      await expectLater(
+        dataSource.updateChannel(channelId: 'c1', name: 'Nome'),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+  });
+
+  group('deleteChannel', () {
+    test("chiama l'RPC delete_channel con l'id", () async {
+      // Una funzione che non restituisce niente risponde `null`.
+      supabase = MockSupabase((_) async => jsonResponse(null));
+      dataSource = ChannelsRemoteDataSource(
+        supabase.client,
+        currentUserId: () => 'user-1',
+      );
+
+      await dataSource.deleteChannel('c1');
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/delete_channel');
+      expect(jsonDecode(supabase.lastRequest.body), {'p_channel_id': 'c1'});
+    });
+  });
+
   group('errori attraverso il repository', () {
     ChannelsRepositoryImpl repositoryFor(MockSupabase supabase) {
       return ChannelsRepositoryImpl(
@@ -303,6 +370,47 @@ void main() {
 
       await expectLater(
         repository.getChannels(offset: 0, limit: 20),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('modifica: non proprietario (42501): PermissionFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async =>
+              postgrestError('42501', 'not the channel owner', status: 403),
+        ),
+      );
+
+      await expectLater(
+        repository.updateChannel(channelId: 'c1', name: 'Nome'),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('modifica: nome non valido (23514): ValidationFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async => postgrestError('23514', 'invalid channel name'),
+        ),
+      );
+
+      await expectLater(
+        repository.updateChannel(channelId: 'c1', name: 'No'),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test('eliminazione: non proprietario (42501): PermissionFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async =>
+              postgrestError('42501', 'not the channel owner', status: 403),
+        ),
+      );
+
+      await expectLater(
+        repository.deleteChannel('c1'),
         throwsA(isA<PermissionFailure>()),
       );
     });
