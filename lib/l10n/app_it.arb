@@ -134,6 +134,21 @@
     }
   },
   "publishSpot": "Pubblica uno spot",
+  "channelTabSpots": "Spots",
+  "channelTabEvents": "Eventi",
+  "channelTabNews": "News",
+  "noEvents": "Ancora nessun evento",
+  "noEventsHint": "Qui compariranno gli eventi del canale.",
+  "noNews": "Ancora nessuna news",
+  "noNewsHint": "Qui compariranno le novità del canale.",
+  "channelPhotoLabel": "Foto del canale {name}",
+  "@channelPhotoLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "publishSpotButton": "Pubblica",
   "spotTitleLabel": "Titolo",
   "spotContentLabel": "Testo",
