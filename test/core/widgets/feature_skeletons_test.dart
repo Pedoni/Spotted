@@ -121,6 +121,16 @@ void main() {
       expect(find.byType(ChannelTile), findsNWidgets(2));
     });
 
+    testWidgets('ChannelFormSkeleton mostra i campi e il pulsante', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(const ChannelFormSkeleton()));
+
+      expect(find.byType(TextFormField), findsAtLeastNWidgets(3));
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.byType(Skeleton), findsOneWidget);
+    });
+
     testWidgets(
       'ChannelHeaderSkeleton ha nome, chip, descrizione e iscrizione',
       (
