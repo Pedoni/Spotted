@@ -1,20 +1,32 @@
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 
 /// Contratto degli spot. Le implementazioni lanciano un `Failure`.
 abstract interface class SpotsRepository {
-  /// Pagina di spot di un canale, dal più recente.
+  /// Pagina di spot di un canale, dal più recente. Con [query] restano solo
+  /// gli spot il cui titolo o testo contiene quel testo (ovunque, senza
+  /// distinguere maiuscole e accenti).
   Future<List<Spot>> getChannelSpots({
     required String channelId,
     required int offset,
     required int limit,
+    String? query,
   });
 
   /// Un singolo spot. Lancia `NotFoundFailure` se non esiste.
   Future<Spot> getSpot(String spotId);
 
   /// Pagina degli spot scritti dall'utente loggato, dal più recente.
-  Future<List<MySpot>> getMySpots({required int offset, required int limit});
+  Future<List<SpotWithChannel>> getMySpots({
+    required int offset,
+    required int limit,
+  });
+
+  /// Gli spot pubblicati nei canali seguiti, dal più recente.
+  Future<List<SpotWithChannel>> getFollowedSpots({
+    required int offset,
+    required int limit,
+  });
 
   /// Pubblica uno spot nel canale a nome (anonimo) dell'utente loggato.
   Future<Spot> createSpot({

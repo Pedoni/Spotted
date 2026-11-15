@@ -12,6 +12,9 @@ import 'package:spotted/features/comments/domain/repositories/comments_repositor
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
+import 'package:spotted/features/municipalities/domain/entities/municipality.dart';
+import 'package:spotted/features/municipalities/domain/entities/province.dart';
+import 'package:spotted/features/municipalities/domain/repositories/municipalities_repository.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/domain/repositories/profile_repository.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
@@ -19,10 +22,10 @@ import 'package:spotted/features/reports/domain/entities/report_kind.dart';
 import 'package:spotted/features/reports/domain/entities/report_reason.dart';
 import 'package:spotted/features/reports/domain/entities/report_resolution.dart';
 import 'package:spotted/features/reports/domain/repositories/reports_repository.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/domain/repositories/spots_repository.dart';
 import 'package:spotted/features/subscriptions/domain/entities/subscription_info.dart';
 import 'package:spotted/features/subscriptions/domain/repositories/subscriptions_repository.dart';
@@ -34,6 +37,9 @@ Channel makeChannel(
   String? name,
   String? topicId,
   String? place,
+  String? municipalityId,
+  String? provinceCode,
+  String? regionName,
   String? description,
 }) {
   return Channel(
@@ -42,6 +48,9 @@ Channel makeChannel(
     slug: 'canale-$i',
     topicId: topicId,
     place: place,
+    municipalityId: municipalityId,
+    provinceCode: provinceCode,
+    regionName: regionName,
     description: description,
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
   );
@@ -57,12 +66,29 @@ class FakeChannelsRepository implements ChannelsRepository {
   List<Channel> channels;
   List<Channel> mine;
   Set<String> takenSlugs = {};
+
+  /// Il testo da mostrare di ogni comune (come lo calcola il database).
+  Map<String, String> municipalityPlaces = {'050026': 'Pisa (PI)'};
   Failure? listError;
   Failure? createError;
+  Failure? updateError;
+  Failure? deleteError;
 
   final listCalls =
-      <({int offset, int limit, String? query, String? topicId})>[];
+      <
+        ({
+          int offset,
+          int limit,
+          String? query,
+          String? topicId,
+          String? regionName,
+          String? provinceCode,
+          String? municipalityId,
+        })
+      >[];
   final createCalls = <Map<String, String?>>[];
+  final updateCalls = <Map<String, String?>>[];
+  final deleteCalls = <String>[];
 
   @override
   Future<List<Channel>> getChannels({
@@ -70,19 +96,34 @@ class FakeChannelsRepository implements ChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     listCalls.add((
       offset: offset,
       limit: limit,
       query: query,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     ));
     if (listError != null) throw listError!;
     final filtered = channels.where((c) {
       final matchesQuery =
           query == null || c.name.toLowerCase().contains(query.toLowerCase());
       final matchesTopic = topicId == null || c.topicId == topicId;
-      return matchesQuery && matchesTopic;
+      final matchesRegion = regionName == null || c.regionName == regionName;
+      final matchesProvince =
+          provinceCode == null || c.provinceCode == provinceCode;
+      final matchesMunicipality =
+          municipalityId == null || c.municipalityId == municipalityId;
+      return matchesQuery &&
+          matchesTopic &&
+          matchesRegion &&
+          matchesProvince &&
+          matchesMunicipality;
     }).toList();
     return filtered.skip(offset).take(limit).toList();
   }
@@ -99,18 +140,63 @@ class FakeChannelsRepository implements ChannelsRepository {
   Future<List<Channel>> getMyChannels() async => mine;
 
   @override
+  Future<Channel> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+    String? topicId,
+    String? municipalityId,
+  }) async {
+    updateCalls.add({
+      'channelId': channelId,
+      'name': name,
+      'description': description,
+      'topicId': topicId,
+      'municipalityId': municipalityId,
+    });
+    if (updateError != null) throw updateError!;
+    final old = [...channels, ...mine].firstWhere((c) => c.id == channelId);
+    final updated = Channel(
+      id: old.id,
+      name: name,
+      // Lo slug non cambia mai.
+      slug: old.slug,
+      description: description,
+      place: municipalityId == null ? null : municipalityPlaces[municipalityId],
+      municipalityId: municipalityId,
+      topicId: topicId,
+      createdAt: old.createdAt,
+    );
+    List<Channel> replace(List<Channel> list) => [
+      for (final c in list)
+        if (c.id == channelId) updated else c,
+    ];
+    channels = replace(channels);
+    mine = replace(mine);
+    return updated;
+  }
+
+  @override
+  Future<void> deleteChannel(String channelId) async {
+    deleteCalls.add(channelId);
+    if (deleteError != null) throw deleteError!;
+    channels = channels.where((c) => c.id != channelId).toList();
+    mine = mine.where((c) => c.id != channelId).toList();
+  }
+
+  @override
   Future<Channel> createChannel({
     required String name,
     required String slug,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) async {
     createCalls.add({
       'name': name,
       'slug': slug,
       'description': description,
-      'place': place,
+      'municipalityId': municipalityId,
       'topicId': topicId,
     });
     if (createError != null) throw createError!;
@@ -120,7 +206,9 @@ class FakeChannelsRepository implements ChannelsRepository {
       name: name,
       slug: slug,
       description: description,
-      place: place,
+      // Come il trigger del database: il luogo da mostrare viene dal comune.
+      place: municipalityId == null ? null : municipalityPlaces[municipalityId],
+      municipalityId: municipalityId,
       topicId: topicId,
       createdAt: DateTime(2026),
     );
@@ -143,6 +231,9 @@ class SlowPagesChannelsRepository extends FakeChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     if (offset > 0 && gate != null) await gate!.future;
     return super.getChannels(
@@ -150,6 +241,9 @@ class SlowPagesChannelsRepository extends FakeChannelsRepository {
       limit: limit,
       query: query,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     );
   }
 }
@@ -180,9 +274,13 @@ class FakeProfileRepository implements ProfileRepository {
   });
 
   Profile profile;
+  Failure? error;
 
   @override
-  Future<Profile> getMyProfile() async => profile;
+  Future<Profile> getMyProfile() async {
+    if (error != null) throw error!;
+    return profile;
+  }
 }
 
 /// Iscrizioni in memoria. [counts] è il numero di iscritti per canale (compreso
@@ -245,6 +343,7 @@ Spot makeSpot(
   int i, {
   String channelId = 'c1',
   String? title,
+  String? content,
   SpotStats stats = const SpotStats(),
   SpotStatus status = SpotStatus.published,
 }) {
@@ -252,15 +351,15 @@ Spot makeSpot(
     id: 's$i',
     channelId: channelId,
     title: title ?? 'Spot $i',
-    content: 'Testo dello spot $i',
+    content: content ?? 'Testo dello spot $i',
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     stats: stats,
     status: status,
   );
 }
 
-MySpot makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
-  return MySpot(
+SpotWithChannel makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
+  return SpotWithChannel(
     spot: makeSpot(i),
     channelName: channelName,
     channelSlug: 'canale-1',
@@ -271,12 +370,16 @@ MySpot makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
 /// Se [gate] è impostato, le pagine successive alla prima restano in attesa
 /// finché non si completa.
 class FakeSpotsRepository implements SpotsRepository {
-  FakeSpotsRepository({List<Spot>? spots, List<MySpot>? mine})
-    : spots = spots ?? [],
-      mine = mine ?? [];
+  FakeSpotsRepository({
+    List<Spot>? spots,
+    List<SpotWithChannel>? mine,
+    List<SpotWithChannel>? followed,
+  }) : spots = spots ?? [],
+       mine = mine ?? [],
+       followed = followed ?? [];
 
   List<Spot> spots;
-  List<MySpot> mine;
+  List<SpotWithChannel> mine;
   Failure? listError;
   Failure? createError;
   Failure? deleteError;
@@ -285,22 +388,46 @@ class FakeSpotsRepository implements SpotsRepository {
 
   final likeCalls = <({String spotId, bool liked})>[];
   final listCalls = <({String channelId, int offset, int limit})>[];
+
+  /// Il testo cercato in ogni chiamata di `getChannelSpots` (`null` se non si
+  /// cercava), nello stesso ordine di [listCalls].
+  final queries = <String?>[];
   final mineCalls = <({int offset, int limit})>[];
   final createCalls = <Map<String, String>>[];
   final deleteCalls = <String>[];
+
+  static String _plain(String text) => text
+      .toLowerCase()
+      .replaceAll(RegExp('[àá]'), 'a')
+      .replaceAll(RegExp('[èé]'), 'e')
+      .replaceAll(RegExp('[ìí]'), 'i')
+      .replaceAll(RegExp('[òó]'), 'o')
+      .replaceAll(RegExp('[ùú]'), 'u');
 
   @override
   Future<List<Spot>> getChannelSpots({
     required String channelId,
     required int offset,
     required int limit,
+    String? query,
   }) async {
     listCalls.add((channelId: channelId, offset: offset, limit: limit));
+    queries.add(query);
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
+    final text = query == null ? null : _plain(query.trim());
     return spots
         .where(
           (s) => s.channelId == channelId && s.status == SpotStatus.published,
+        )
+        // Come l'RPC: titolo o testo contengono il testo, senza maiuscole e
+        // accenti.
+        .where(
+          (s) =>
+              text == null ||
+              text.isEmpty ||
+              _plain(s.title).contains(text) ||
+              _plain(s.content).contains(text),
         )
         .skip(offset)
         .take(limit)
@@ -325,7 +452,7 @@ class FakeSpotsRepository implements SpotsRepository {
   }
 
   @override
-  Future<List<MySpot>> getMySpots({
+  Future<List<SpotWithChannel>> getMySpots({
     required int offset,
     required int limit,
   }) async {
@@ -333,6 +460,22 @@ class FakeSpotsRepository implements SpotsRepository {
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
     return mine.skip(offset).take(limit).toList();
+  }
+
+  final List<SpotWithChannel> followed;
+
+  /// Errore solo per gli spot dei canali seguiti (la Home).
+  Failure? followedError;
+  final followedCalls = <({int offset, int limit})>[];
+
+  @override
+  Future<List<SpotWithChannel>> getFollowedSpots({
+    required int offset,
+    required int limit,
+  }) async {
+    followedCalls.add((offset: offset, limit: limit));
+    if (followedError != null) throw followedError!;
+    return followed.skip(offset).take(limit).toList();
   }
 
   @override
@@ -783,5 +926,105 @@ class FakeChatRepository implements ChatRepository {
     );
     messages[chatId] = [message, ...?messages[chatId]];
     return message;
+  }
+}
+
+/// Un comune di prova: di default Pisa.
+Municipality makeMunicipality({
+  String code = '050026',
+  String name = 'Pisa',
+  String provinceCode = 'PI',
+  String provinceName = 'Pisa',
+  String regionName = 'Toscana',
+}) {
+  return Municipality(
+    istatCode: code,
+    name: name,
+    provinceCode: provinceCode,
+    provinceName: provinceName,
+    regionName: regionName,
+  );
+}
+
+/// L'elenco dei comuni in memoria. La ricerca non distingue maiuscole e
+/// accenti e mette prima i nomi che iniziano così, come l'RPC.
+class FakeMunicipalitiesRepository implements MunicipalitiesRepository {
+  FakeMunicipalitiesRepository({List<Municipality>? municipalities})
+    : municipalities =
+          municipalities ??
+          [
+            makeMunicipality(),
+            makeMunicipality(
+              code: '050027',
+              name: 'Pistoia',
+              provinceCode: 'PT',
+              provinceName: 'Pistoia',
+            ),
+            makeMunicipality(
+              code: '033032',
+              name: 'Piacenza',
+              provinceCode: 'PC',
+              provinceName: 'Piacenza',
+              regionName: 'Emilia-Romagna',
+            ),
+            makeMunicipality(
+              code: '008888',
+              name: 'Forlì',
+              provinceCode: 'FC',
+              provinceName: 'Forlì-Cesena',
+              regionName: 'Emilia-Romagna',
+            ),
+          ];
+
+  List<Municipality> municipalities;
+  Failure? searchError;
+  Failure? listError;
+
+  final searchCalls = <({String query, int limit})>[];
+
+  static String _plain(String text) => text
+      .toLowerCase()
+      .replaceAll(RegExp('[àá]'), 'a')
+      .replaceAll(RegExp('[èé]'), 'e')
+      .replaceAll(RegExp('[ìí]'), 'i')
+      .replaceAll(RegExp('[òó]'), 'o')
+      .replaceAll(RegExp('[ùú]'), 'u');
+
+  @override
+  Future<List<Municipality>> search(String query, {required int limit}) async {
+    searchCalls.add((query: query, limit: limit));
+    if (searchError != null) throw searchError!;
+    final q = _plain(query.trim());
+    final found =
+        municipalities.where((m) => _plain(m.name).contains(q)).toList()
+          ..sort((a, b) {
+            final aStarts = _plain(a.name).startsWith(q) ? 0 : 1;
+            final bStarts = _plain(b.name).startsWith(q) ? 0 : 1;
+            return aStarts != bStarts
+                ? aStarts.compareTo(bStarts)
+                : a.name.compareTo(b.name);
+          });
+    return found.take(limit).toList();
+  }
+
+  @override
+  Future<List<String>> getRegions() async {
+    if (listError != null) throw listError!;
+    return ({for (final m in municipalities) m.regionName}.toList()..sort());
+  }
+
+  @override
+  Future<List<Province>> getProvinces({String? region}) async {
+    if (listError != null) throw listError!;
+    final found = <String, Province>{
+      for (final m in municipalities)
+        if (region == null || m.regionName == region)
+          m.provinceCode: Province(
+            code: m.provinceCode,
+            name: m.provinceName,
+            regionName: m.regionName,
+          ),
+    };
+    return found.values.toList()..sort((a, b) => a.name.compareTo(b.name));
   }
 }

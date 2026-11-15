@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_messages_feed.dart';
@@ -113,10 +114,10 @@ class _ChatHeader extends ConsumerWidget {
       children: [
         ListTile(
           dense: true,
-          leading: const Icon(Icons.article_outlined),
+          leading: const Icon(Icons.article_rounded),
           title: Text(chat.spotTitle, maxLines: 1),
           subtitle: Text(chat.channelName),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => context.push(AppRoutes.spotPath(chat.spotId)),
         ),
         if (note != null)
@@ -156,7 +157,13 @@ class _Messages extends ConsumerWidget {
           ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
       data: (paged) {
         if (paged.items.isEmpty) {
-          return Center(child: Text(l10n.noMessages));
+          return Center(
+            child: EmptyState(
+              icon: Icons.chat_bubble_outline_rounded,
+              title: l10n.noMessages,
+              compact: true,
+            ),
+          );
         }
         // I più recenti in basso: la lista scorre al contrario e i più vecchi
         // si caricano in cima.

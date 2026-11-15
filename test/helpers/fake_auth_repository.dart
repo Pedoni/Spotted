@@ -11,9 +11,17 @@ class FakeAuthRepository implements AuthRepository {
   final _controller = StreamController<AppUser?>.broadcast();
   AppUser? user;
 
+  int signOutCalls = 0;
   Failure? signInError;
   Failure? signUpError;
+  Failure? signOutError;
+  Completer<void>? signOutGate;
   Set<String> takenUsernames = {};
+  Failure? availabilityError;
+
+  /// Se è impostato, il controllo dello username aspetta che si completi.
+  Completer<void>? availabilityGate;
+  final availabilityCalls = <String>[];
 
   final signInCalls = <({String email, String password})>[];
   final signUpCalls = <Map<String, String>>[];
@@ -59,9 +67,18 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() async => _setUser(null);
+  Future<void> signOut() async {
+    signOutCalls++;
+    if (signOutGate != null) await signOutGate!.future;
+    if (signOutError != null) throw signOutError!;
+    _setUser(null);
+  }
 
   @override
-  Future<bool> isUsernameAvailable(String username) async =>
-      !takenUsernames.contains(username);
+  Future<bool> isUsernameAvailable(String username) async {
+    availabilityCalls.add(username);
+    if (availabilityGate != null) await availabilityGate!.future;
+    if (availabilityError != null) throw availabilityError!;
+    return !takenUsernames.contains(username);
+  }
 }

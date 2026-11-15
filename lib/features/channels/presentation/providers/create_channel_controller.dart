@@ -15,7 +15,7 @@ class CreateChannelController extends _$CreateChannelController {
   Future<Channel?> submit({
     required String name,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) async {
     state = const AsyncLoading();
@@ -23,7 +23,7 @@ class CreateChannelController extends _$CreateChannelController {
       () => ref.read(createChannelUseCaseProvider)(
         name: name,
         description: description,
-        place: place,
+        municipalityId: municipalityId,
         topicId: topicId,
       ),
     );

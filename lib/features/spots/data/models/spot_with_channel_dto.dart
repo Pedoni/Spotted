@@ -1,15 +1,15 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 
-part 'my_spot_dto.g.dart';
+part 'spot_with_channel_dto.g.dart';
 
-/// Riga dell'RPC `my_spots_page`.
+/// Riga degli RPC `my_spots_page` e `followed_spots_page`.
 @JsonSerializable(createToJson: false, fieldRename: FieldRename.snake)
-class MySpotDto {
-  const MySpotDto({
+class SpotWithChannelDto {
+  const SpotWithChannelDto({
     required this.id,
     required this.channelId,
     required this.channelName,
@@ -23,8 +23,8 @@ class MySpotDto {
     this.status = SpotStatus.published,
   });
 
-  factory MySpotDto.fromJson(Map<String, dynamic> json) =>
-      _$MySpotDtoFromJson(json);
+  factory SpotWithChannelDto.fromJson(Map<String, dynamic> json) =>
+      _$SpotWithChannelDtoFromJson(json);
 
   final String id;
   final String channelId;
@@ -43,7 +43,7 @@ class MySpotDto {
   )
   final SpotStatus status;
 
-  MySpot toEntity() => MySpot(
+  SpotWithChannel toEntity() => SpotWithChannel(
     spot: Spot(
       id: id,
       channelId: channelId,

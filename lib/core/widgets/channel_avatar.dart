@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spotted/core/theme/app_text.dart';
+import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/core/widgets/squircle_avatar.dart';
 
 /// Avatar di un canale (o di una persona di cui si conosce lo username):
@@ -11,6 +12,7 @@ class ChannelAvatar extends StatelessWidget {
     required this.name,
     this.seed,
     this.size = 44,
+    this.imageUrl,
     super.key,
   });
 
@@ -19,6 +21,10 @@ class ChannelAvatar extends StatelessWidget {
   /// Da cui si sceglie il colore; se manca si usa [name].
   final String? seed;
   final double size;
+
+  /// La foto del canale, quando ne ha una. Quadrata, come l'avatar. Se manca
+  /// o non si carica resta l'iniziale su colore.
+  final String? imageUrl;
 
   /// Le coppie (sfondo, testo) tra cui si sceglie: i tre colori di marca
   /// (lampone, indaco, giallo) pieni, lampone e indaco in versione chiara e un
@@ -48,7 +54,7 @@ class ChannelAvatar extends StatelessWidget {
         ? '?'
         : name.trim().characters.first.toUpperCase();
 
-    return SquircleAvatar(
+    final initialAvatar = SquircleAvatar(
       background: background,
       size: size,
       child: Text(
@@ -60,6 +66,21 @@ class ChannelAvatar extends StatelessWidget {
           color: foreground,
           height: 1,
         ),
+      ),
+    );
+    final url = imageUrl;
+    if (url == null || isSkeleton(context)) return initialAvatar;
+
+    return SquircleAvatar(
+      background: scheme.surfaceContainerHighest,
+      size: size,
+      child: Image.network(
+        url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        // Se la foto non si carica, l'iniziale: l'avatar non resta vuoto.
+        errorBuilder: (context, error, stackTrace) => initialAvatar,
       ),
     );
   }

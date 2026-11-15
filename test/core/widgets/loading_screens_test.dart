@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spotted/core/riverpod/no_retry.dart';
+import 'package:spotted/core/theme/app_theme.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
+import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
@@ -13,10 +17,15 @@ import 'package:spotted/features/comments/presentation/widgets/comment_skeletons
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_skeletons.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
+import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
+import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
+import 'package:spotted/features/spots/presentation/widgets/my_spots_carousel.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
+import 'package:spotted/l10n/app_localizations.dart';
 
+import '../../helpers/fake_auth_repository.dart';
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
 
@@ -44,6 +53,9 @@ class HeldChannels extends FakeChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) async {
     if (list) await hold.future;
     return super.getChannels(
@@ -51,6 +63,9 @@ class HeldChannels extends FakeChannelsRepository {
       limit: limit,
       query: query,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     );
   }
 
@@ -92,7 +107,12 @@ class HeldProfile extends FakeProfileRepository {
 }
 
 class HeldSpots extends FakeSpotsRepository {
-  HeldSpots(this.hold, {super.spots, super.mine, this.detail = false});
+  HeldSpots(
+    this.hold, {
+    super.spots,
+    super.mine,
+    this.detail = false,
+  });
 
   final Completer<void> hold;
   final bool detail;
@@ -104,7 +124,7 @@ class HeldSpots extends FakeSpotsRepository {
   }
 
   @override
-  Future<List<MySpot>> getMySpots({
+  Future<List<SpotWithChannel>> getMySpots({
     required int offset,
     required int limit,
   }) async {
@@ -236,35 +256,17 @@ Future<void> release(WidgetTester tester, Completer<void> hold) async {
 }
 
 Future<void> openChannelsTab(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.tag_outlined));
+  await tester.tap(find.byIcon(Icons.tag_rounded));
   await advance(tester);
 }
 
 Future<void> openProfileTab(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.person_outline));
+  await tester.tap(find.byIcon(Icons.person_outline_rounded));
   await advance(tester);
 }
 
 void main() {
   final channel = makeChannel(1, name: 'Spotted Pisa');
-
-  testWidgets('Home: i canali seguiti', (tester) async {
-    final hold = Completer<void>();
-    await pumpApp(
-      tester,
-      subscriptions: HeldSubscriptions(
-        hold,
-        channels: [channel],
-        subscribedIds: {'c1'},
-      ),
-      settle: false,
-    );
-
-    expectSkeleton(find.byType(ChannelTilesSkeleton));
-
-    await release(tester, hold);
-    expect(find.text('Spotted Pisa'), findsOneWidget);
-  });
 
   testWidgets('Canali: l elenco', (tester) async {
     final hold = Completer<void>();
@@ -300,8 +302,9 @@ void main() {
       tester,
       channels: HeldChannels(hold, mine: [channel], mineList: true),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('I miei canali'));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
+    await advance(tester);
+    await tester.tap(find.text('Miei'));
     await advance(tester);
 
     expectSkeleton(find.byType(ChannelTilesSkeleton));
@@ -321,14 +324,41 @@ void main() {
     expect(find.text('@mario_88'), findsOneWidget);
   });
 
-  testWidgets('I miei spot', (tester) async {
+  testWidgets('Home: il carosello dei miei spot', (tester) async {
     final hold = Completer<void>();
     await pumpApp(
       tester,
       spots: HeldSpots(hold, mine: [makeMySpot(1)]),
+      settle: false,
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('I miei spot'));
+
+    expectSkeleton(find.byType(MySpotsCarouselSkeleton));
+
+    await release(tester, hold);
+    expect(find.byType(MySpotCard), findsOneWidget);
+  });
+
+  testWidgets('I miei spot: la pagina', (tester) async {
+    final hold = Completer<void>();
+    await tester.pumpWidget(
+      ProviderScope(
+        retry: noRetry,
+        overrides: [
+          authRepositoryProvider.overrideWithValue(
+            FakeAuthRepository(user: loggedInUser),
+          ),
+          spotsRepositoryProvider.overrideWithValue(
+            HeldSpots(hold, mine: [makeMySpot(1)]),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const MySpotsPage(),
+        ),
+      ),
+    );
     await advance(tester);
 
     expectSkeleton(find.byType(SpotCardsSkeleton));
@@ -388,8 +418,7 @@ void main() {
       tester,
       chat: HeldChat(hold, chats: [makeChat(1)], list: true),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await advance(tester);
 
     expectSkeleton(find.byType(ChatTilesSkeleton));
@@ -404,8 +433,7 @@ void main() {
       tester,
       chat: HeldChat(hold, chats: [makeChat(1)], detail: true),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ListTile).first);
     await advance(tester);
@@ -429,8 +457,7 @@ void main() {
         messageList: true,
       ),
     );
-    await openProfileTab(tester);
-    await tester.tap(find.text('Le mie chat'));
+    await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ListTile).first);
     await advance(tester);
@@ -459,7 +486,7 @@ void main() {
       await openChannelsTab(tester);
       await tester.tap(find.text('Spotted Pisa'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await advance(tester);
     }
 

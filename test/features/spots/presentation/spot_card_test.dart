@@ -106,4 +106,28 @@ void main() {
       greaterThan(AppTheme.dark.scaffoldBackgroundColor.computeLuminance()),
     );
   });
+
+  group('data e ora', () {
+    // makeSpot(i) è di i minuti prima di mezzanotte del 2026.
+    testWidgets('lo spot mostra la data e l ora', (tester) async {
+      await tester.pumpWidget(host(makeSpot(1)));
+
+      expect(find.text('31 dic 2025 · 23:59'), findsOneWidget);
+    });
+
+    testWidgets('minuti diversi, ora diversa', (tester) async {
+      await tester.pumpWidget(host(makeSpot(75)));
+
+      expect(find.text('31 dic 2025 · 22:45'), findsOneWidget);
+    });
+
+    testWidgets('con il canale: canale, data e ora', (tester) async {
+      await tester.pumpWidget(host(makeSpot(1), channelName: 'Spotted Pisa'));
+
+      expect(
+        find.text('Spotted Pisa · 31 dic 2025 · 23:59'),
+        findsOneWidget,
+      );
+    });
+  });
 }

@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
-import 'package:spotted/features/spots/domain/entities/my_spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/presentation/providers/my_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
@@ -19,7 +20,7 @@ class MySpotsPage extends ConsumerWidget {
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
-    MySpot item,
+    SpotWithChannel item,
   ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -67,7 +68,13 @@ class MySpotsPage extends ConsumerWidget {
         ),
         data: (paged) {
           if (paged.items.isEmpty) {
-            return Center(child: Text(l10n.noMySpots));
+            return Center(
+              child: EmptyState(
+                icon: Icons.edit_rounded,
+                title: l10n.noMySpots,
+                message: l10n.noMySpotsHint,
+              ),
+            );
           }
           return RefreshIndicator(
             onRefresh: () => ref.refresh(mySpotsFeedProvider.future),
@@ -84,7 +91,7 @@ class MySpotsPage extends ConsumerWidget {
                         context.push(AppRoutes.channelPath(item.channelSlug)),
                     trailing: IconButton(
                       tooltip: l10n.deleteSpot,
-                      icon: const Icon(Icons.delete_outline),
+                      icon: const Icon(Icons.delete_outline_rounded),
                       onPressed: () =>
                           unawaited(_confirmDelete(context, ref, item)),
                     ),

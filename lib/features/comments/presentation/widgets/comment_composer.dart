@@ -88,7 +88,7 @@ class _CommentComposerState extends ConsumerState<CommentComposer> {
                       )
                     : IconButton(
                         tooltip: l10n.sendComment,
-                        icon: const Icon(Icons.send),
+                        icon: const Icon(Icons.send_rounded),
                         onPressed: () => unawaited(_send()),
                       ),
               ),

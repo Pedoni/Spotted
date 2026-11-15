@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
+import 'package:spotted/features/spots/presentation/providers/followed_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/my_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 
@@ -36,6 +37,7 @@ class CreateSpotController extends _$CreateSpotController {
     // Il feed del canale e "i miei spot" vanno ricaricati.
     ref
       ..invalidate(channelSpotsFeedProvider)
+      ..invalidate(followedSpotsFeedProvider)
       ..invalidate(mySpotsFeedProvider);
     return result.value;
   }

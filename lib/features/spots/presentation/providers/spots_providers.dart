@@ -7,6 +7,7 @@ import 'package:spotted/features/spots/domain/repositories/spots_repository.dart
 import 'package:spotted/features/spots/domain/usecases/create_spot.dart';
 import 'package:spotted/features/spots/domain/usecases/delete_spot.dart';
 import 'package:spotted/features/spots/domain/usecases/get_channel_spots.dart';
+import 'package:spotted/features/spots/domain/usecases/get_followed_spots.dart';
 import 'package:spotted/features/spots/domain/usecases/get_my_spots.dart';
 import 'package:spotted/features/spots/domain/usecases/get_spot.dart';
 import 'package:spotted/features/spots/domain/usecases/set_spot_liked.dart';
@@ -28,6 +29,11 @@ GetChannelSpots getChannelSpotsUseCase(Ref ref) {
 @riverpod
 GetMySpots getMySpotsUseCase(Ref ref) {
   return GetMySpots(ref.watch(spotsRepositoryProvider));
+}
+
+@riverpod
+GetFollowedSpots getFollowedSpotsUseCase(Ref ref) {
+  return GetFollowedSpots(ref.watch(spotsRepositoryProvider));
 }
 
 @riverpod

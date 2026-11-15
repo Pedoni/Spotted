@@ -14,6 +14,9 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) {
     return guardFailures(
       () => _dataSource.getChannels(
@@ -21,8 +24,35 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
         limit: limit,
         query: query,
         topicId: topicId,
+        regionName: regionName,
+        provinceCode: provinceCode,
+        municipalityId: municipalityId,
       ),
     );
+  }
+
+  @override
+  Future<Channel> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+    String? topicId,
+    String? municipalityId,
+  }) {
+    return guardFailures(
+      () => _dataSource.updateChannel(
+        channelId: channelId,
+        name: name,
+        description: description,
+        topicId: topicId,
+        municipalityId: municipalityId,
+      ),
+    );
+  }
+
+  @override
+  Future<void> deleteChannel(String channelId) {
+    return guardFailures(() => _dataSource.deleteChannel(channelId));
   }
 
   @override
@@ -40,7 +70,7 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
     required String name,
     required String slug,
     String? description,
-    String? place,
+    String? municipalityId,
     String? topicId,
   }) {
     return guardFailures(
@@ -48,7 +78,7 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
         name: name,
         slug: slug,
         description: description,
-        place: place,
+        municipalityId: municipalityId,
         topicId: topicId,
       ),
     );

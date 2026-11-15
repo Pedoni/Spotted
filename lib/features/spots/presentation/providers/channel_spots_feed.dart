@@ -8,7 +8,8 @@ part 'channel_spots_feed.g.dart';
 const spotsPageSize = 20;
 
 /// Spot di un canale, dal più recente (infinite scroll, [spotsPageSize] per
-/// pagina). Un'istanza per canale.
+/// pagina). Un'istanza per canale e per testo cercato: senza [query] sono tutti
+/// gli spot, con [query] solo quelli che lo contengono.
 @riverpod
 class ChannelSpotsFeed extends _$ChannelSpotsFeed {
   /// Cresce a ogni ricarica da capo: una `loadMore` partita prima di una
@@ -16,12 +17,13 @@ class ChannelSpotsFeed extends _$ChannelSpotsFeed {
   int _generation = 0;
 
   @override
-  Future<PagedList<Spot>> build(String channelId) async {
+  Future<PagedList<Spot>> build(String channelId, {String query = ''}) async {
     _generation++;
     final items = await ref.read(getChannelSpotsUseCaseProvider)(
       channelId: channelId,
       offset: 0,
       limit: spotsPageSize,
+      query: query,
     );
     return PagedList(items: items, hasMore: items.length == spotsPageSize);
   }
@@ -39,6 +41,7 @@ class ChannelSpotsFeed extends _$ChannelSpotsFeed {
         channelId: channelId,
         offset: current.items.length,
         limit: spotsPageSize,
+        query: query,
       );
       if (!ref.mounted || generation != _generation) return;
       state = AsyncData(

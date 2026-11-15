@@ -19,7 +19,7 @@ void main() {
     final channel = await createChannel(
       name: '  Spotted Pisa ',
       description: '   ',
-      place: ' Pisa ',
+      municipalityId: ' 050026 ',
       topicId: 't-uni',
     );
 
@@ -27,7 +27,7 @@ void main() {
     final call = repository.createCalls.single;
     expect(call['name'], 'Spotted Pisa');
     expect(call['description'], isNull);
-    expect(call['place'], 'Pisa');
+    expect(call['municipalityId'], '050026');
     expect(call['topicId'], 't-uni');
   });
 
@@ -65,10 +65,14 @@ void main() {
       createChannel(name: 'ab'),
       throwsA(isA<ValidationFailure>()),
     );
-    await expectLater(
-      createChannel(name: 'Nome valido', place: 'x' * 101),
-      throwsA(isA<ValidationFailure>()),
-    );
     expect(repository.createCalls, isEmpty);
+  });
+
+  test('senza comune: il comune è vuoto, non un testo vuoto', () async {
+    await createChannel(name: 'Università online');
+    await createChannel(name: 'Altro canale', municipalityId: '   ');
+
+    expect(repository.createCalls[0]['municipalityId'], isNull);
+    expect(repository.createCalls[1]['municipalityId'], isNull);
   });
 }

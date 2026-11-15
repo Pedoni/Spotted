@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
@@ -36,9 +37,7 @@ class CommentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(comment.createdAt.toLocal());
+    final date = formatDateTime(context, comment.createdAt);
     final author = comment.isSpotAuthor
         ? l10n.spotAuthor
         : '@${comment.authorUsername}';
@@ -99,8 +98,8 @@ class CommentTile extends StatelessWidget {
                     tooltip: hidden ? l10n.restoreComment : l10n.hideComment,
                     icon: Icon(
                       hidden
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
+                          ? Icons.visibility_rounded
+                          : Icons.visibility_off_rounded,
                       size: 20,
                     ),
                     onPressed: onToggleHidden,
@@ -108,19 +107,22 @@ class CommentTile extends StatelessWidget {
                 if (onChat != null)
                   IconButton(
                     tooltip: l10n.startChat,
-                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                    icon: const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 20,
+                    ),
                     onPressed: onChat,
                   ),
                 if (onReport != null)
                   IconButton(
                     tooltip: l10n.report,
-                    icon: const Icon(Icons.flag_outlined, size: 20),
+                    icon: const Icon(Icons.flag_rounded, size: 20),
                     onPressed: onReport,
                   ),
                 if (comment.isMine)
                   IconButton(
                     tooltip: l10n.deleteComment,
-                    icon: const Icon(Icons.delete_outline, size: 20),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 20),
                     onPressed: onDelete,
                   ),
               ],

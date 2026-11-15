@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/chat/presentation/providers/chats_feed.dart';
@@ -19,7 +20,7 @@ class ChatsPage extends ConsumerWidget {
     final feed = ref.watch(chatsFeedProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.myChatsTitle)),
+      appBar: AppBar(title: Text(l10n.chatsTitle)),
       body: feed.when(
         loading: () => const SkeletonScroll(child: ChatTilesSkeleton()),
         error: (error, _) => ErrorView(
@@ -28,7 +29,13 @@ class ChatsPage extends ConsumerWidget {
         ),
         data: (paged) {
           if (paged.items.isEmpty) {
-            return Center(child: Text(l10n.noChats));
+            return Center(
+              child: EmptyState(
+                icon: Icons.chat_bubble_outline_rounded,
+                title: l10n.noChats,
+                message: l10n.noChatsHint,
+              ),
+            );
           }
           return RefreshIndicator(
             onRefresh: () => ref.refresh(chatsFeedProvider.future),

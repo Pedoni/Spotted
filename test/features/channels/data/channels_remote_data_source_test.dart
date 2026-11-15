@@ -34,6 +34,42 @@ void main() {
       expect(channels.single.createdAt, DateTime.utc(2026, 1, 1, 10));
     });
 
+    test('legge il comune, la provincia e la regione, se ci sono', () async {
+      respondWith([
+        channelRow(
+          '1',
+          place: 'Pisa (PI)',
+          municipalityId: '050026',
+          provinceCode: 'PI',
+          regionName: 'Toscana',
+        ),
+        channelRow('2', name: 'Università online'),
+      ]);
+
+      final channels = await dataSource.getChannels(offset: 0, limit: 20);
+
+      expect(channels[0].municipalityId, '050026');
+      expect(channels[0].provinceCode, 'PI');
+      expect(channels[0].regionName, 'Toscana');
+      expect(channels[0].place, 'Pisa (PI)');
+      // Il comune è facoltativo: un canale può non averlo.
+      expect(channels[1].municipalityId, isNull);
+      expect(channels[1].provinceCode, isNull);
+      expect(channels[1].regionName, isNull);
+      expect(channels[1].place, isNull);
+    });
+
+    test('chiede anche le colonne del comune', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannels(offset: 0, limit: 20);
+
+      final select = supabase.lastRequest.url.queryParameters['select']!;
+      expect(select, contains('municipality_id'));
+      expect(select, contains('province_code'));
+      expect(select, contains('region_name'));
+    });
+
     test('chiede solo le colonne pubbliche, mai owner_id', () async {
       respondWith(<Object>[]);
 
@@ -82,6 +118,23 @@ void main() {
       expect(query['name'], 'ilike.%pisa%');
     });
 
+    test('filtra per regione, provincia e comune', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannels(
+        offset: 0,
+        limit: 20,
+        regionName: 'Emilia-Romagna',
+        provinceCode: 'FC',
+        municipalityId: '008888',
+      );
+
+      final query = supabase.lastRequest.url.queryParameters;
+      expect(query['region_name'], 'eq.Emilia-Romagna');
+      expect(query['province_code'], 'eq.FC');
+      expect(query['municipality_id'], 'eq.008888');
+    });
+
     test('rende letterali % e _ nella ricerca', () async {
       respondWith(<Object>[]);
 
@@ -93,7 +146,7 @@ void main() {
       );
     });
 
-    test('senza filtri non manda topic_id né name', () async {
+    test('senza filtri non manda nessun filtro', () async {
       respondWith(<Object>[]);
 
       await dataSource.getChannels(offset: 0, limit: 20);
@@ -101,6 +154,9 @@ void main() {
       final query = supabase.lastRequest.url.queryParameters;
       expect(query.containsKey('topic_id'), isFalse);
       expect(query.containsKey('name'), isFalse);
+      expect(query.containsKey('region_name'), isFalse);
+      expect(query.containsKey('province_code'), isFalse);
+      expect(query.containsKey('municipality_id'), isFalse);
     });
   });
 
@@ -143,7 +199,7 @@ void main() {
         name: 'Spotted Pisa',
         slug: 'spotted-pisa',
         description: 'Descrizione',
-        place: 'Pisa',
+        municipalityId: '050026',
         topicId: 't1',
       );
 
@@ -158,9 +214,41 @@ void main() {
         'name': 'Spotted Pisa',
         'slug': 'spotted-pisa',
         'description': 'Descrizione',
-        'place': 'Pisa',
+        'municipality_id': '050026',
         'topic_id': 't1',
       });
+    });
+
+    test(
+      'non scrive mai il luogo: lo calcola il database dal comune',
+      () async {
+        respondWith(channelRow('1'));
+
+        await dataSource.createChannel(
+          name: 'Spotted Pisa',
+          slug: 'spotted-pisa',
+          municipalityId: '050026',
+        );
+
+        final body =
+            jsonDecode(supabase.lastRequest.body) as Map<String, dynamic>;
+        expect(body.containsKey('place'), isFalse);
+        expect(body.containsKey('province_code'), isFalse);
+        expect(body.containsKey('region_name'), isFalse);
+      },
+    );
+
+    test('senza comune: il comune resta vuoto (è facoltativo)', () async {
+      respondWith(channelRow('1'));
+
+      await dataSource.createChannel(
+        name: 'Università online',
+        slug: 'uni-online',
+      );
+
+      final body =
+          jsonDecode(supabase.lastRequest.body) as Map<String, dynamic>;
+      expect(body['municipality_id'], isNull);
     });
 
     test('senza utente loggato: AuthFailure e nessuna richiesta', () async {
@@ -175,6 +263,73 @@ void main() {
         throwsA(isA<AuthFailure>()),
       );
       expect(supabase.requests, isEmpty);
+    });
+  });
+
+  group('updateChannel', () {
+    final row = channelRow('1', name: 'Nuovo nome', municipalityId: '050026');
+
+    test(
+      "chiama l'RPC update_channel con i parametri e legge il canale",
+      () async {
+        respondWith([row]);
+
+        final channel = await dataSource.updateChannel(
+          channelId: 'c1',
+          name: 'Nuovo nome',
+          description: 'Descrizione',
+          topicId: 't1',
+          municipalityId: '050026',
+        );
+
+        expect(supabase.lastRequest.url.path, '/rest/v1/rpc/update_channel');
+        expect(jsonDecode(supabase.lastRequest.body), {
+          'p_channel_id': 'c1',
+          'p_name': 'Nuovo nome',
+          'p_description': 'Descrizione',
+          'p_topic_id': 't1',
+          'p_municipality_id': '050026',
+        });
+        expect(channel.name, 'Nuovo nome');
+        expect(channel.municipalityId, '050026');
+      },
+    );
+
+    test('non manda lo slug: non si cambia', () async {
+      respondWith([row]);
+
+      await dataSource.updateChannel(channelId: 'c1', name: 'Nuovo nome');
+
+      final body = jsonDecode(supabase.lastRequest.body) as Map;
+      expect(body.keys, isNot(contains('p_slug')));
+      expect(body['p_description'], isNull);
+      expect(body['p_topic_id'], isNull);
+      expect(body['p_municipality_id'], isNull);
+    });
+
+    test('nessuna riga: NotFoundFailure', () async {
+      respondWith(<Object>[]);
+
+      await expectLater(
+        dataSource.updateChannel(channelId: 'c1', name: 'Nome'),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+  });
+
+  group('deleteChannel', () {
+    test("chiama l'RPC delete_channel con l'id", () async {
+      // Una funzione che non restituisce niente risponde `null`.
+      supabase = MockSupabase((_) async => jsonResponse(null));
+      dataSource = ChannelsRemoteDataSource(
+        supabase.client,
+        currentUserId: () => 'user-1',
+      );
+
+      await dataSource.deleteChannel('c1');
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/delete_channel');
+      expect(jsonDecode(supabase.lastRequest.body), {'p_channel_id': 'c1'});
     });
   });
 
@@ -215,6 +370,47 @@ void main() {
 
       await expectLater(
         repository.getChannels(offset: 0, limit: 20),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('modifica: non proprietario (42501): PermissionFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async =>
+              postgrestError('42501', 'not the channel owner', status: 403),
+        ),
+      );
+
+      await expectLater(
+        repository.updateChannel(channelId: 'c1', name: 'Nome'),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('modifica: nome non valido (23514): ValidationFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async => postgrestError('23514', 'invalid channel name'),
+        ),
+      );
+
+      await expectLater(
+        repository.updateChannel(channelId: 'c1', name: 'No'),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test('eliminazione: non proprietario (42501): PermissionFailure', () async {
+      final repository = repositoryFor(
+        MockSupabase(
+          (_) async =>
+              postgrestError('42501', 'not the channel owner', status: 403),
+        ),
+      );
+
+      await expectLater(
+        repository.deleteChannel('c1'),
         throwsA(isA<PermissionFailure>()),
       );
     });

@@ -37,6 +37,14 @@ abstract final class AppTheme {
         space: 1,
         thickness: 1,
       ),
+      // I pulsanti "indietro" e "chiudi" che Flutter mette da solo nelle barre
+      // usano le stesse icone arrotondate del resto dell'app.
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) => const Icon(Icons.arrow_back_rounded),
+        closeButtonIconBuilder: (_) => const Icon(Icons.close_rounded),
+        drawerButtonIconBuilder: (_) => const Icon(Icons.menu_rounded),
+        endDrawerButtonIconBuilder: (_) => const Icon(Icons.menu_rounded),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,
@@ -111,6 +119,25 @@ abstract final class AppTheme {
         selectedColor: scheme.primaryContainer,
         labelStyle: text.labelLarge,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      ),
+      // Come chip e barra: il selezionato è lampone chiaro, mai l'indaco di
+      // default (che è riservato all'anonimato).
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          shape: const WidgetStatePropertyAll(StadiumBorder()),
+          side: WidgetStatePropertyAll(outlineSide),
+          textStyle: WidgetStatePropertyAll(text.labelLarge),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.primaryContainer
+                : raised,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: raised,

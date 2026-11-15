@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
+import 'package:spotted/features/comments/presentation/widgets/comment_composer.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
 
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
@@ -30,7 +33,7 @@ void main() {
           ),
       comments: comments,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -73,6 +76,28 @@ void main() {
     );
   });
 
+  testWidgets('senza commenti: niente titolo "Nessun commento", solo lo stato '
+      'vuoto', (tester) async {
+    await openSpot(tester);
+
+    expect(find.text('Nessun commento'), findsNothing);
+    expect(find.byType(EmptyState), findsOneWidget);
+  });
+
+  testWidgets('senza commenti: lo stato vuoto è al centro tra lo spot e il '
+      'campo per scrivere', (tester) async {
+    await openSpot(tester);
+
+    final empty = tester.getRect(find.byType(EmptyState));
+    final titleBottom = tester.getRect(find.byType(SpotCard)).bottom;
+    final composerTop = tester.getRect(find.byType(CommentComposer)).top;
+    final above = empty.top - titleBottom;
+    final below = composerTop - empty.bottom;
+
+    expect(above, greaterThan(0));
+    expect((above - below).abs(), lessThan(48));
+  });
+
   testWidgets('errore nel caricare i commenti: messaggio e Riprova', (
     tester,
   ) async {
@@ -96,7 +121,7 @@ void main() {
     await openSpot(tester, comments: comments);
 
     await tester.enterText(find.byType(TextField), '  Il mio commento  ');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(comments.addCalls.single, (
@@ -120,7 +145,7 @@ void main() {
     await openSpot(tester, comments: comments);
 
     await tester.enterText(find.byType(TextField), '   ');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(comments.addCalls, isEmpty);
@@ -134,7 +159,7 @@ void main() {
     await openSpot(tester, comments: comments);
 
     await tester.enterText(find.byType(TextField), 'Il mio commento');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
@@ -148,7 +173,7 @@ void main() {
     );
     await openSpot(tester, comments: comments);
 
-    await tester.tap(find.byIcon(Icons.favorite_border).last);
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded).last);
     await tester.pumpAndSettle();
 
     expect(find.text('5'), findsOneWidget);
@@ -161,7 +186,7 @@ void main() {
     )..likeError = const NetworkFailure();
     await openSpot(tester, comments: comments);
 
-    await tester.tap(find.byIcon(Icons.favorite_border).last);
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded).last);
     await tester.pumpAndSettle();
 
     expect(find.text('4'), findsOneWidget);
@@ -180,7 +205,7 @@ void main() {
     );
     await openSpot(tester, spots: spots);
 
-    await tester.tap(find.byIcon(Icons.favorite_border).first);
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded).first);
     await tester.pumpAndSettle();
 
     expect(find.text('3'), findsOneWidget);
@@ -227,5 +252,20 @@ void main() {
 
     expect(comments.deleteCalls, isEmpty);
     expect(find.text('Il mio'), findsOneWidget);
+  });
+
+  testWidgets('lo spot e i commenti mostrano data e ora', (tester) async {
+    await openSpot(
+      tester,
+      comments: FakeCommentsRepository(comments: [makeComment(1)]),
+    );
+
+    // Lo spot (makeSpot(1)) e il commento (makeComment(1)) sono di un minuto
+    // prima di mezzanotte.
+    expect(find.text('31 dic 2025 · 23:59'), findsOneWidget);
+    expect(
+      find.textContaining('31 dic 2025 · 23:59', findRichText: true),
+      findsNWidgets(2),
+    );
   });
 }

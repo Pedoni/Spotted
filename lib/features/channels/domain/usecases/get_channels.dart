@@ -11,6 +11,9 @@ class GetChannels {
     required int limit,
     String? query,
     String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
   }) {
     final trimmed = query?.trim();
     return _repository.getChannels(
@@ -18,6 +21,9 @@ class GetChannels {
       limit: limit,
       query: (trimmed == null || trimmed.isEmpty) ? null : trimmed,
       topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
     );
   }
 }

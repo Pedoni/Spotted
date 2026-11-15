@@ -29,6 +29,7 @@
   },
   "errorInvalidCredentials": "Email o password non corretti",
   "errorEmailTaken": "Esiste già un account con questa email",
+  "usernameAvailable": "Username disponibile",
   "errorUsernameTaken": "Questo username è già in uso",
   "errorWeakPassword": "La password è troppo debole",
   "errorInvalidInput": "Controlla i dati inseriti",
@@ -37,18 +38,53 @@
   "navHome": "Home",
   "navChannels": "Canali",
   "navProfile": "Profilo",
+  "navChats": "Chat",
+  "channelsExplore": "Esplora",
+  "channelsFollowed": "Seguiti",
+  "channelsMine": "Miei",
+  "chatsTitle": "Chat",
+  "settingsAppearance": "Tema",
+  "themeLight": "Chiaro",
+  "themeDark": "Scuro",
+  "themeSystem": "Telefono",
+  "settingsAccount": "Account",
+  "changePassword": "Cambia password",
+  "deleteProfile": "Elimina profilo",
+  "comingSoon": "In arrivo",
   "channelsTitle": "Canali",
   "searchChannelsHint": "Cerca un canale",
   "allTopics": "Tutti",
+  "filtersButton": "Filtri",
+  "filtersTitle": "Filtri",
+  "filtersTopic": "Argomento",
+  "filtersPlace": "Luogo",
+  "filtersRegion": "Regione",
+  "filtersProvince": "Provincia",
+  "filtersMunicipality": "Comune",
+  "allRegions": "Tutte le regioni",
+  "allProvinces": "Tutte le province",
+  "filtersApply": "Applica",
+  "filtersReset": "Azzera",
   "noChannelsFound": "Nessun canale trovato",
+  "noChannelsFoundHint": "Prova a cambiare la ricerca o i filtri.",
+  "noChannelsAtAllHint": "Non c'è ancora nessun canale: creane uno!",
   "newChannel": "Nuovo canale",
   "createChannelTitle": "Nuovo canale",
   "channelNameLabel": "Nome del canale",
   "channelDescriptionLabel": "Descrizione (facoltativa)",
-  "channelPlaceLabel": "Luogo (facoltativo)",
   "channelTopicLabel": "Argomento",
   "noTopic": "Nessuno",
   "createChannelButton": "Crea canale",
+  "editChannelTitle": "Modifica canale",
+  "editChannelAction": "Modifica canale",
+  "deleteChannelAction": "Elimina canale",
+  "saveChannelButton": "Salva",
+  "channelUpdated": "Canale aggiornato",
+  "channelDeleted": "Canale eliminato",
+  "deleteChannelTitle": "Eliminare il canale?",
+  "deleteChannelBody": "Verranno eliminati anche tutti i suoi spot, i commenti e le chat collegate. Non si può annullare.",
+  "deleteChannelConfirm": "Elimina",
+  "channelActionsTooltip": "Altre azioni",
   "validationChannelName": "Da {min} a {max} caratteri",
   "@validationChannelName": {
     "placeholders": {
@@ -70,6 +106,8 @@
   },
   "myChannelsTitle": "I miei canali",
   "noMyChannels": "Non hai ancora creato canali",
+  "noMyChannelsHint": "Crea un canale per raccogliere gli spot della tua città, scuola o community.",
+  "createFirstChannel": "Crea il tuo primo canale",
   "profileTitle": "Profilo",
   "retry": "Riprova",
   "errorConflict": "Esiste già un elemento con questi dati",
@@ -79,6 +117,11 @@
   "errorSessionExpired": "Sessione scaduta. Accedi di nuovo.",
   "homeEmpty": "Non segui ancora nessun canale",
   "homeEmptyHint": "Segui un canale per ritrovarlo qui.",
+  "viewAll": "Visualizza tutti",
+  "homeMySpotsEmptyHint": "Premi Pubblica per scrivere il tuo primo spot: resta anonimo.",
+  "pickChannelTitle": "In quale canale vuoi pubblicare?",
+  "pickChannelOther": "Cerca un altro canale",
+  "pickChannelEmpty": "Non segui ancora nessun canale",
   "homeDiscoverChannels": "Scopri i canali",
   "follow": "Segui",
   "unfollow": "Smetti di seguire",
@@ -91,6 +134,21 @@
     }
   },
   "publishSpot": "Pubblica uno spot",
+  "channelTabSpots": "Spots",
+  "channelTabEvents": "Eventi",
+  "channelTabNews": "News",
+  "noEvents": "Ancora nessun evento",
+  "noEventsHint": "Qui compariranno gli eventi del canale.",
+  "noNews": "Ancora nessuna news",
+  "noNewsHint": "Qui compariranno le novità del canale.",
+  "channelPhotoLabel": "Foto del canale {name}",
+  "@channelPhotoLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "publishSpotButton": "Pubblica",
   "spotTitleLabel": "Titolo",
   "spotContentLabel": "Testo",
@@ -100,6 +158,7 @@
   "loadMoreSpotsError": "Impossibile caricare altri spot",
   "mySpotsTitle": "I miei spot",
   "noMySpots": "Non hai ancora pubblicato spot",
+  "noMySpotsHint": "Gli spot che pubblichi compaiono qui. Restano anonimi.",
   "deleteSpot": "Cancella",
   "deleteSpotTitle": "Cancellare lo spot?",
   "deleteSpotBody": "L'operazione non si può annullare.",
@@ -129,6 +188,7 @@
   "moderationTitle": "Moderazione",
   "moderationHiddenSpots": "Spot nascosti",
   "noHiddenSpots": "Nessuno spot nascosto",
+  "noHiddenSpotsHint": "Gli spot che nascondi compaiono qui e puoi ripristinarli.",
   "hiddenSpotLabel": "Nascosto dal proprietario del canale",
   "hiddenCommentLabel": "Nascosto",
   "ownerTools": "Strumenti del proprietario",
@@ -168,6 +228,7 @@
   "reportOwnContent": "Non puoi segnalare un tuo contenuto",
   "reportsTab": "Segnalazioni",
   "noReports": "Nessuna segnalazione aperta",
+  "noReportsHint": "Quando qualcuno segnala uno spot o un commento del tuo canale lo trovi qui.",
   "reportOnSpot": "Segnalazione su uno spot",
   "reportOnComment": "Segnalazione su un commento",
   "reportDismiss": "Ignora",
@@ -177,6 +238,7 @@
   "loadMoreReportsError": "Impossibile caricare altre segnalazioni",
   "myChatsTitle": "Le mie chat",
   "noChats": "Ancora nessuna chat",
+  "noChatsHint": "Le chat nascono dagli spot: l'autore può scrivere a chi ha commentato.",
   "loadMoreChatsError": "Impossibile caricare altre chat",
   "noMessagesYet": "Nessun messaggio",
   "youPrefix": "Tu: {message}",
@@ -206,5 +268,32 @@
     }
   },
   "identityRevealed": "Identità rivelata",
-  "loading": "Caricamento in corso"
+  "loading": "Caricamento in corso",
+  "channelMunicipalityLabel": "Comune (facoltativo)",
+  "municipalityHint": "Inizia a scrivere il nome",
+  "municipalityChoose": "Scegli un comune dall'elenco",
+  "municipalityNoResults": "Nessun comune trovato",
+  "clearMunicipality": "Togli il comune",
+  "logoutConfirmTitle": "Uscire dall'account?",
+  "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo.",
+  "searchSpotsTooltip": "Cerca negli spot",
+  "searchSpotsHint": "Cerca negli spot",
+  "searchSpotsMinChars": "Scrivi almeno {count} lettere per cercare",
+  "@searchSpotsMinChars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noSpotResults": "Nessuno spot per «{query}»",
+  "@noSpotResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "closeSearch": "Chiudi la ricerca",
+  "clearSearch": "Cancella"
 }

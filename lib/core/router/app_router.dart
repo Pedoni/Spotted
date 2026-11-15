@@ -9,7 +9,7 @@ import 'package:spotted/features/auth/presentation/providers/auth_providers.dart
 import 'package:spotted/features/channels/presentation/pages/channel_detail_page.dart';
 import 'package:spotted/features/channels/presentation/pages/channels_page.dart';
 import 'package:spotted/features/channels/presentation/pages/create_channel_page.dart';
-import 'package:spotted/features/channels/presentation/pages/my_channels_page.dart';
+import 'package:spotted/features/channels/presentation/pages/edit_channel_page.dart';
 import 'package:spotted/features/chat/presentation/pages/chat_page.dart';
 import 'package:spotted/features/chat/presentation/pages/chats_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
@@ -64,6 +64,14 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: AppRoutes.chats,
+                builder: (context, state) => const ChatsPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: AppRoutes.profile,
                 builder: (context, state) => const ProfilePage(),
               ),
@@ -87,13 +95,14 @@ GoRouter appRouter(Ref ref) {
             CreateSpotPage(slug: state.pathParameters['slug']!),
       ),
       GoRoute(
+        path: AppRoutes.channelEdit,
+        builder: (context, state) =>
+            EditChannelPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
         path: AppRoutes.channelModeration,
         builder: (context, state) =>
             ModerationPage(slug: state.pathParameters['slug']!),
-      ),
-      GoRoute(
-        path: AppRoutes.chats,
-        builder: (context, state) => const ChatsPage(),
       ),
       GoRoute(
         path: AppRoutes.chatDetail,
@@ -104,10 +113,6 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotDetail,
         builder: (context, state) =>
             SpotDetailPage(spotId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: AppRoutes.myChannels,
-        builder: (context, state) => const MyChannelsPage(),
       ),
       GoRoute(
         path: AppRoutes.mySpots,

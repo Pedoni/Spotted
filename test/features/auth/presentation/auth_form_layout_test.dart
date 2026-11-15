@@ -267,7 +267,7 @@ void main() {
 
       expect(find.byType(AuthErrorBanner), findsOneWidget);
       expect(find.text('Email o password non corretti'), findsOneWidget);
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
     });
   });
 

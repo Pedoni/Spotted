@@ -5,9 +5,11 @@ import 'package:spotted/features/channels/data/repositories/channels_repository_
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 import 'package:spotted/features/channels/domain/usecases/create_channel.dart';
+import 'package:spotted/features/channels/domain/usecases/delete_channel.dart';
 import 'package:spotted/features/channels/domain/usecases/get_channel_by_slug.dart';
 import 'package:spotted/features/channels/domain/usecases/get_channels.dart';
 import 'package:spotted/features/channels/domain/usecases/get_my_channels.dart';
+import 'package:spotted/features/channels/domain/usecases/update_channel.dart';
 
 part 'channels_providers.g.dart';
 
@@ -26,6 +28,16 @@ GetChannels getChannelsUseCase(Ref ref) {
 @riverpod
 CreateChannel createChannelUseCase(Ref ref) {
   return CreateChannel(ref.watch(channelsRepositoryProvider));
+}
+
+@riverpod
+UpdateChannel updateChannelUseCase(Ref ref) {
+  return UpdateChannel(ref.watch(channelsRepositoryProvider));
+}
+
+@riverpod
+DeleteChannel deleteChannelUseCase(Ref ref) {
+  return DeleteChannel(ref.watch(channelsRepositoryProvider));
 }
 
 @riverpod

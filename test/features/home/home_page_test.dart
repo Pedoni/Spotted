@@ -1,84 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/features/spots/presentation/widgets/my_spots_carousel.dart';
 
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('senza canali seguiti: messaggio e invito a scoprirli', (
+  final channel = makeChannel(1, name: 'Spotted Pisa');
+
+  testWidgets('senza spot propri: messaggio che invita a pubblicare', (
     tester,
   ) async {
     await pumpApp(tester);
 
-    expect(find.text('Non segui ancora nessun canale'), findsOneWidget);
-
-    await tester.tap(find.text('Scopri i canali'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Cerca un canale'), findsOneWidget);
+    expect(find.text('I miei spot'), findsOneWidget);
+    expect(find.text('Non hai ancora pubblicato spot'), findsOneWidget);
+    expect(find.textContaining('Premi Pubblica'), findsOneWidget);
+    // Non c'è niente da vedere: niente freccia.
+    expect(find.byTooltip('Visualizza tutti'), findsNothing);
   });
 
-  testWidgets('mostra i canali seguiti e apre il dettaglio', (tester) async {
-    final channels = [
-      makeChannel(1, name: 'Spotted Pisa', topicId: 't-uni'),
-      makeChannel(2, name: 'Spotted Roma'),
-    ];
-    await pumpApp(
-      tester,
-      channels: FakeChannelsRepository(channels: channels),
-      subscriptions: FakeSubscriptionsRepository(
-        channels: channels,
-        subscribedIds: {'c1'},
-        counts: {'c1': 4},
-      ),
+  testWidgets('con spot propri mostra il carosello e non il feed dei canali', (
+    tester,
+  ) async {
+    final spots = FakeSpotsRepository(
+      mine: [makeMySpot(1)],
+      followed: [makeMySpot(2)],
     );
+    await pumpApp(tester, spots: spots);
 
-    expect(find.text('Spotted Pisa'), findsOneWidget);
-    expect(find.text('Università'), findsOneWidget);
-    expect(find.text('Spotted Roma'), findsNothing);
-
-    await tester.tap(find.text('Spotted Pisa'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('4 iscritti'), findsOneWidget);
+    expect(find.byType(MySpotCard), findsOneWidget);
+    expect(find.text('Spot 1'), findsOneWidget);
+    expect(find.text('Spot 2'), findsNothing);
+    expect(spots.followedCalls, isEmpty);
   });
 
-  testWidgets('seguendo un canale compare nella Home', (tester) async {
-    final channel = makeChannel(1, name: 'Spotted Pisa');
-    await pumpApp(
+  testWidgets('tirando giù si ricaricano i miei spot', (tester) async {
+    final spots = FakeSpotsRepository(mine: [makeMySpot(1)]);
+    await pumpApp(tester, spots: spots);
+    expect(spots.mineCalls, hasLength(1));
+
+    await tester.fling(find.byType(ListView).first, const Offset(0, 400), 1000);
+    await tester.pumpAndSettle();
+
+    expect(spots.mineCalls, hasLength(2));
+  });
+
+  group('Pubblica', () {
+    Future<void> openPicker(WidgetTester tester) async {
+      await tester.tap(find.text('Pubblica'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('propone i canali seguiti e apre il form del canale scelto', (
       tester,
-      channels: FakeChannelsRepository(channels: [channel]),
-      subscriptions: FakeSubscriptionsRepository(channels: [channel]),
-    );
-    expect(find.text('Spotted Pisa'), findsNothing);
+    ) async {
+      await pumpApp(
+        tester,
+        channels: FakeChannelsRepository(channels: [channel]),
+        subscriptions: FakeSubscriptionsRepository(
+          channels: [channel],
+          subscribedIds: {'c1'},
+        ),
+      );
 
-    await tester.tap(find.byIcon(Icons.tag_outlined));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Spotted Pisa'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Segui'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Indietro'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.home_outlined));
-    await tester.pumpAndSettle();
+      await openPicker(tester);
+      expect(find.text('In quale canale vuoi pubblicare?'), findsOneWidget);
+      expect(find.text('Cerca un altro canale'), findsOneWidget);
 
-    expect(find.text('Non segui ancora nessun canale'), findsNothing);
-    expect(find.text('Spotted Pisa'), findsOneWidget);
-  });
+      await tester.tap(find.text('Spotted Pisa'));
+      await tester.pumpAndSettle();
 
-  testWidgets('errore: messaggio e Riprova', (tester) async {
-    final subscriptions = FakeSubscriptionsRepository()
-      ..listError = const NetworkFailure();
-    await pumpApp(tester, subscriptions: subscriptions);
+      expect(find.text('Pubblica uno spot'), findsWidgets);
+    });
 
-    expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
+    testWidgets('senza canali seguiti lo dice e resta la ricerca', (
+      tester,
+    ) async {
+      await pumpApp(tester);
 
-    subscriptions.listError = null;
-    await tester.tap(find.text('Riprova'));
-    await tester.pumpAndSettle();
+      await openPicker(tester);
 
-    expect(find.text('Non segui ancora nessun canale'), findsOneWidget);
+      expect(find.text('Non segui ancora nessun canale'), findsOneWidget);
+      expect(find.text('Cerca un altro canale'), findsOneWidget);
+    });
+
+    testWidgets('"Cerca un altro canale" porta alla scheda Canali', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+
+      await openPicker(tester);
+      await tester.tap(find.text('Cerca un altro canale'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cerca un canale'), findsOneWidget);
+    });
   });
 }

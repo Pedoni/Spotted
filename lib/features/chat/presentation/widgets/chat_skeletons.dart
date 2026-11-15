@@ -51,10 +51,10 @@ class ChatHeaderSkeleton extends StatelessWidget {
         children: [
           ListTile(
             dense: true,
-            leading: const Icon(Icons.article_outlined),
+            leading: const Icon(Icons.article_rounded),
             title: const Text('Titolo dello spot'),
             subtitle: const Text('Nome del canale'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () {},
           ),
           const Divider(height: 1),

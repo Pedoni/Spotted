@@ -8,6 +8,7 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/auth/domain/auth_validators.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_controllers.dart';
+import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/auth/presentation/widgets/auth_error_banner.dart';
 import 'package:spotted/features/auth/presentation/widgets/auth_form_layout.dart';
 import 'package:spotted/features/auth/presentation/widgets/password_field.dart';
@@ -28,8 +29,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
 
+  /// Quanto si aspetta, dopo l'ultima lettera, prima di chiedere se lo
+  /// username è libero.
+  static const _usernameDelay = Duration(milliseconds: 500);
+
+  Timer? _usernameTimer;
+
+  /// Esito del controllo dello username. `taken` vale solo per [_checkedName]:
+  /// se il testo cambia non vale più.
+  _UsernameStatus _usernameStatus = _UsernameStatus.idle;
+  String _checkedName = '';
+
   @override
   void dispose() {
+    _usernameTimer?.cancel();
     _firstName.dispose();
     _lastName.dispose();
     _username.dispose();
@@ -38,7 +51,48 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     super.dispose();
   }
 
+  void _onUsernameChanged(String value) {
+    _usernameTimer?.cancel();
+    final name = value.trim().toLowerCase();
+    if (!AuthValidators.isValidUsername(name)) {
+      setState(() => _usernameStatus = _UsernameStatus.idle);
+      return;
+    }
+    setState(() => _usernameStatus = _UsernameStatus.checking);
+    _usernameTimer = Timer(
+      _usernameDelay,
+      () => unawaited(_checkUsername(name)),
+    );
+  }
+
+  Future<void> _checkUsername(String name) async {
+    _UsernameStatus result;
+    try {
+      final free = await ref.read(checkUsernameAvailableUseCaseProvider)(name);
+      result = free ? _UsernameStatus.available : _UsernameStatus.taken;
+    } on Exception {
+      // Senza rete non si dice niente: alla registrazione si ricontrolla.
+      result = _UsernameStatus.idle;
+    }
+    // Una risposta in ritardo non vale se nel frattempo il testo è cambiato.
+    if (!mounted || _username.text.trim().toLowerCase() != name) return;
+    setState(() {
+      _usernameStatus = result;
+      _checkedName = name;
+    });
+  }
+
+  bool get _usernameTaken =>
+      _usernameStatus == _UsernameStatus.taken &&
+      _checkedName == _username.text.trim().toLowerCase();
+
   void _submit() {
+    // Se il controllo dello username è ancora in attesa lo fa il signup
+    // stesso, subito prima di registrare: due avvisi sarebbero troppi.
+    _usernameTimer?.cancel();
+    if (_usernameStatus == _UsernameStatus.checking) {
+      setState(() => _usernameStatus = _UsernameStatus.idle);
+    }
     if (!_formKey.currentState!.validate()) return;
     unawaited(
       ref
@@ -95,12 +149,31 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 controller: _username,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.newUsername],
+                onChanged: _onUsernameChanged,
                 decoration: InputDecoration(
                   labelText: l10n.usernameLabel,
+                  errorText: _usernameTaken ? l10n.errorUsernameTaken : null,
+                  helperText: _usernameStatus == _UsernameStatus.available
+                      ? l10n.usernameAvailable
+                      : null,
+                  suffixIcon: switch (_usernameStatus) {
+                    _UsernameStatus.checking => const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: InlineProgress(size: 18),
+                    ),
+                    _UsernameStatus.available => Icon(
+                      Icons.check_circle_outline_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    _ => null,
+                  },
                 ),
-                validator: (v) => AuthValidators.isValidUsername(v ?? '')
-                    ? null
-                    : l10n.validationUsername,
+                validator: (v) {
+                  if (!AuthValidators.isValidUsername(v ?? '')) {
+                    return l10n.validationUsername;
+                  }
+                  return _usernameTaken ? l10n.errorUsernameTaken : null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -148,3 +221,6 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     );
   }
 }
+
+/// A che punto è il controllo dello username mentre si scrive.
+enum _UsernameStatus { idle, checking, available, taken }

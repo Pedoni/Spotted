@@ -8,14 +8,79 @@ part 'channels_feed.g.dart';
 
 const channelsPageSize = 20;
 
+/// Il comune scelto come filtro: il codice ISTAT e il testo da mostrare.
+class MunicipalityFilter extends Equatable {
+  const MunicipalityFilter({required this.istatCode, required this.label});
+
+  final String istatCode;
+  final String label;
+
+  @override
+  List<Object?> get props => [istatCode, label];
+}
+
+/// I filtri della lista dei canali: il testo cercato nel nome, l'argomento e il
+/// luogo (regione, provincia, comune). Il luogo è coerente: se c'è un comune
+/// ci sono anche la sua provincia e la sua regione.
 class ChannelFilterState extends Equatable {
-  const ChannelFilterState({this.query = '', this.topicId});
+  const ChannelFilterState({
+    this.query = '',
+    this.topicId,
+    this.regionName,
+    this.provinceCode,
+    this.provinceLabel,
+    this.municipality,
+  });
 
   final String query;
   final String? topicId;
+  final String? regionName;
+  final String? provinceCode;
+
+  /// Il testo da mostrare per la provincia ("Pisa (PI)").
+  final String? provinceLabel;
+  final MunicipalityFilter? municipality;
+
+  /// Quanti filtri del foglio sono attivi (il testo cercato non conta).
+  int get activeCount => [
+    topicId,
+    regionName,
+    provinceCode,
+    municipality,
+  ].where((value) => value != null).length;
+
+  bool get hasFilters => activeCount > 0;
+
+  /// Gli stessi filtri con un altro testo cercato.
+  ChannelFilterState withQuery(String value) => ChannelFilterState(
+    query: value,
+    topicId: topicId,
+    regionName: regionName,
+    provinceCode: provinceCode,
+    provinceLabel: provinceLabel,
+    municipality: municipality,
+  );
+
+  /// Gli stessi filtri del foglio con [other] (testo cercato escluso).
+  ChannelFilterState withFiltersOf(ChannelFilterState other) =>
+      ChannelFilterState(
+        query: query,
+        topicId: other.topicId,
+        regionName: other.regionName,
+        provinceCode: other.provinceCode,
+        provinceLabel: other.provinceLabel,
+        municipality: other.municipality,
+      );
 
   @override
-  List<Object?> get props => [query, topicId];
+  List<Object?> get props => [
+    query,
+    topicId,
+    regionName,
+    provinceCode,
+    provinceLabel,
+    municipality,
+  ];
 }
 
 /// Filtri correnti della lista canali: cambiarli ricarica il feed.
@@ -25,12 +90,17 @@ class ChannelFilter extends _$ChannelFilter {
   ChannelFilterState build() => const ChannelFilterState();
 
   void setQuery(String query) {
-    state = ChannelFilterState(query: query, topicId: state.topicId);
+    state = state.withQuery(query);
   }
 
-  /// `null` toglie il filtro per topic.
-  void setTopic(String? topicId) {
-    state = ChannelFilterState(query: state.query, topicId: topicId);
+  /// Applica i filtri scelti nel foglio, tenendo il testo cercato.
+  void apply(ChannelFilterState filters) {
+    state = state.withFiltersOf(filters);
+  }
+
+  /// Toglie tutti i filtri del foglio, tenendo il testo cercato.
+  void clearFilters() {
+    state = state.withFiltersOf(const ChannelFilterState());
   }
 }
 
@@ -53,6 +123,9 @@ class ChannelsFeed extends _$ChannelsFeed {
       limit: channelsPageSize,
       query: filter.query,
       topicId: filter.topicId,
+      regionName: filter.regionName,
+      provinceCode: filter.provinceCode,
+      municipalityId: filter.municipality?.istatCode,
     );
     return PagedChannels(
       items: items,
@@ -75,6 +148,9 @@ class ChannelsFeed extends _$ChannelsFeed {
         limit: channelsPageSize,
         query: filter.query,
         topicId: filter.topicId,
+        regionName: filter.regionName,
+        provinceCode: filter.provinceCode,
+        municipalityId: filter.municipality?.istatCode,
       );
       if (!ref.mounted || generation != _generation) return;
       state = AsyncData(

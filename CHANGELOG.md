@@ -3,6 +3,43 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.8.0] - 2026-11-15
+
+### Aggiunto
+- Luogo dei canali da un elenco ufficiale: il comune si sceglie tra i 7.896 dell'ISTAT con suggerimenti mentre si scrive (senza distinguere maiuscole e accenti), è facoltativo e si mostra sempre con la sigla, per esempio "Pisa (PI)". Il database rifiuta un comune che non esiste.
+- Ricerca di testo negli spot di un canale (dalla lente nella pagina del canale): cerca nel titolo e nel testo, ovunque e senza distinguere maiuscole e accenti, parte da due lettere ed evidenzia in giallo ciò che trova.
+- Filtri dei canali in un foglio dal basso (pulsante con il numero di filtri attivi accanto alla ricerca): argomento, regione, provincia e comune, tenuti coerenti tra loro, con "Azzera".
+- Modifica ed eliminazione del canale per il proprietario, da un menu nella pagina del canale: si cambiano nome, argomento, comune e descrizione (l'indirizzo non cambia mai); l'eliminazione chiede conferma e porta via anche spot, commenti e chat del canale.
+- Pagina del canale con copertina (per ora la stessa di marca per tutti), foto quadrata del canale e, sotto gli iscritti, le schede Spots, Eventi e News (Eventi e News per ora dicono solo che non c'è niente). Copertina e foto sono già pronte ad accettare immagini vere.
+- Controllo dello username mentre si scrive nella registrazione: "disponibile" o "già in uso", che blocca l'invio.
+- Scelta del tema nel Profilo: chiaro (predefinito), scuro o come il telefono, ricordata tra un avvio e l'altro. "Cambia password" ed "Elimina profilo" ci sono ma per ora non fanno nulla.
+- Stati vuoti con icona, testo che dice cosa fare e, dove serve, un pulsante (per esempio "Crea il tuo primo canale" o "Azzera" i filtri).
+
+### Modificato
+- Nuova navigazione: quattro schede in basso (Home, Canali, Chat, Profilo). Canali ha tre schede in alto, scorrevoli di lato: Esplora (tutti, con ricerca e filtri), Seguiti e Miei (creati da te). Le chat hanno la loro scheda.
+- Home: mostra "I miei spot" in un carosello con gli ultimi cinque (la sesta card e la freccia portano all'elenco completo) e il pulsante "Pubblica", che chiede in quale canale seguito scrivere. I canali seguiti sono in Canali > Seguiti.
+- Profilo: foto segnaposto e nome in alto, poi tema, account ed uscita; non c'è più una pagina Impostazioni separata.
+- Orari mostrati sempre con l'ora oltre alla data ("31 dic 2025 · 14:30"), in ora locale.
+- Prima di uscire dall'account compare una conferma; se l'uscita non riesce si vede l'errore e si resta dentro.
+- Tutte le icone sono nella versione arrotondata.
+
+### Database
+Migrazioni da applicare, in ordine:
+- `20261116100000` e `20261116100100`-`400`: comuni e collegamento con i canali (già applicate).
+- `20261117100000`: i client scrivono un canale solo dalle colonne consentite; **da applicare dopo l'aggiornamento dell'app**.
+- `20261118100000`: ricerca di testo negli spot (cambia la firma di `channel_spots_page`).
+- `20261119100000`: `followed_spots_page`, gli spot dei canali seguiti (pronta, l'app per ora non la mostra).
+- `20261120100000`: `update_channel` e `delete_channel` per il proprietario.
+
+### Sicurezza
+- Verificato con un test che dopo l'uscita non resti niente dell'utente precedente (dati, "mi piace", ricerche, scheda aperta, profilo).
+- Chiuso il debito su `handle_new_user`: lo username è validato prima della registrazione (formato e disponibilità).
+
+### Note
+- Il feed degli spot dei canali seguiti è pronto ma non è mostrato: si deciderà cosa aggiungere sotto "I miei spot".
+- Foto e copertina del canale non sono ancora personalizzabili: servono colonne e archiviazione.
+- Cambio password, eliminazione del profilo e immagine del profilo personalizzata arrivano dopo.
+
 ## [0.7.0] - 2026-11-11
 
 ### Aggiunto

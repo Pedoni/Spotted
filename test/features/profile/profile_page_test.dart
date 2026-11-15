@@ -1,14 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 
+import '../../helpers/fake_auth_repository.dart';
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('mostra username, nome ed email', (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('@mario_88'), findsOneWidget);
@@ -23,7 +28,7 @@ void main() {
         profile: const Profile(id: '1', username: 'anon_user'),
       ),
     );
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('@anon_user'), findsOneWidget);
@@ -35,5 +40,113 @@ void main() {
       'Mario',
     );
     expect(const Profile(id: '1', username: 'u').fullName, isNull);
+  });
+
+  group('uscire dall account', () {
+    Future<FakeAuthRepository> openProfile(WidgetTester tester) async {
+      final auth = FakeAuthRepository(user: loggedInUser);
+      await pumpApp(tester, auth: auth, screenSize: tallScreen);
+      await tester.tap(find.byIcon(Icons.person_outline_rounded));
+      await tester.pumpAndSettle();
+      return auth;
+    }
+
+    testWidgets('toccando Esci chiede conferma e non esce subito', (
+      tester,
+    ) async {
+      final auth = await openProfile(tester);
+
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Uscire dall'account?"), findsOneWidget);
+      expect(
+        find.text('Per usare Spotted dovrai accedere di nuovo.'),
+        findsOneWidget,
+      );
+      expect(auth.signOutCalls, 0);
+      expect(find.text('@mario_88'), findsOneWidget);
+    });
+
+    testWidgets('Annulla chiude la finestra e resta nell account', (
+      tester,
+    ) async {
+      final auth = await openProfile(tester);
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Annulla'));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Uscire dall'account?"), findsNothing);
+      expect(auth.signOutCalls, 0);
+      expect(find.text('@mario_88'), findsOneWidget);
+    });
+
+    testWidgets('toccando fuori dalla finestra non esce', (tester) async {
+      final auth = await openProfile(tester);
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Uscire dall'account?"), findsNothing);
+      expect(auth.signOutCalls, 0);
+    });
+
+    testWidgets('Esci nella finestra esce e riporta all accesso', (
+      tester,
+    ) async {
+      final auth = await openProfile(tester);
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Esci'));
+      await tester.pumpAndSettle();
+
+      expect(auth.signOutCalls, 1);
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.text('Accedi'), findsWidgets);
+    });
+
+    testWidgets('se l uscita fallisce lo dice e si resta nell account', (
+      tester,
+    ) async {
+      final auth = await openProfile(tester);
+      auth.signOutError = const NetworkFailure();
+
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Esci'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
+      expect(find.text('@mario_88'), findsOneWidget);
+      expect(auth.user, isNotNull);
+    });
+
+    testWidgets('mentre esce il pulsante è fermo e mostra l avanzamento', (
+      tester,
+    ) async {
+      final auth = await openProfile(tester);
+      auth.signOutGate = Completer<void>();
+
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Esci'));
+      // L'indicatore anima di continuo: niente pumpAndSettle finché esce.
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(InlineProgress), findsOneWidget);
+      await tester.tap(find.widgetWithText(ListTile, 'Esci'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(auth.signOutCalls, 1);
+      expect(find.byType(AlertDialog), findsNothing);
+
+      auth.signOutGate!.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsNothing);
+    });
   });
 }

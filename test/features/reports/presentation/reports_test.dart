@@ -55,7 +55,7 @@ void main() {
       ),
       reports: reports,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -188,7 +188,7 @@ void main() {
 
   group('scheda Segnalazioni del proprietario', () {
     Future<void> openReports(WidgetTester tester) async {
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
     }
 
@@ -220,12 +220,34 @@ void main() {
       expect(reports.listCalls.single.channelId, 'c1');
     });
 
+    testWidgets('ogni segnalazione mostra la data e l ora', (tester) async {
+      await openChannel(
+        tester,
+        owner: true,
+        openSpot: false,
+        seeds: const [ChannelReportSeed(1), ChannelReportSeed(75)],
+      );
+
+      await openReports(tester);
+
+      expect(
+        find.text('Segnalazione su uno spot · 31 dic 2025 · 23:59'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Segnalazione su uno spot · 31 dic 2025 · 22:45'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('senza segnalazioni: messaggio', (tester) async {
       await openChannel(tester, owner: true, openSpot: false);
 
       await openReports(tester);
 
       expect(find.text('Nessuna segnalazione aperta'), findsOneWidget);
+      expect(find.textContaining('Quando qualcuno segnala'), findsOneWidget);
+      expect(find.byIcon(Icons.flag_rounded), findsOneWidget);
     });
 
     testWidgets('Risolvi chiude la segnalazione e la toglie', (tester) async {

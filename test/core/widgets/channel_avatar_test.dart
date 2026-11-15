@@ -113,4 +113,47 @@ void main() {
       }
     }
   });
+
+  group('foto del canale', () {
+    testWidgets('senza foto c è l iniziale e nessuna immagine', (tester) async {
+      await tester.pumpWidget(host(const ChannelAvatar(name: 'Pisa')));
+
+      expect(find.text('P'), findsOneWidget);
+      expect(find.byType(Image), findsNothing);
+    });
+
+    testWidgets('con una foto la mostra quadrata, della misura dell avatar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const ChannelAvatar(
+            name: 'Pisa',
+            size: 88,
+            imageUrl: 'https://esempio.it/foto.jpg',
+          ),
+        ),
+      );
+
+      expect(find.byType(Image), findsOneWidget);
+      final size = tester.getSize(find.byType(ChannelAvatar));
+      expect(size, const Size(88, 88));
+    });
+
+    testWidgets('se la foto non si carica torna l iniziale', (tester) async {
+      await tester.pumpWidget(
+        host(
+          const ChannelAvatar(
+            name: 'Pisa',
+            imageUrl: 'https://esempio.it/foto.jpg',
+          ),
+        ),
+      );
+
+      // Nei test le richieste di rete falliscono.
+      await tester.pumpAndSettle();
+
+      expect(find.text('P'), findsOneWidget);
+    });
+  });
 }

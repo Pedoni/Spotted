@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
@@ -10,8 +11,9 @@ import 'package:spotted/features/channels/presentation/widgets/channel_tile.dart
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
-class MyChannelsPage extends ConsumerWidget {
-  const MyChannelsPage({super.key});
+/// Miei: i canali creati dall'utente.
+class MyChannelsView extends ConsumerWidget {
+  const MyChannelsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,17 +22,30 @@ class MyChannelsPage extends ConsumerWidget {
     final topics = ref.watch(topicsProvider).value ?? const [];
     final topicNames = {for (final t in topics) t.id: t.name};
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.myChannelsTitle)),
-      body: channels.when(
-        loading: () => const SkeletonScroll(child: ChannelTilesSkeleton()),
-        error: (error, _) => ErrorView(
-          error: error,
-          onRetry: () => ref.invalidate(myChannelsProvider),
-        ),
-        data: (items) {
-          if (items.isEmpty) return Center(child: Text(l10n.noMyChannels));
-          return ListView.builder(
+    return channels.when(
+      loading: () => const SkeletonScroll(child: ChannelTilesSkeleton()),
+      error: (error, _) => ErrorView(
+        error: error,
+        onRetry: () => ref.invalidate(myChannelsProvider),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return Center(
+            child: EmptyState(
+              icon: Icons.tag_rounded,
+              title: l10n.noMyChannels,
+              message: l10n.noMyChannelsHint,
+              action: FilledButton(
+                onPressed: () => context.push(AppRoutes.channelNew),
+                child: Text(l10n.createFirstChannel),
+              ),
+            ),
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: () => ref.refresh(myChannelsProvider.future),
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 88),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final channel = items[index];
@@ -40,9 +55,9 @@ class MyChannelsPage extends ConsumerWidget {
                 onTap: () => context.push(AppRoutes.channelPath(channel.slug)),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

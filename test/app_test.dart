@@ -6,7 +6,7 @@ import 'helpers/fake_auth_repository.dart';
 import 'helpers/pump_app.dart';
 
 void main() {
-  const homeText = 'Non segui ancora nessun canale';
+  const homeText = 'Non hai ancora pubblicato spot';
 
   testWidgets('senza sessione mostra il login', (tester) async {
     await pumpApp(tester, auth: FakeAuthRepository());
@@ -28,21 +28,24 @@ void main() {
   testWidgets('la barra naviga tra Canali e Profilo', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     expect(find.text('Cerca un canale'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
     expect(find.text('@mario_88'), findsOneWidget);
   });
 
   testWidgets('il logout dal profilo riporta al login', (tester) async {
-    await pumpApp(tester);
+    await pumpApp(tester, screenSize: tallScreen);
 
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Esci'));
+    await tester.pumpAndSettle();
+    // Chiede conferma: si esce solo dalla finestra.
+    await tester.tap(find.widgetWithText(TextButton, 'Esci'));
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationBar), findsNothing);

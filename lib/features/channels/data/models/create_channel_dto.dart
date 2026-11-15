@@ -10,7 +10,7 @@ class CreateChannelDto {
     required this.name,
     required this.slug,
     this.description,
-    this.place,
+    this.municipalityId,
     this.topicId,
   });
 
@@ -18,7 +18,10 @@ class CreateChannelDto {
   final String name;
   final String slug;
   final String? description;
-  final String? place;
+
+  /// Il comune (codice ISTAT), facoltativo. Il luogo da mostrare lo calcola il
+  /// database: il client non lo scrive.
+  final String? municipalityId;
   final String? topicId;
 
   Map<String, dynamic> toJson() => _$CreateChannelDtoToJson(this);

@@ -11,7 +11,7 @@ void main() {
     FakeChannelsRepository repository,
   ) async {
     await pumpApp(tester, channels: repository);
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
   }
 
@@ -54,29 +54,6 @@ void main() {
 
     expect(find.text('Spotted Roma'), findsOneWidget);
     expect(find.text('Spotted Pisa'), findsNothing);
-  });
-
-  testWidgets('il filtro per topic mostra solo i canali del topic', (
-    tester,
-  ) async {
-    final repo = FakeChannelsRepository(
-      channels: [
-        makeChannel(1, name: 'Spotted Pisa', topicId: 't-uni'),
-        makeChannel(2, name: 'Palestra X', topicId: 't-sport'),
-      ],
-    );
-    await openChannels(tester, repo);
-
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Sport'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Palestra X'), findsOneWidget);
-    expect(find.text('Spotted Pisa'), findsNothing);
-
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Tutti'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Spotted Pisa'), findsOneWidget);
   });
 
   testWidgets('scorrendo carica la pagina successiva', (tester) async {

@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/core/theme/app_shapes.dart';
 import 'package:spotted/core/widgets/channel_avatar.dart';
+import 'package:spotted/core/widgets/highlighted_text.dart';
 import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
@@ -20,6 +22,7 @@ class SpotCard extends ConsumerWidget {
     this.channelName,
     this.onChannelTap,
     this.trailing,
+    this.highlight,
     super.key,
   });
 
@@ -33,6 +36,9 @@ class SpotCard extends ConsumerWidget {
   final String? channelName;
   final VoidCallback? onChannelTap;
   final Widget? trailing;
+
+  /// Il testo cercato: nel titolo e nel testo dello spot viene evidenziato.
+  final String? highlight;
 
   Future<void> _toggleLike(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
@@ -55,9 +61,7 @@ class SpotCard extends ConsumerWidget {
       spot,
       ref.watch(spotInteractionProvider(spot.id)),
     );
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(spot.createdAt.toLocal());
+    final date = formatDateTime(context, spot.createdAt);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -105,7 +109,7 @@ class SpotCard extends ConsumerWidget {
                 Row(
                   children: [
                     Icon(
-                      Icons.visibility_off_outlined,
+                      Icons.visibility_off_rounded,
                       size: 16,
                       color: theme.colorScheme.error,
                     ),
@@ -122,12 +126,17 @@ class SpotCard extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 8),
-              Text(
+              HighlightedText(
                 spot.title,
+                query: highlight,
                 style: theme.textTheme.titleLarge?.copyWith(fontSize: 20),
               ),
               const SizedBox(height: 8),
-              Text(spot.content, style: theme.textTheme.bodyLarge),
+              HighlightedText(
+                spot.content,
+                query: highlight,
+                style: theme.textTheme.bodyLarge,
+              ),
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -138,7 +147,7 @@ class SpotCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    Icons.chat_bubble_outline,
+                    Icons.chat_bubble_outline_rounded,
                     size: 18,
                     color: theme.colorScheme.outline,
                   ),
