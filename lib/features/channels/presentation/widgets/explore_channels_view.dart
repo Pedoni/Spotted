@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_feed.dart';
@@ -103,7 +104,24 @@ class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView>
             ),
             data: (paged) {
               if (paged.items.isEmpty) {
-                return Center(child: Text(l10n.noChannelsFound));
+                final narrowed = filter.hasFilters || filter.query.isNotEmpty;
+                return Center(
+                  child: EmptyState(
+                    icon: Icons.search_rounded,
+                    title: l10n.noChannelsFound,
+                    message: narrowed
+                        ? l10n.noChannelsFoundHint
+                        : l10n.noChannelsAtAllHint,
+                    action: filter.hasFilters
+                        ? OutlinedButton(
+                            onPressed: () => ref
+                                .read(channelFilterProvider.notifier)
+                                .clearFilters(),
+                            child: Text(l10n.filtersReset),
+                          )
+                        : null,
+                  ),
+                );
               }
               return RefreshIndicator(
                 onRefresh: () => ref.refresh(channelsFeedProvider.future),

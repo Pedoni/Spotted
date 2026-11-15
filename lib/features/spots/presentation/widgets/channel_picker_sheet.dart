@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/widgets/channel_avatar.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
@@ -67,9 +68,10 @@ class _ChannelPickerSheet extends ConsumerWidget {
                 ),
                 data: (items) {
                   if (items.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(l10n.pickChannelEmpty),
+                    return EmptyState(
+                      icon: Icons.favorite_border_rounded,
+                      title: l10n.pickChannelEmpty,
+                      compact: true,
                     );
                   }
                   return ListView(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
@@ -42,16 +43,17 @@ class ChannelSpotsSliver extends ConsumerWidget {
       ),
       data: (paged) {
         if (paged.items.isEmpty) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: Text(
-                  query.isEmpty
-                      ? l10n.noSpotsInChannel
-                      : l10n.noSpotResults(query),
-                  textAlign: TextAlign.center,
-                ),
+          // Occupa lo spazio rimasto sotto l'intestazione e si mette al centro.
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: EmptyState(
+                icon: query.isEmpty
+                    ? Icons.article_rounded
+                    : Icons.search_rounded,
+                title: query.isEmpty
+                    ? l10n.noSpotsInChannel
+                    : l10n.noSpotResults(query),
               ),
             ),
           );

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
@@ -96,7 +97,13 @@ class _HiddenSpotsList extends ConsumerWidget {
           ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
       data: (paged) {
         if (paged.items.isEmpty) {
-          return Center(child: Text(l10n.noHiddenSpots));
+          return Center(
+            child: EmptyState(
+              icon: Icons.visibility_off_rounded,
+              title: l10n.noHiddenSpots,
+              message: l10n.noHiddenSpotsHint,
+            ),
+          );
         }
         return RefreshIndicator(
           onRefresh: () => ref.refresh(provider.future),

@@ -128,6 +128,8 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
         channelSpotsFeedProvider(channel.id, query: _query).future,
       ),
       child: CustomScrollView(
+        // Anche con pochi contenuti si può tirare giù per ricaricare.
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           ChannelSpotsSliver(channelId: channel.id, query: _query),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -196,6 +198,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
               onRefresh: () =>
                   ref.refresh(channelSpotsFeedProvider(channel.id).future),
               child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.all(24),

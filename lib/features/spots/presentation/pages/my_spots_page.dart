@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
 import 'package:spotted/core/router/app_routes.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
@@ -67,7 +68,13 @@ class MySpotsPage extends ConsumerWidget {
         ),
         data: (paged) {
           if (paged.items.isEmpty) {
-            return Center(child: Text(l10n.noMySpots));
+            return Center(
+              child: EmptyState(
+                icon: Icons.edit_rounded,
+                title: l10n.noMySpots,
+                message: l10n.noMySpotsHint,
+              ),
+            );
           }
           return RefreshIndicator(
             onRefresh: () => ref.refresh(mySpotsFeedProvider.future),

@@ -66,17 +66,22 @@ class SpotDetailPage extends ConsumerWidget {
                     ref.refresh(spotCommentsFeedProvider(spotId).future),
                   ]),
                   child: CustomScrollView(
+                    // Anche con pochi contenuti si può tirare giù.
+                    physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverToBoxAdapter(child: SpotCard(spot: spot)),
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                        sliver: SliverToBoxAdapter(
-                          child: Text(
-                            l10n.commentsCount(stats.commentCount),
-                            style: Theme.of(context).textTheme.titleSmall,
+                      // Senza commenti c'è già lo stato vuoto: un titolo
+                      // "Nessun commento" sopra sarebbe doppio.
+                      if (stats.commentCount > 0)
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                          sliver: SliverToBoxAdapter(
+                            child: Text(
+                              l10n.commentsCount(stats.commentCount),
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
                           ),
                         ),
-                      ),
                       SpotCommentsSliver(spot: spot),
                     ],
                   ),
