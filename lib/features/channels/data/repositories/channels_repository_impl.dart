@@ -32,6 +32,30 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
   }
 
   @override
+  Future<Channel> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+    String? topicId,
+    String? municipalityId,
+  }) {
+    return guardFailures(
+      () => _dataSource.updateChannel(
+        channelId: channelId,
+        name: name,
+        description: description,
+        topicId: topicId,
+        municipalityId: municipalityId,
+      ),
+    );
+  }
+
+  @override
+  Future<void> deleteChannel(String channelId) {
+    return guardFailures(() => _dataSource.deleteChannel(channelId));
+  }
+
+  @override
   Future<Channel> getChannelBySlug(String slug) {
     return guardFailures(() => _dataSource.getChannelBySlug(slug));
   }
