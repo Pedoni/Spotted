@@ -10,7 +10,9 @@ import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/presentation/providers/channel_actions.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_header.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_tabs.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
@@ -29,11 +31,17 @@ class ChannelDetailPage extends ConsumerStatefulWidget {
   ConsumerState<ChannelDetailPage> createState() => _ChannelDetailPageState();
 }
 
-class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
+class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
+    with SingleTickerProviderStateMixin {
   /// Quanto si aspetta, dopo l'ultima lettera scritta, prima di cercare.
   static const _searchDelay = Duration(milliseconds: 300);
 
   final _search = TextEditingController();
+  late final TabController _tabs = TabController(
+    length: ChannelTab.values.length,
+    vsync: this,
+  );
+  ChannelTab _tab = ChannelTab.spots;
   Timer? _debounce;
   bool _searching = false;
 
@@ -42,13 +50,27 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    _tabs.addListener(() {
+      final tab = ChannelTab.values[_tabs.index];
+      if (tab != _tab) setState(() => _tab = tab);
+    });
+  }
+
+  @override
   void dispose() {
+    _tabs.dispose();
     _debounce?.cancel();
     _search.dispose();
     super.dispose();
   }
 
-  void _openSearch() => setState(() => _searching = true);
+  void _openSearch() {
+    // Si cerca tra gli spot.
+    _tabs.index = ChannelTab.spots.index;
+    setState(() => _searching = true);
+  }
 
   void _closeSearch() {
     _debounce?.cancel();
@@ -168,7 +190,8 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
                   ],
                 ],
               ),
-        floatingActionButton: channel.hasValue && !searching
+        floatingActionButton:
+            channel.hasValue && !searching && _tab == ChannelTab.spots
             ? FloatingActionButton.extended(
                 onPressed: () =>
                     context.push(AppRoutes.spotNewPath(channel.value!.slug)),
@@ -193,49 +216,27 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage> {
                 .where((t) => t.id == channel.topicId)
                 .map((t) => t.name)
                 .firstOrNull;
-            final theme = Theme.of(context);
             return RefreshIndicator(
               onRefresh: () =>
                   ref.refresh(channelSpotsFeedProvider(channel.id).future),
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.all(24),
-                    sliver: SliverList.list(
-                      children: [
-                        Text(
-                          channel.name,
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            if (topicName != null) Chip(label: Text(topicName)),
-                            if (channel.place != null)
-                              Chip(
-                                avatar: const Icon(
-                                  Icons.place_rounded,
-                                  size: 18,
-                                ),
-                                label: Text(channel.place!),
-                              ),
-                          ],
-                        ),
-                        if (channel.description != null) ...[
-                          const SizedBox(height: 16),
-                          Text(channel.description!),
-                        ],
-                        const SizedBox(height: 24),
-                        _SubscriptionRow(channelId: channel.id),
-                      ],
+                  SliverToBoxAdapter(
+                    child: ChannelHeader(
+                      channel: channel,
+                      topicName: topicName,
+                      footer: _SubscriptionRow(channelId: channel.id),
                     ),
                   ),
-                  ChannelSpotsSliver(channelId: channel.id),
-                  // Spazio per non coprire l'ultimo spot con il pulsante.
-                  const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  ChannelTabsBar(controller: _tabs),
+                  if (_tab == ChannelTab.spots) ...[
+                    ChannelSpotsSliver(channelId: channel.id),
+                    // Spazio per non coprire l'ultimo spot con il pulsante.
+                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                  ] else
+                    ChannelEmptyTabSliver(tab: _tab),
                 ],
               ),
             );
