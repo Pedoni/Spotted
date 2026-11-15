@@ -10,7 +10,7 @@ void main() {
     FakeChannelsRepository repository,
   ) async {
     await pumpApp(tester, channels: repository);
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Miei'));
     await tester.pumpAndSettle();

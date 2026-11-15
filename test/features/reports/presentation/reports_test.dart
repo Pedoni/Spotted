@@ -55,7 +55,7 @@ void main() {
       ),
       reports: reports,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -188,7 +188,7 @@ void main() {
 
   group('scheda Segnalazioni del proprietario', () {
     Future<void> openReports(WidgetTester tester) async {
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
     }
 

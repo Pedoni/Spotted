@@ -76,7 +76,7 @@ class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView>
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: l10n.searchChannelsHint,
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search_rounded),
                     isDense: true,
                   ),
                 ),
@@ -88,7 +88,7 @@ class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView>
                 icon: Badge(
                   isLabelVisible: filter.hasFilters,
                   label: Text('${filter.activeCount}'),
-                  child: const Icon(Icons.tune),
+                  child: const Icon(Icons.tune_rounded),
                 ),
               ),
             ],

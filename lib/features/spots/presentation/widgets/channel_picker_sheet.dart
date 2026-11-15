@@ -96,7 +96,7 @@ class _ChannelPickerSheet extends ConsumerWidget {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.search),
+              leading: const Icon(Icons.search_rounded),
               title: Text(l10n.pickChannelOther),
               onTap: () => Navigator.of(context).pop(const PickedSearch()),
             ),

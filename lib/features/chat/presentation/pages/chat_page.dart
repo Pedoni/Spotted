@@ -113,10 +113,10 @@ class _ChatHeader extends ConsumerWidget {
       children: [
         ListTile(
           dense: true,
-          leading: const Icon(Icons.article_outlined),
+          leading: const Icon(Icons.article_rounded),
           title: Text(chat.spotTitle, maxLines: 1),
           subtitle: Text(chat.channelName),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => context.push(AppRoutes.spotPath(chat.spotId)),
         ),
         if (note != null)

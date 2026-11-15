@@ -36,14 +36,14 @@ void main() {
     await tester.pumpWidget(host(liked: false, count: 7));
 
     expect(find.text('7'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsNothing);
+    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsNothing);
   });
 
   testWidgets('se piace il cuore è pieno e color lampone', (tester) async {
     await tester.pumpWidget(host(liked: true));
 
-    final icon = tester.widget<Icon>(find.byIcon(Icons.favorite));
+    final icon = tester.widget<Icon>(find.byIcon(Icons.favorite_rounded));
     expect(icon.color, AppTheme.light.colorScheme.primary);
   });
 

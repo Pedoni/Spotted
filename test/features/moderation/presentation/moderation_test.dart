@@ -49,7 +49,7 @@ void main() {
       comments: comments,
       moderation: moderation,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -75,8 +75,8 @@ void main() {
       await openSpotDetail(tester);
 
       expect(find.byTooltip('Strumenti del proprietario'), findsNothing);
-      expect(find.byIcon(Icons.visibility_off_outlined), findsNothing);
-      expect(find.byIcon(Icons.shield_outlined), findsNothing);
+      expect(find.byIcon(Icons.visibility_off_rounded), findsNothing);
+      expect(find.byIcon(Icons.shield_rounded), findsNothing);
     });
 
     testWidgets('se il controllo del proprietario fallisce niente strumenti', (
@@ -253,7 +253,7 @@ void main() {
     ) async {
       await openSpot(tester, statuses: [SpotStatus.hidden]);
 
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Spot nascosti'));
       await tester.pumpAndSettle();
@@ -276,7 +276,7 @@ void main() {
     testWidgets('senza spot nascosti: messaggio', (tester) async {
       await openSpot(tester);
 
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Spot nascosti'));
       await tester.pumpAndSettle();
@@ -288,7 +288,7 @@ void main() {
       await openSpot(tester);
       moderation.listError = const NetworkFailure();
 
-      await tester.tap(find.byIcon(Icons.shield_outlined));
+      await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Spot nascosti'));
       await tester.pumpAndSettle();

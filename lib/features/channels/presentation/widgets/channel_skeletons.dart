@@ -58,7 +58,7 @@ class ChannelHeaderSkeleton extends StatelessWidget {
               children: [
                 Chip(label: Text('Argomento')),
                 Chip(
-                  avatar: Icon(Icons.place_outlined, size: 18),
+                  avatar: Icon(Icons.place_rounded, size: 18),
                   label: Text('Luogo'),
                 ),
               ],

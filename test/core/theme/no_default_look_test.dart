@@ -54,6 +54,13 @@ void main() {
     expect(find(RegExp(r'\bColor\(0x')), isEmpty);
   });
 
+  test('le icone sono sempre nella versione arrotondata (_rounded)', () {
+    expect(
+      find(RegExp(r'Icons\.[a-z0-9_]+(?<!_rounded)(?![a-z0-9_])')),
+      isEmpty,
+    );
+  });
+
   test('nessun font scritto a mano: si usa il tema o AppFonts', () {
     expect(find(RegExp(r"fontFamily:\s*'")), isEmpty);
   });

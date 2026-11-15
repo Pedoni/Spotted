@@ -12,7 +12,7 @@ void main() {
     Map<String, Object> preferences = const {},
   }) async {
     await pumpApp(tester, preferences: preferences, screenSize: tallScreen);
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
   }
 
@@ -41,7 +41,7 @@ void main() {
       profile: FakeProfileRepository()..error = const NetworkFailure(),
       screenSize: tallScreen,
     );
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);

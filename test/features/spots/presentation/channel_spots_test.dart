@@ -18,7 +18,7 @@ void main() {
       channels: FakeChannelsRepository(channels: [channel]),
       spots: spots,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -97,7 +97,7 @@ void main() {
 
     expect(find.text('7'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
   });
 
   testWidgets('toccando il cuore il like si aggiorna subito', (tester) async {
@@ -106,14 +106,14 @@ void main() {
     );
     await openChannel(tester, spots);
 
-    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('8'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     expect(spots.likeCalls.single, (spotId: 's1', liked: true));
 
-    await tester.tap(find.byIcon(Icons.favorite));
+    await tester.tap(find.byIcon(Icons.favorite_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('7'), findsOneWidget);
@@ -128,11 +128,11 @@ void main() {
     )..likeError = const NetworkFailure();
     await openChannel(tester, spots);
 
-    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('7'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
     expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
   });
 }

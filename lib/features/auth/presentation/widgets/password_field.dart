@@ -37,7 +37,9 @@ class _PasswordFieldState extends State<PasswordField> {
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: IconButton(
-          icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+          icon: Icon(
+            _obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+          ),
           onPressed: () => setState(() => _obscure = !_obscure),
         ),
       ),

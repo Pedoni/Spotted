@@ -34,7 +34,7 @@ class SpotDetailPage extends ConsumerWidget {
           if (spot.value case final loaded?) ...[
             IconButton(
               tooltip: l10n.report,
-              icon: const Icon(Icons.flag_outlined),
+              icon: const Icon(Icons.flag_rounded),
               onPressed: () =>
                   unawaited(reportSpotFlow(context, ref, loaded.id)),
             ),

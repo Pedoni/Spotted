@@ -37,6 +37,14 @@ abstract final class AppTheme {
         space: 1,
         thickness: 1,
       ),
+      // I pulsanti "indietro" e "chiudi" che Flutter mette da solo nelle barre
+      // usano le stesse icone arrotondate del resto dell'app.
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) => const Icon(Icons.arrow_back_rounded),
+        closeButtonIconBuilder: (_) => const Icon(Icons.close_rounded),
+        drawerButtonIconBuilder: (_) => const Icon(Icons.menu_rounded),
+        endDrawerButtonIconBuilder: (_) => const Icon(Icons.menu_rounded),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,

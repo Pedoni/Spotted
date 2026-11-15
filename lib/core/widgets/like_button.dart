@@ -77,7 +77,9 @@ class _LikeButtonState extends State<LikeButton>
         icon: ScaleTransition(
           scale: _scale,
           child: Icon(
-            widget.liked ? Icons.favorite : Icons.favorite_border,
+            widget.liked
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
             size: 20,
             color: widget.liked ? colors.primary : null,
             semanticLabel: widget.liked ? l10n.unlike : l10n.like,

@@ -17,15 +17,15 @@ void main() {
 
     expect(find.text('L'), findsOneWidget);
     expect(find.byType(ChannelAvatar), findsOneWidget);
-    expect(find.byIcon(Icons.theater_comedy_outlined), findsNothing);
+    expect(find.byIcon(Icons.theater_comedy_rounded), findsNothing);
   });
 
   testWidgets('se è anonima mostra la maschera su indaco', (tester) async {
     await tester.pumpWidget(host(const UserAvatar()));
 
-    expect(find.byIcon(Icons.theater_comedy_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.theater_comedy_rounded), findsOneWidget);
     final icon = tester.widget<Icon>(
-      find.byIcon(Icons.theater_comedy_outlined),
+      find.byIcon(Icons.theater_comedy_rounded),
     );
     expect(icon.color, AppTheme.light.colorScheme.onSecondaryContainer);
     final container = tester.widget<Container>(

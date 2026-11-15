@@ -44,7 +44,7 @@ class _ChannelsPageState extends State<ChannelsPage>
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'channels-new',
         onPressed: () => context.push(AppRoutes.channelNew),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Icons.add_rounded),
         label: Text(l10n.newChannel),
       ),
       body: TabBarView(

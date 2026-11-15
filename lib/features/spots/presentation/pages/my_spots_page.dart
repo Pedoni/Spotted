@@ -84,7 +84,7 @@ class MySpotsPage extends ConsumerWidget {
                         context.push(AppRoutes.channelPath(item.channelSlug)),
                     trailing: IconButton(
                       tooltip: l10n.deleteSpot,
-                      icon: const Icon(Icons.delete_outline),
+                      icon: const Icon(Icons.delete_outline_rounded),
                       onPressed: () =>
                           unawaited(_confirmDelete(context, ref, item)),
                     ),

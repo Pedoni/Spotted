@@ -83,7 +83,7 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
               else
                 IconButton(
                   tooltip: l10n.sendMessage,
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.send_rounded),
                   onPressed: () => unawaited(_send()),
                 ),
             ],

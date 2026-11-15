@@ -31,7 +31,7 @@ void main() {
       ),
       screenSize: const Size(800, 1400),
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -113,7 +113,7 @@ void main() {
       await openMenu(tester, 'Modifica canale');
 
       // Toglie il comune con la "x".
-      await tester.tap(find.byIcon(Icons.close));
+      await tester.tap(find.byIcon(Icons.close_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
       await tester.pumpAndSettle();

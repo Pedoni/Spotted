@@ -38,7 +38,7 @@ void main() {
   Future<void> openSheet(WidgetTester tester) async {
     repo = FakeChannelsRepository(channels: channels);
     await pumpApp(tester, channels: repo, screenSize: const Size(800, 1400));
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Filtri'));
     await tester.pumpAndSettle();

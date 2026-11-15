@@ -144,7 +144,7 @@ void main() {
       await tester.pumpWidget(host(const Skeleton(child: UserAvatar())));
 
       expect(find.byWidgetPredicate((w) => w is Bone), findsOneWidget);
-      expect(find.byIcon(Icons.theater_comedy_outlined), findsNothing);
+      expect(find.byIcon(Icons.theater_comedy_rounded), findsNothing);
     });
 
     testWidgets('fuori dallo scheletro restano colorati', (tester) async {

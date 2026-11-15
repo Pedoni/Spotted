@@ -30,7 +30,7 @@ void main() {
           ),
       comments: comments,
     );
-    await tester.tap(find.byIcon(Icons.tag_outlined));
+    await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
@@ -96,7 +96,7 @@ void main() {
     await openSpot(tester, comments: comments);
 
     await tester.enterText(find.byType(TextField), '  Il mio commento  ');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(comments.addCalls.single, (
@@ -120,7 +120,7 @@ void main() {
     await openSpot(tester, comments: comments);
 
     await tester.enterText(find.byType(TextField), '   ');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(comments.addCalls, isEmpty);
@@ -134,7 +134,7 @@ void main() {
     await openSpot(tester, comments: comments);
 
     await tester.enterText(find.byType(TextField), 'Il mio commento');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
@@ -148,7 +148,7 @@ void main() {
     );
     await openSpot(tester, comments: comments);
 
-    await tester.tap(find.byIcon(Icons.favorite_border).last);
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded).last);
     await tester.pumpAndSettle();
 
     expect(find.text('5'), findsOneWidget);
@@ -161,7 +161,7 @@ void main() {
     )..likeError = const NetworkFailure();
     await openSpot(tester, comments: comments);
 
-    await tester.tap(find.byIcon(Icons.favorite_border).last);
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded).last);
     await tester.pumpAndSettle();
 
     expect(find.text('4'), findsOneWidget);
@@ -180,7 +180,7 @@ void main() {
     );
     await openSpot(tester, spots: spots);
 
-    await tester.tap(find.byIcon(Icons.favorite_border).first);
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded).first);
     await tester.pumpAndSettle();
 
     expect(find.text('3'), findsOneWidget);
