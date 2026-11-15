@@ -59,6 +59,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Non hai ancora pubblicato spot'), findsOneWidget);
+    expect(find.textContaining('Restano anonimi'), findsOneWidget);
   });
 
   testWidgets('mostra i miei spot con il canale e apre il canale', (

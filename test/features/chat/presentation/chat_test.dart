@@ -44,6 +44,7 @@ void main() {
       await openChats(tester, FakeChatRepository());
 
       expect(find.text('Ancora nessuna chat'), findsOneWidget);
+      expect(find.textContaining('Le chat nascono dagli spot'), findsOneWidget);
     });
 
     testWidgets("l'autore vede lo username di chi ha commentato", (

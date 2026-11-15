@@ -246,6 +246,8 @@ void main() {
       await openReports(tester);
 
       expect(find.text('Nessuna segnalazione aperta'), findsOneWidget);
+      expect(find.textContaining('Quando qualcuno segnala'), findsOneWidget);
+      expect(find.byIcon(Icons.flag_rounded), findsOneWidget);
     });
 
     testWidgets('Risolvi chiude la segnalazione e la toglie', (tester) async {

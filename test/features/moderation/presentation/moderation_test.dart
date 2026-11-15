@@ -282,6 +282,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nessuno spot nascosto'), findsOneWidget);
+      expect(find.textContaining('puoi ripristinarli'), findsOneWidget);
     });
 
     testWidgets('errore: messaggio e Riprova', (tester) async {

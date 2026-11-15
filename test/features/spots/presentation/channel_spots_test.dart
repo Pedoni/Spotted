@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 
 import '../../../helpers/fake_repositories.dart';
@@ -46,6 +47,22 @@ void main() {
     await openChannel(tester, FakeSpotsRepository());
 
     expect(find.text('Ancora nessuno spot. Scrivi il primo!'), findsOneWidget);
+  });
+
+  testWidgets('canale senza spot: lo stato vuoto è al centro dello spazio '
+      'sotto l intestazione', (tester) async {
+    await openChannel(tester, FakeSpotsRepository());
+
+    final empty = tester.getRect(find.byType(EmptyState));
+    final screenBottom = tester.getSize(find.byType(Scaffold).last).height;
+    // Sotto l'intestazione del canale (il pulsante "Segui" è il suo ultimo
+    // elemento) e sopra il fondo dello schermo.
+    final headerBottom = tester.getRect(find.text('Segui')).bottom;
+    final above = empty.top - headerBottom;
+    final below = screenBottom - empty.bottom;
+
+    expect(above, greaterThan(0));
+    expect((above - below).abs(), lessThan(48));
   });
 
   testWidgets('errore: messaggio e Riprova', (tester) async {

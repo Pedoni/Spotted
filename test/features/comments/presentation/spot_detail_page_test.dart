@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/core/widgets/empty_state.dart';
+import 'package:spotted/features/comments/presentation/widgets/comment_composer.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
+import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
 
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
@@ -71,6 +74,28 @@ void main() {
       find.text('Ancora nessun commento. Scrivi il primo!'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('senza commenti: niente titolo "Nessun commento", solo lo stato '
+      'vuoto', (tester) async {
+    await openSpot(tester);
+
+    expect(find.text('Nessun commento'), findsNothing);
+    expect(find.byType(EmptyState), findsOneWidget);
+  });
+
+  testWidgets('senza commenti: lo stato vuoto è al centro tra lo spot e il '
+      'campo per scrivere', (tester) async {
+    await openSpot(tester);
+
+    final empty = tester.getRect(find.byType(EmptyState));
+    final titleBottom = tester.getRect(find.byType(SpotCard)).bottom;
+    final composerTop = tester.getRect(find.byType(CommentComposer)).top;
+    final above = empty.top - titleBottom;
+    final below = composerTop - empty.bottom;
+
+    expect(above, greaterThan(0));
+    expect((above - below).abs(), lessThan(48));
   });
 
   testWidgets('errore nel caricare i commenti: messaggio e Riprova', (
