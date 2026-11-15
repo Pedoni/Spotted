@@ -34,6 +34,8 @@ void main() {
       tester,
       channels: FakeChannelsRepository(channels: [channel]),
       spots: spots,
+      // L'intestazione del canale è alta: serve uno schermo alto.
+      screenSize: const Size(800, 1400),
     );
     await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();

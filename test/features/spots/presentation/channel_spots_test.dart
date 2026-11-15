@@ -18,6 +18,9 @@ void main() {
       tester,
       channels: FakeChannelsRepository(channels: [channel]),
       spots: spots,
+      // L'intestazione del canale (copertina, foto, schede) è alta: serve uno
+      // schermo alto per vedere più spot.
+      screenSize: const Size(800, 1400),
     );
     await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
@@ -55,9 +58,9 @@ void main() {
 
     final empty = tester.getRect(find.byType(EmptyState));
     final screenBottom = tester.getSize(find.byType(Scaffold).last).height;
-    // Sotto l'intestazione del canale (il pulsante "Segui" è il suo ultimo
-    // elemento) e sopra il fondo dello schermo.
-    final headerBottom = tester.getRect(find.text('Segui')).bottom;
+    // Sotto la barra delle schede (l'ultimo elemento dell'intestazione) e
+    // sopra il fondo dello schermo.
+    final headerBottom = tester.getRect(find.byType(TabBar)).bottom;
     final above = empty.top - headerBottom;
     final below = screenBottom - empty.bottom;
 
