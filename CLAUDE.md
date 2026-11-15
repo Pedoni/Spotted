@@ -114,12 +114,12 @@ Tabelle in `public`: profiles, channels, topics, municipalities, spots, comments
   - Spot nascosto: sparisce dal feed del canale, lo vedono ancora il proprietario (dettaglio e pagina Moderazione) e l'autore (in "I miei spot", con etichetta). Commento nascosto: lo vede ancora solo il proprietario; il conteggio dei commenti ignora i nascosti. `spot_detail`, `spot_comments` e `my_spots_page` restituiscono `status`.
   - `SpotModeration` (Riverpod) è `keepAlive`: nessuno lo ascolta e, se si distruggesse a metà operazione, le liste non verrebbero aggiornate.
   - **Segnalazioni** (feature `reports`): chiunque segnala spot e commenti visibili, non i propri. `reports` è chiusa ai client (nessuno vede chi segnala, nemmeno il proprietario) e si usano solo `report_spot`, `report_comment`, `channel_reports_page` (segnalazioni aperte del canale, solo proprietario) e `resolve_report` (`resolved`/`dismissed`, solo proprietario). Motivi fissi (`spam`, `offensive`, `hate`, `other`), dettagli facoltativi fino a 500 caratteri, una sola segnalazione per utente e contenuto (`23505` → `ConflictFailure`). Segnalare un proprio contenuto dà `42501`. Il proprietario le vede nella scheda "Segnalazioni" della pagina Moderazione; le chiude ma non nasconde il contenuto in automatico (lo fa dal dettaglio). La vista globale è dell'admin (insieme alla moderazione AI).
-- Auth: email e password.
+- Auth: email e password. Lo username è libero o no lo dice una lettura pubblica di `profiles.username` (colonna già leggibile da tutti): il campo della registrazione lo controlla mentre si scrive (`CheckUsernameAvailable`, 500 ms dopo l'ultima lettera, solo se il formato è valido; avviso "già in uso" che blocca l'invio, o "disponibile"; senza rete non dice niente) e `SignUp` lo ricontrolla subito prima di registrare.
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
 - Mancano i trigger `updated_at`.
-- `handle_new_user` fallisce se lo username è duplicato o non valido: validare prima del signup.
+- `handle_new_user` fallisce se lo username è duplicato o non valido: l'app lo valida prima (formato e disponibilità). Resta il caso raro di due registrazioni con lo stesso username nello stesso istante: il database rifiuta la seconda e l'app la mostra come "username già in uso" (`_mapAuthException`).
 
 ## Roadmap
 

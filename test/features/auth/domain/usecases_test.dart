@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/auth/domain/repositories/auth_repository.dart';
+import 'package:spotted/features/auth/domain/usecases/check_username_available.dart';
 import 'package:spotted/features/auth/domain/usecases/sign_in.dart';
 import 'package:spotted/features/auth/domain/usecases/sign_up.dart';
 
@@ -100,6 +101,45 @@ void main() {
       expect(
         call(SignUp(repository), username: 'a!'),
         throwsA(const AuthFailure(AuthFailureReason.invalidInput)),
+      );
+    });
+  });
+
+  group('CheckUsernameAvailable', () {
+    test('controlla in minuscolo e senza spazi', () async {
+      when(
+        () => repository.isUsernameAvailable('mario_88'),
+      ).thenAnswer((_) async => true);
+
+      final free = await CheckUsernameAvailable(repository)(' Mario_88 ');
+
+      expect(free, isTrue);
+      verify(() => repository.isUsernameAvailable('mario_88')).called(1);
+    });
+
+    test('occupato: false', () async {
+      when(
+        () => repository.isUsernameAvailable('mario_88'),
+      ).thenAnswer((_) async => false);
+
+      expect(await CheckUsernameAvailable(repository)('mario_88'), isFalse);
+    });
+
+    test('non valido: false, senza chiedere al repository', () async {
+      expect(await CheckUsernameAvailable(repository)('a!'), isFalse);
+      expect(await CheckUsernameAvailable(repository)('ab'), isFalse);
+
+      verifyNever(() => repository.isUsernameAvailable(any()));
+    });
+
+    test("l'errore del repository passa così com'è", () {
+      when(
+        () => repository.isUsernameAvailable(any()),
+      ).thenThrow(const NetworkFailure());
+
+      expect(
+        CheckUsernameAvailable(repository)('mario_88'),
+        throwsA(isA<NetworkFailure>()),
       );
     });
   });

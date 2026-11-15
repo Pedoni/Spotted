@@ -29,6 +29,7 @@
   },
   "errorInvalidCredentials": "Email o password non corretti",
   "errorEmailTaken": "Esiste già un account con questa email",
+  "usernameAvailable": "Username disponibile",
   "errorUsernameTaken": "Questo username è già in uso",
   "errorWeakPassword": "La password è troppo debole",
   "errorInvalidInput": "Controlla i dati inseriti",
