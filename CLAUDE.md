@@ -137,7 +137,7 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix. Le rel
 | 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
 | 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` e app (fatto) |
 | 0.7.0 | UI: palette, font, tema chiaro/scuro, widget condivisi, scheletri di caricamento, icona e splash, accesso e registrazione (fatto) |
-| 0.8.0 | Rifiniture e ricerca: comune dei canali da elenco ISTAT, ricerca di testo negli spot di un canale (con evidenziazione), filtri dei canali in un foglio dal basso, ora oltre alla data, conferma del logout, modifica ed eliminazione dei canali, controllo dello username prima della registrazione, scelta del tema (chiaro, scuro o sistema), icone arrotondate e stati vuoti, copertina e foto nella pagina del canale con le schede Spots, Eventi e News (ancora vuote) |
+| 0.8.0 | Rifiniture e ricerca: comune dei canali da elenco ISTAT, ricerca di testo negli spot di un canale (con evidenziazione), filtri dei canali in un foglio dal basso, ora oltre alla data, conferma del logout, modifica ed eliminazione dei canali, controllo dello username prima della registrazione, scelta del tema (chiaro, scuro o sistema), icone arrotondate e stati vuoti, copertina e foto nella pagina del canale con le schede Spots, Eventi e News (ancora vuote) (fatto) |
 | dopo | Profilo personalizzabile (immagine), cambio password, cancellazione account |
 | dopo | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
 | dopo | Rifinitura: accessibilità, notifiche, release candidate |
