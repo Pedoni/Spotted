@@ -13,6 +13,7 @@ abstract final class AppRoutes {
   static const spotDetail = '/spots/:id';
   static const profile = '/profile';
   static const mySpots = '/profile/spots';
+  static const about = '/profile/about';
 
   static String channelPath(String slug) => '/c/$slug';
   static String spotNewPath(String slug) => '/c/$slug/spot/new';
