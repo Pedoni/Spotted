@@ -54,6 +54,8 @@ Map<String, dynamic> channelRow(
   String? municipalityId,
   String? provinceCode,
   String? regionName,
+  String? avatarPath,
+  String? coverPath,
 }) {
   return {
     'id': id,
@@ -64,6 +66,8 @@ Map<String, dynamic> channelRow(
     'municipality_id': municipalityId,
     'province_code': provinceCode,
     'region_name': regionName,
+    'avatar_path': avatarPath,
+    'cover_path': coverPath,
     'topic_id': topicId,
     'created_at': '2026-01-01T10:00:00+00:00',
   };

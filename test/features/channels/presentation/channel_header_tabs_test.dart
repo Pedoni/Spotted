@@ -43,7 +43,9 @@ void main() {
       expect(find.byType(BrandBlobs), findsOneWidget);
       final cover = tester.getRect(find.byType(ChannelCover));
       expect(cover.width, 800);
-      expect(cover.height, ChannelCover.defaultHeight);
+      // Segue la proporzione 8:3 ma non supera l'altezza massima.
+      expect(cover.height, ChannelCover.heightFor(800));
+      expect(cover.height, ChannelCover.maxHeight);
     });
 
     testWidgets('la foto è quadrata e sovrappone la copertina, a sinistra', (

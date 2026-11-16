@@ -12,6 +12,8 @@ class Channel extends Equatable {
     this.provinceCode,
     this.regionName,
     this.topicId,
+    this.avatarPath,
+    this.coverPath,
   });
 
   final String id;
@@ -27,6 +29,14 @@ class Channel extends Equatable {
   final String? provinceCode;
   final String? regionName;
   final String? topicId;
+
+  /// Dove sta, nello storage, la foto del canale (quadrata). `null` se il
+  /// canale non ne ha una: c'è l'iniziale su colore.
+  final String? avatarPath;
+
+  /// Dove sta, nello storage, la copertina. `null` se il canale non ne ha una:
+  /// c'è quella di marca, uguale per tutti.
+  final String? coverPath;
   final DateTime createdAt;
 
   @override
@@ -40,6 +50,8 @@ class Channel extends Equatable {
     provinceCode,
     regionName,
     topicId,
+    avatarPath,
+    coverPath,
     createdAt,
   ];
 }

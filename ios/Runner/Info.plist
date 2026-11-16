@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Serve per scattare la foto o la copertina del tuo canale.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Serve per scegliere la foto o la copertina del tuo canale dalla galleria.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
