@@ -1,11 +1,20 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/app_info/app_info.dart';
+import 'package:spotted/core/licenses/font_licenses.dart';
 import 'package:spotted/core/widgets/radar_logo.dart';
 
+import '../../helpers/fake_asset_bundle.dart';
 import '../../helpers/pump_app.dart';
+
+/// I testi delle licenze dei font, finti e subito disponibili.
+FakeAssetBundle fontBundle() => FakeAssetBundle({
+  for (final font in fontLicenses)
+    font.asset: 'SIL OPEN FONT LICENSE di ${font.name}',
+});
 
 void main() {
   Future<void> openAbout(
@@ -125,6 +134,38 @@ void main() {
 
       expect(find.byType(LicensePage), findsOneWidget);
       expect(find.text('Spotted'), findsWidgets);
+    });
+
+    testWidgets('tra le licenze ci sono anche quelle dei font dell app', (
+      tester,
+    ) async {
+      // Come fa `main` all'avvio.
+      LicenseRegistry.reset();
+      addTearDown(LicenseRegistry.reset);
+      registerFontLicenses(fontBundle());
+      await openAbout(tester);
+
+      await tester.tap(find.text('Licenze open source'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bricolage Grotesque (font)'), findsOneWidget);
+      expect(find.text('Plus Jakarta Sans (font)'), findsOneWidget);
+    });
+
+    testWidgets('toccando un font si legge il testo della licenza', (
+      tester,
+    ) async {
+      LicenseRegistry.reset();
+      addTearDown(LicenseRegistry.reset);
+      registerFontLicenses(fontBundle());
+      await openAbout(tester);
+      await tester.tap(find.text('Licenze open source'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Plus Jakarta Sans (font)'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('SIL OPEN FONT LICENSE'), findsWidgets);
     });
 
     testWidgets('dalle licenze si torna alla pagina informazioni', (
