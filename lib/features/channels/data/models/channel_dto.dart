@@ -7,7 +7,7 @@ part 'channel_dto.g.dart';
 /// proposito: il proprietario di un canale non è mostrato.
 const channelColumns =
     'id, topic_id, name, slug, description, place, municipality_id, '
-    'province_code, region_name, created_at';
+    'province_code, region_name, avatar_path, cover_path, created_at';
 
 @JsonSerializable(createToJson: false, fieldRename: FieldRename.snake)
 class ChannelDto {
@@ -22,6 +22,8 @@ class ChannelDto {
     this.provinceCode,
     this.regionName,
     this.topicId,
+    this.avatarPath,
+    this.coverPath,
   });
 
   factory ChannelDto.fromJson(Map<String, dynamic> json) =>
@@ -36,6 +38,8 @@ class ChannelDto {
   final String? provinceCode;
   final String? regionName;
   final String? topicId;
+  final String? avatarPath;
+  final String? coverPath;
   final DateTime createdAt;
 
   Channel toEntity() => Channel(
@@ -48,6 +52,8 @@ class ChannelDto {
     provinceCode: provinceCode,
     regionName: regionName,
     topicId: topicId,
+    avatarPath: avatarPath,
+    coverPath: coverPath,
     createdAt: createdAt,
   );
 }

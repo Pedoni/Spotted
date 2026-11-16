@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  crop_your_image: ^2.0.1
   cupertino_icons: ^1.0.8
   equatable: ^3.0.0
   flutter:
@@ -37,6 +38,8 @@ dependencies:
   flutter_riverpod: ^3.5.0
   go_router: ^18.1.3
   http: ^1.6.0
+  image: ^4.13.1
+  image_picker: ^1.2.4
   intl: ^0.20.2
   json_annotation: ^4.12.0
   riverpod_annotation: ^4.0.8

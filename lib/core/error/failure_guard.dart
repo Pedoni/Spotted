@@ -14,6 +14,8 @@ Future<T> guardFailures<T>(Future<T> Function() action) async {
     throw const NetworkFailure();
   } on PostgrestException catch (e) {
     throw _fromPostgrest(e);
+  } on StorageException catch (e) {
+    throw _fromStorage(e);
   } on SocketException {
     throw const NetworkFailure();
   } on TimeoutException {
@@ -44,5 +46,18 @@ Failure _fromPostgrest(PostgrestException e) {
       message,
     ),
     _ => UnknownFailure(message),
+  };
+}
+
+/// Gli errori dello storage: file troppo grande o di un tipo non ammesso, e
+/// accesso negato.
+Failure _fromStorage(StorageException e) {
+  return switch (e.statusCode) {
+    // File troppo grande (413) o di un tipo non ammesso dal bucket (415).
+    '413' => ImageFailure(ImageFailureReason.tooLarge, e.message),
+    '415' => ImageFailure(ImageFailureReason.invalid, e.message),
+    // Non autorizzato: le regole sullo storage non lo permettono.
+    '401' || '403' => PermissionFailure(e.message),
+    _ => UnknownFailure(e.message),
   };
 }

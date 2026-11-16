@@ -12,6 +12,10 @@ String failureMessage(AppLocalizations l10n, Object error) {
       AuthFailureReason.invalidInput => l10n.errorInvalidInput,
       AuthFailureReason.unknown => l10n.errorGeneric,
     },
+    ImageFailure(:final reason) => switch (reason) {
+      ImageFailureReason.tooLarge => l10n.errorImageTooLarge,
+      ImageFailureReason.invalid => l10n.errorImageInvalid,
+    },
     ValidationFailure() => l10n.errorInvalidInput,
     ConflictFailure() => l10n.errorConflict,
     PermissionFailure() => l10n.errorPermission,
