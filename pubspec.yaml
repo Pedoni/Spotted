@@ -42,6 +42,7 @@ dependencies:
   image_picker: ^1.2.4
   intl: ^0.20.2
   json_annotation: ^4.12.0
+  package_info_plus: ^10.2.2
   riverpod_annotation: ^4.0.8
   shared_preferences: ^2.5.6
   skeletonizer: ^3.0.0
@@ -89,6 +90,12 @@ flutter:
           weight: 700
         - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf
           weight: 800
+
+  # I testi delle licenze dei font (OFL): la pagina "Licenze open source" li
+  # mostra (vedi lib/core/licenses/font_licenses.dart).
+  assets:
+    - assets/fonts/OFL-BricolageGrotesque.txt
+    - assets/fonts/OFL-PlusJakartaSans.txt
 
   # To add assets to your application, add an assets section, like this:
   # assets:

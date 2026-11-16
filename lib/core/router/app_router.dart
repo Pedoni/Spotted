@@ -14,6 +14,7 @@ import 'package:spotted/features/chat/presentation/pages/chat_page.dart';
 import 'package:spotted/features/chat/presentation/pages/chats_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
 import 'package:spotted/features/moderation/presentation/pages/moderation_page.dart';
+import 'package:spotted/features/profile/presentation/pages/about_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
 import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
@@ -113,6 +114,10 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotDetail,
         builder: (context, state) =>
             SpotDetailPage(spotId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.about,
+        builder: (context, state) => const AboutPage(),
       ),
       GoRoute(
         path: AppRoutes.mySpots,

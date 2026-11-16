@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotted/app.dart';
+import 'package:spotted/core/app_info/app_info.dart';
 import 'package:spotted/core/riverpod/no_retry.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/features/auth/domain/entities/app_user.dart';
@@ -40,6 +41,7 @@ Future<void> pumpApp(
   FakeChannelImagesRepository? channelImages,
   FakeChannelImagePicker? imagePicker,
   FakeChannelImageCropper? imageCropper,
+  Future<AppInfo> Function()? appInfo,
   ChannelImageUrlBuilder? imageUrl,
   Map<String, Object> preferences = const {},
 
@@ -97,6 +99,10 @@ Future<void> pumpApp(
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
+        // La versione dell'app: nei test non c'è il sistema da cui leggerla.
+        appInfoProvider.overrideWith(
+          (ref) => appInfo?.call() ?? Future.value(testAppInfo),
+        ),
         // Le immagini dei canali: repository, selettore e ritaglio finti. Il
         // processore non serve, perché il repository finto non lo usa.
         channelImagesRepositoryProvider.overrideWithValue(
@@ -124,6 +130,9 @@ Future<void> pumpApp(
     await tester.pump(const Duration(milliseconds: 50));
   }
 }
+
+/// La versione dell'app che mostrano i test.
+const testAppInfo = AppInfo(version: '0.8.0', buildNumber: '1');
 
 /// Schermo abbastanza alto da mostrare tutto il profilo.
 const tallScreen = Size(800, 2000);
