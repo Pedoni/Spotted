@@ -91,6 +91,12 @@ flutter:
         - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf
           weight: 800
 
+  # I testi delle licenze dei font (OFL): la pagina "Licenze open source" li
+  # mostra (vedi lib/core/licenses/font_licenses.dart).
+  assets:
+    - assets/fonts/OFL-BricolageGrotesque.txt
+    - assets/fonts/OFL-PlusJakartaSans.txt
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
