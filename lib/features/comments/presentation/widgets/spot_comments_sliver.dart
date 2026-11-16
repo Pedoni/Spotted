@@ -69,11 +69,13 @@ class SpotCommentsSliver extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
+    // Letti prima dell'attesa: se nel frattempo si esce dalla pagina `ref` non
+    // si può più usare.
+    final feed = ref.read(spotCommentsFeedProvider(spot.id).notifier);
+    final interaction = ref.read(spotInteractionProvider(spot.id).notifier);
     try {
-      await ref
-          .read(spotCommentsFeedProvider(spot.id).notifier)
-          .delete(comment.id);
-      ref.read(spotInteractionProvider(spot.id).notifier).addComments(spot, -1);
+      await feed.delete(comment.id);
+      interaction.addComments(spot, -1);
       messenger.showSnackBar(SnackBar(content: Text(l10n.commentDeleted)));
     } on Exception catch (error) {
       messenger.showSnackBar(

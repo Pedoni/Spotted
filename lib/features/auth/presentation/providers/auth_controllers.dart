@@ -51,11 +51,16 @@ class SignOutController extends _$SignOutController {
   @override
   FutureOr<void> build() {}
 
-  Future<void> submit() async {
+  /// Esce dall'account. Restituisce l'errore se non ci riesce, `null` se va
+  /// bene. Chi chiama usa il valore restituito e non rilegge lo stato: quando
+  /// l'uscita riesce il router porta all'accesso e la pagina da cui si chiama
+  /// sparisce, quindi il suo `ref` non si può più usare.
+  Future<Object?> submit() async {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(
       () => ref.read(signOutUseCaseProvider)(),
     );
     if (ref.mounted) state = result;
+    return result.error;
   }
 }

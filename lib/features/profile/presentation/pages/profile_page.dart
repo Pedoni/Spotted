@@ -49,10 +49,10 @@ class ProfilePage extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(signOutControllerProvider.notifier).submit();
-    // Se esce, il router porta all'accesso e questa pagina non c'è più. Se
+    final error = await ref.read(signOutControllerProvider.notifier).submit();
+    // Se esce, il router porta all'accesso e questa pagina non c'è più (e il
+    // suo `ref` non si può più usare): da qui in poi si usa solo `error`. Se
     // fallisce l'utente resta loggato e deve saperlo.
-    final error = ref.read(signOutControllerProvider).error;
     if (error != null && context.mounted) {
       messenger.showSnackBar(
         SnackBar(content: Text(failureMessage(l10n, error))),
