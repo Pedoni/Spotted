@@ -40,6 +40,8 @@ Channel makeChannel(
   String? municipalityId,
   String? provinceCode,
   String? regionName,
+  String? avatarPath,
+  String? coverPath,
   String? description,
 }) {
   return Channel(
@@ -51,6 +53,8 @@ Channel makeChannel(
     municipalityId: municipalityId,
     provinceCode: provinceCode,
     regionName: regionName,
+    avatarPath: avatarPath,
+    coverPath: coverPath,
     description: description,
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
   );

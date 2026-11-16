@@ -19,6 +19,7 @@ import 'package:spotted/features/subscriptions/presentation/providers/subscripti
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 
 import 'fake_auth_repository.dart';
+import 'fake_channel_images.dart';
 import 'fake_repositories.dart';
 
 /// Avvia l'app con repository finti. Per default l'utente è già loggato.
@@ -36,6 +37,10 @@ Future<void> pumpApp(
   FakeChatRepository? chat,
   FakeMunicipalitiesRepository? municipalities,
   Duration? chatPollInterval,
+  FakeChannelImagesRepository? channelImages,
+  FakeChannelImagePicker? imagePicker,
+  FakeChannelImageCropper? imageCropper,
+  ChannelImageUrlBuilder? imageUrl,
   Map<String, Object> preferences = const {},
 
   /// Dimensione dello schermo: le liste costruiscono solo ciò che si vede, per
@@ -92,6 +97,22 @@ Future<void> pumpApp(
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
+        // Le immagini dei canali: repository, selettore e ritaglio finti. Il
+        // processore non serve, perché il repository finto non lo usa.
+        channelImagesRepositoryProvider.overrideWithValue(
+          channelImages ?? FakeChannelImagesRepository(channels),
+        ),
+        channelImageProcessorProvider.overrideWithValue(
+          FakeChannelImageProcessor(),
+        ),
+        channelImagePickerProvider.overrideWithValue(
+          imagePicker ?? FakeChannelImagePicker(),
+        ),
+        channelImageCropperProvider.overrideWithValue(
+          imageCropper ?? FakeChannelImageCropper(),
+        ),
+        if (imageUrl != null)
+          channelImageUrlProvider.overrideWithValue(imageUrl),
       ],
       child: const App(),
     ),

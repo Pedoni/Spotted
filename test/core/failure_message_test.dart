@@ -33,6 +33,17 @@ void main() {
     );
   });
 
+  test('le immagini non valide hanno un messaggio per ogni motivo', () {
+    expect(
+      failureMessage(l10n, const ImageFailure(ImageFailureReason.tooLarge)),
+      'La foto pesa troppo: scegline una sotto i 15 MB.',
+    );
+    expect(
+      failureMessage(l10n, const ImageFailure(ImageFailureReason.invalid)),
+      'Non riesco a usare questo file: scegli una foto.',
+    );
+  });
+
   test('i motivi di AuthFailure hanno messaggi distinti', () {
     final messages = {
       for (final reason in AuthFailureReason.values)
