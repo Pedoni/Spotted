@@ -4,6 +4,7 @@ import 'package:spotted/core/widgets/channel_avatar.dart';
 import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
+import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
@@ -82,6 +83,9 @@ class _ChannelPickerSheet extends ConsumerWidget {
                           leading: ChannelAvatar(
                             name: channel.name,
                             seed: channel.id,
+                            imageUrl: ref.watch(channelImageUrlProvider)(
+                              channel.avatarPath,
+                            ),
                           ),
                           title: Text(
                             channel.name,

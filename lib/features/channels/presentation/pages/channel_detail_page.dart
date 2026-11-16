@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
@@ -8,9 +9,12 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_image_kind.dart';
 import 'package:spotted/features/channels/presentation/providers/channel_actions.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/channels/presentation/services/channel_image_picker.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_header.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_image_dialog.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tabs.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
@@ -42,6 +46,9 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     vsync: this,
   );
   ChannelTab _tab = ChannelTab.spots;
+
+  /// Le immagini che si stanno caricando o togliendo in questo momento.
+  final _busyImages = <ChannelImageKind>{};
   Timer? _debounce;
   bool _searching = false;
 
@@ -64,6 +71,79 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     _debounce?.cancel();
     _search.dispose();
     super.dispose();
+  }
+
+  /// Cambia, scatta o toglie la foto o la copertina: la finestra, poi (per un
+  /// file nuovo) la scelta, il ritaglio nella proporzione giusta e il
+  /// caricamento.
+  Future<void> _editImage(Channel channel, ChannelImageKind kind) async {
+    if (_busyImages.contains(kind)) return;
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final isAvatar = kind == ChannelImageKind.avatar;
+    final hasImage =
+        (isAvatar ? channel.avatarPath : channel.coverPath) != null;
+
+    final choice = await showChannelImageDialog(
+      context,
+      kind: kind,
+      hasImage: hasImage,
+    );
+    if (choice == null || !mounted) return;
+
+    try {
+      final actions = ref.read(channelActionsProvider.notifier);
+      if (choice == ChannelImageChoice.remove) {
+        final confirmed = await confirmRemoveChannelImage(context, kind: kind);
+        if (!confirmed || !mounted) return;
+        setState(() => _busyImages.add(kind));
+        await actions.removeImage(channel: channel, kind: kind);
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(isAvatar ? l10n.photoRemoved : l10n.coverRemoved),
+            ),
+          );
+        return;
+      }
+
+      final picked = await ref
+          .read(channelImagePickerProvider)
+          .pick(
+            choice == ChannelImageChoice.camera
+                ? ChannelImageSource.camera
+                : ChannelImageSource.gallery,
+          );
+      if (picked == null || !mounted) return;
+      final cropped = await ref
+          .read(channelImageCropperProvider)
+          .crop(context, picked, kind);
+      if (cropped == null || !mounted) return;
+
+      setState(() => _busyImages.add(kind));
+      await actions.setImage(channel: channel, kind: kind, source: cropped);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(isAvatar ? l10n.photoUpdated : l10n.coverUpdated),
+          ),
+        );
+    } on PlatformException {
+      // La galleria o la fotocamera non si aprono (per esempio senza permesso).
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.errorImagePicker)));
+    } on Exception catch (error) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(failureMessage(l10n, error))),
+        );
+    } finally {
+      if (mounted) setState(() => _busyImages.remove(kind));
+    }
   }
 
   void _openSearch() {
@@ -226,6 +306,13 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                     child: ChannelHeader(
                       channel: channel,
                       topicName: topicName,
+                      // Le matite sulle immagini sono solo del proprietario.
+                      onEditImage:
+                          ref.watch(isChannelOwnerProvider(channel.id)).value ==
+                              true
+                          ? (kind) => unawaited(_editImage(channel, kind))
+                          : null,
+                      busy: _busyImages,
                       footer: _SubscriptionRow(channelId: channel.id),
                     ),
                   ),

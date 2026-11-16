@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spotted/core/widgets/channel_avatar.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 
-class ChannelTile extends StatelessWidget {
+class ChannelTile extends ConsumerWidget {
   const ChannelTile({
     required this.channel,
     required this.onTap,
@@ -15,14 +17,18 @@ class ChannelTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final details = [
       topicName,
       channel.place,
     ].whereType<String>().where((s) => s.isNotEmpty).join(' · ');
 
     return ListTile(
-      leading: ChannelAvatar(name: channel.name, seed: channel.id),
+      leading: ChannelAvatar(
+        name: channel.name,
+        seed: channel.id,
+        imageUrl: ref.watch(channelImageUrlProvider)(channel.avatarPath),
+      ),
       title: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: details.isEmpty
           ? null
