@@ -1,0 +1,25 @@
+name: Funzionalità
+description: Una cosa nuova da aggiungere all'app
+title: "feat: "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Obiettivo
+      description: Cosa deve poter fare l'utente che oggi non può fare.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Dettagli e decisioni
+      description: Come deve comportarsi, casi limite, cosa resta fuori.
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Cosa tocca
+      options:
+        - label: Database (nuova migrazione)
+        - label: Anonimato o permessi (RLS, grant, RPC)
+        - label: Interfaccia
