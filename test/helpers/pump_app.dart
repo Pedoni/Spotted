@@ -13,6 +13,7 @@ import 'package:spotted/features/chat/presentation/providers/chat_providers.dart
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/municipalities/presentation/providers/municipalities_providers.dart';
+import 'package:spotted/features/news/presentation/providers/news_providers.dart';
 import 'package:spotted/features/profile/presentation/providers/profile_providers.dart';
 import 'package:spotted/features/reports/presentation/providers/reports_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
@@ -21,6 +22,7 @@ import 'package:spotted/features/topics/presentation/providers/topics_providers.
 
 import 'fake_auth_repository.dart';
 import 'fake_channel_images.dart';
+import 'fake_news.dart';
 import 'fake_repositories.dart';
 
 /// Avvia l'app con repository finti. Per default l'utente è già loggato.
@@ -37,6 +39,7 @@ Future<void> pumpApp(
   FakeReportsRepository? reports,
   FakeChatRepository? chat,
   FakeMunicipalitiesRepository? municipalities,
+  FakeNewsRepository? news,
   Duration? chatPollInterval,
   FakeChannelImagesRepository? channelImages,
   FakeChannelImagePicker? imagePicker,
@@ -96,6 +99,7 @@ Future<void> pumpApp(
         municipalitiesRepositoryProvider.overrideWithValue(
           municipalities ?? FakeMunicipalitiesRepository(),
         ),
+        newsRepositoryProvider.overrideWithValue(news ?? FakeNewsRepository()),
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
