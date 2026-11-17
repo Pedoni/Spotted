@@ -14,6 +14,10 @@ import 'package:spotted/features/chat/presentation/pages/chat_page.dart';
 import 'package:spotted/features/chat/presentation/pages/chats_page.dart';
 import 'package:spotted/features/home/presentation/home_page.dart';
 import 'package:spotted/features/moderation/presentation/pages/moderation_page.dart';
+import 'package:spotted/features/news/presentation/pages/create_news_page.dart';
+import 'package:spotted/features/news/presentation/pages/edit_news_page.dart';
+import 'package:spotted/features/news/presentation/pages/latest_news_page.dart';
+import 'package:spotted/features/news/presentation/pages/news_detail_page.dart';
 import 'package:spotted/features/profile/presentation/pages/about_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
@@ -94,6 +98,25 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotNew,
         builder: (context, state) =>
             CreateSpotPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: AppRoutes.newsNew,
+        builder: (context, state) =>
+            CreateNewsPage(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: AppRoutes.latestNews,
+        builder: (context, state) => const LatestNewsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.newsDetail,
+        builder: (context, state) =>
+            NewsDetailPage(newsId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.newsEdit,
+        builder: (context, state) =>
+            EditNewsPage(newsId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.channelEdit,

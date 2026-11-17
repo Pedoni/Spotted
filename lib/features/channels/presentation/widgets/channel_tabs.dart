@@ -80,7 +80,7 @@ class ChannelEmptyTabSliver extends StatelessWidget {
       ChannelTab.spots => (
         Icons.article_rounded,
         l10n.noSpotsInChannel,
-        null,
+        l10n.noSpotsInChannelHint,
       ),
     };
     return SliverFillRemaining(

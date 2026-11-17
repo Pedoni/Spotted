@@ -54,6 +54,7 @@ class ChannelSpotsSliver extends ConsumerWidget {
                 title: query.isEmpty
                     ? l10n.noSpotsInChannel
                     : l10n.noSpotResults(query),
+                message: query.isEmpty ? l10n.noSpotsInChannelHint : null,
               ),
             ),
           );
