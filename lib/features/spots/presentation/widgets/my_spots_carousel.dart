@@ -6,6 +6,7 @@ import 'package:spotted/core/format/date_time_format.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/theme/app_shapes.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
+import 'package:spotted/features/home/presentation/widgets/home_section_header.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
@@ -60,43 +61,13 @@ class MySpotsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Header(onTap: empty ? null : () => context.push(AppRoutes.mySpots)),
+        HomeSectionHeader(
+          title: l10n.mySpotsTitle,
+          onTap: empty ? null : () => context.push(AppRoutes.mySpots),
+        ),
         body,
         const SizedBox(height: 8),
       ],
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.onTap});
-
-  /// Se è `null` la freccia non c'è.
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 8, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              l10n.mySpotsTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          if (onTap != null)
-            IconButton(
-              tooltip: l10n.viewAll,
-              icon: const Icon(Icons.chevron_right_rounded),
-              onPressed: onTap,
-            )
-          else
-            const SizedBox(height: 48),
-        ],
-      ),
     );
   }
 }
