@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/core/supabase/supabase_providers.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/events/presentation/providers/followed_events_feed.dart';
 import 'package:spotted/features/news/presentation/providers/followed_news_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/followed_spots_feed.dart';
 import 'package:spotted/features/subscriptions/data/datasources/subscriptions_remote_data_source.dart';
@@ -57,7 +58,8 @@ class ChannelSubscription extends _$ChannelSubscription {
         ref
           ..invalidate(mySubscribedChannelsProvider)
           ..invalidate(followedSpotsFeedProvider)
-          ..invalidate(followedNewsFeedProvider);
+          ..invalidate(followedNewsFeedProvider)
+          ..invalidate(followedEventsFeedProvider);
       }
     } on Exception {
       if (ref.mounted) state = AsyncData(current);

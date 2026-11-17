@@ -187,7 +187,7 @@ void main() {
 
       expect(find.text('Spot 1'), findsOneWidget);
       expect(find.text('Pubblica uno spot'), findsOneWidget);
-      expect(find.text('Ancora nessun evento'), findsNothing);
+      expect(find.text('Nessun evento in programma'), findsNothing);
     });
 
     testWidgets('Eventi dice che non c è niente e nasconde gli spot', (
@@ -201,7 +201,7 @@ void main() {
       await tester.tap(find.text('Eventi'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ancora nessun evento'), findsOneWidget);
+      expect(find.text('Nessun evento in programma'), findsOneWidget);
       expect(
         find.text('Qui compariranno gli eventi del canale.'),
         findsOneWidget,
@@ -258,7 +258,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Spot 1'), findsOneWidget);
-      expect(find.text('Ancora nessun evento'), findsNothing);
+      expect(find.text('Nessun evento in programma'), findsNothing);
     });
 
     testWidgets('la barra delle schede resta ferma in cima scorrendo', (

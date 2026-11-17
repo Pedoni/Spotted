@@ -14,6 +14,10 @@ import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/presentation/widgets/chat_skeletons.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_skeletons.dart';
+import 'package:spotted/features/events/domain/entities/channel_event.dart';
+import 'package:spotted/features/events/domain/entities/events_when.dart';
+import 'package:spotted/features/events/presentation/widgets/event_skeletons.dart';
+import 'package:spotted/features/events/presentation/widgets/upcoming_events_section.dart';
 import 'package:spotted/features/news/domain/entities/channel_news.dart';
 import 'package:spotted/features/news/presentation/widgets/latest_news_section.dart';
 import 'package:spotted/features/news/presentation/widgets/news_skeletons.dart';
@@ -29,12 +33,61 @@ import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart'
 import 'package:spotted/l10n/app_localizations.dart';
 
 import '../../helpers/fake_auth_repository.dart';
+import '../../helpers/fake_events.dart';
 import '../../helpers/fake_news.dart';
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
 
 // Repository che tengono ferma la lettura finché non si completa `hold`: la
 // schermata resta in caricamento.
+
+class HeldEvents extends FakeEventsRepository {
+  HeldEvents(
+    this.hold, {
+    super.events,
+    this.list = false,
+    this.detail = false,
+    this.home = false,
+  });
+
+  final Completer<void> hold;
+  final bool list;
+  final bool detail;
+
+  /// I prossimi eventi dei canali seguiti (la Home).
+  final bool home;
+
+  @override
+  Future<List<ChannelEvent>> getFollowedEvents({
+    required int offset,
+    required int limit,
+  }) async {
+    if (home) await hold.future;
+    return super.getFollowedEvents(offset: offset, limit: limit);
+  }
+
+  @override
+  Future<List<ChannelEvent>> getChannelEvents({
+    required String channelId,
+    required EventsWhen when,
+    required int offset,
+    required int limit,
+  }) async {
+    if (list) await hold.future;
+    return super.getChannelEvents(
+      channelId: channelId,
+      when: when,
+      offset: offset,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<ChannelEvent> getEvent(String eventId) async {
+    if (detail) await hold.future;
+    return super.getEvent(eventId);
+  }
+}
 
 class HeldNews extends FakeNewsRepository {
   HeldNews(
@@ -482,6 +535,19 @@ void main() {
     expect(find.text('News 1'), findsOneWidget);
   });
 
+  testWidgets('Home: il carosello dei prossimi eventi', (tester) async {
+    final hold = Completer<void>();
+    final events = HeldEvents(hold, home: true)..followed = [makeEvent(1)];
+    await pumpApp(tester, events: events, settle: false);
+    await advance(tester);
+
+    expectSkeleton(find.byType(UpcomingEventsCarouselSkeleton));
+    expect(find.text('Prossimi eventi'), findsOneWidget);
+
+    await release(tester, hold);
+    expect(find.text('Evento 1'), findsOneWidget);
+  });
+
   testWidgets('Home: il carosello delle ultime news', (tester) async {
     final hold = Completer<void>();
     final news = HeldNews(hold, home: true)..followed = [makeNews(1)];
@@ -493,6 +559,48 @@ void main() {
 
     await release(tester, hold);
     expect(find.text('News 1'), findsOneWidget);
+  });
+
+  testWidgets('Canale: la scheda Eventi', (tester) async {
+    final hold = Completer<void>();
+    await pumpApp(
+      tester,
+      channels: FakeChannelsRepository(channels: [channel]),
+      events: HeldEvents(hold, events: [makeEvent(1)], list: true),
+      screenSize: const Size(800, 1400),
+    );
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Spotted Pisa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(Tab, 'Eventi'));
+    await advance(tester);
+
+    expectSkeleton(find.byType(EventCardsSkeleton));
+
+    await release(tester, hold);
+    expect(find.text('Evento 1'), findsOneWidget);
+  });
+
+  testWidgets('Dettaglio di un evento', (tester) async {
+    final hold = Completer<void>();
+    await pumpApp(
+      tester,
+      channels: FakeChannelsRepository(channels: [channel]),
+      events: HeldEvents(hold, events: [makeEvent(1)], detail: true),
+      screenSize: const Size(800, 1400),
+    );
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Spotted Pisa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(Tab, 'Eventi'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Evento 1'));
+    await advance(tester);
+
+    expectSkeleton(find.byType(EventCardsSkeleton));
+
+    await release(tester, hold);
+    expect(find.text("Descrizione dell'evento 1"), findsOneWidget);
   });
 
   testWidgets('Dettaglio di una news', (tester) async {
