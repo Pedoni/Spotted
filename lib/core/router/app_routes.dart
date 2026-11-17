@@ -7,6 +7,10 @@ abstract final class AppRoutes {
   static const channelDetail = '/c/:slug';
   static const spotNew = '/c/:slug/spot/new';
   static const newsNew = '/c/:slug/news/new';
+  static const eventNew = '/c/:slug/event/new';
+  static const eventDetail = '/events/:id';
+  static const eventEdit = '/events/:id/edit';
+  static const upcomingEvents = '/upcoming-events';
   static const latestNews = '/latest-news';
   static const newsDetail = '/news/:id';
   static const newsEdit = '/news/:id/edit';
@@ -21,6 +25,9 @@ abstract final class AppRoutes {
 
   static String channelPath(String slug) => '/c/$slug';
   static String spotNewPath(String slug) => '/c/$slug/spot/new';
+  static String eventNewPath(String slug) => '/c/$slug/event/new';
+  static String eventPath(String id) => '/events/$id';
+  static String eventEditPath(String id) => '/events/$id/edit';
   static String newsNewPath(String slug) => '/c/$slug/news/new';
   static String newsPath(String id) => '/news/$id';
   static String newsEditPath(String id) => '/news/$id/edit';

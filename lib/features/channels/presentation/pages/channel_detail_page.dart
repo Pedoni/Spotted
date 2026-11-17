@@ -17,6 +17,9 @@ import 'package:spotted/features/channels/presentation/widgets/channel_header.da
 import 'package:spotted/features/channels/presentation/widgets/channel_image_dialog.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tabs.dart';
+import 'package:spotted/features/events/domain/entities/events_when.dart';
+import 'package:spotted/features/events/presentation/providers/channel_events_feed.dart';
+import 'package:spotted/features/events/presentation/widgets/channel_events_sliver.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/news/presentation/providers/channel_news_feed.dart';
 import 'package:spotted/features/news/presentation/widgets/channel_news_sliver.dart';
@@ -48,6 +51,9 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     vsync: this,
   );
   ChannelTab _tab = ChannelTab.spots;
+
+  /// Quali eventi mostra la scheda Eventi: i prossimi o i passati.
+  EventsWhen _eventsWhen = EventsWhen.upcoming;
 
   /// Le immagini che si stanno caricando o togliendo in questo momento.
   final _busyImages = <ChannelImageKind>{};
@@ -242,8 +248,8 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     );
   }
 
-  /// Il pulsante della scheda: "Pubblica" per gli spot (di tutti), "Pubblica
-  /// una news" per le news (solo del proprietario).
+  /// Il pulsante della scheda: "Pubblica uno spot" (di tutti), "Pubblica una
+  /// news" e "Pubblica un evento" (solo del proprietario).
   Widget? _floatingButton(
     AppLocalizations l10n,
     Channel? channel,
@@ -269,7 +275,15 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
           label: Text(l10n.publishNews),
         );
       case ChannelTab.events:
-        return null;
+        if (ref.watch(isChannelOwnerProvider(channel.id)).value != true) {
+          return null;
+        }
+        return FloatingActionButton.extended(
+          onPressed: () =>
+              unawaited(context.push(AppRoutes.eventNewPath(channel.slug))),
+          icon: const Icon(Icons.edit_rounded),
+          label: Text(l10n.publishEvent),
+        );
     }
   }
 
@@ -326,7 +340,12 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                 ChannelTab.news => ref.refresh(
                   channelNewsFeedProvider(channel.id).future,
                 ),
-                _ => ref.refresh(channelSpotsFeedProvider(channel.id).future),
+                ChannelTab.events => ref.refresh(
+                  channelEventsFeedProvider(channel.id, _eventsWhen).future,
+                ),
+                ChannelTab.spots => ref.refresh(
+                  channelSpotsFeedProvider(channel.id).future,
+                ),
               },
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -355,13 +374,53 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                     ChannelNewsSliver(channelId: channel.id),
                     // Spazio per non coprire l'ultima news con il pulsante.
                     const SliverToBoxAdapter(child: SizedBox(height: 88)),
-                  ] else
-                    ChannelEmptyTabSliver(tab: _tab),
+                  ] else ...[
+                    SliverToBoxAdapter(
+                      child: _EventsWhenToggle(
+                        value: _eventsWhen,
+                        onChanged: (v) => setState(() => _eventsWhen = v),
+                      ),
+                    ),
+                    ChannelEventsSliver(
+                      channelId: channel.id,
+                      when: _eventsWhen,
+                    ),
+                    // Spazio per non coprire l'ultimo evento con il pulsante.
+                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                  ],
                 ],
               ),
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// "Prossimi" e "Passati": quali eventi del canale si vedono.
+class _EventsWhenToggle extends StatelessWidget {
+  const _EventsWhenToggle({required this.value, required this.onChanged});
+
+  final EventsWhen value;
+  final ValueChanged<EventsWhen> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: SegmentedButton<EventsWhen>(
+        segments: [
+          ButtonSegment(
+            value: EventsWhen.upcoming,
+            label: Text(l10n.eventsUpcoming),
+          ),
+          ButtonSegment(value: EventsWhen.past, label: Text(l10n.eventsPast)),
+        ],
+        selected: {value},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) => onChanged(selection.single),
       ),
     );
   }

@@ -6,6 +6,8 @@ import 'package:spotted/features/channels/domain/entities/channel_image_kind.dar
 import 'package:spotted/features/channels/presentation/providers/channels_feed.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/chat/presentation/providers/chats_feed.dart';
+import 'package:spotted/features/events/presentation/providers/channel_events_feed.dart';
+import 'package:spotted/features/events/presentation/providers/followed_events_feed.dart';
 import 'package:spotted/features/news/presentation/providers/channel_news_feed.dart';
 import 'package:spotted/features/news/presentation/providers/followed_news_feed.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
@@ -112,6 +114,8 @@ class ChannelActions extends _$ChannelActions {
       ..invalidate(followedSpotsFeedProvider)
       ..invalidate(channelNewsFeedProvider)
       ..invalidate(followedNewsFeedProvider)
+      ..invalidate(channelEventsFeedProvider)
+      ..invalidate(followedEventsFeedProvider)
       ..invalidate(chatsFeedProvider);
   }
 }
