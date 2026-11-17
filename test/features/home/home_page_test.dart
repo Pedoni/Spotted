@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/features/events/presentation/widgets/upcoming_events_section.dart';
 import 'package:spotted/features/news/presentation/widgets/latest_news_section.dart';
 import 'package:spotted/features/spots/presentation/widgets/my_spots_carousel.dart';
 
+import '../../helpers/fake_events.dart';
 import '../../helpers/fake_news.dart';
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
@@ -328,6 +330,326 @@ void main() {
       await backToHome(tester);
 
       expect(news.followedCalls, hasLength(2));
+    });
+  });
+
+  group('Prossimi eventi', () {
+    final channel = makeChannel(1, name: 'Spotted Pisa');
+
+    testWidgets('mostra gli eventi dei canali seguiti, con canale e luogo', (
+      tester,
+    ) async {
+      final events = FakeEventsRepository()
+        ..followed = [
+          makeEvent(
+            1,
+            title: 'Aperitivo',
+            channelName: 'Spotted Pisa',
+            location: 'Aula magna',
+            startsAt: DateTime(2031, 3, 14, 18, 30),
+          ),
+          makeEvent(2, title: 'Concerto'),
+        ];
+      await pumpApp(tester, events: events, screenSize: tallScreen);
+
+      expect(find.text('Prossimi eventi'), findsOneWidget);
+      expect(find.byType(EventCarouselCard), findsNWidgets(2));
+      expect(find.text('Aperitivo'), findsOneWidget);
+      expect(find.text('Spotted Pisa'), findsOneWidget);
+      expect(find.text('Aula magna'), findsOneWidget);
+      expect(find.text('18:30'), findsOneWidget);
+      expect(find.text('14'), findsOneWidget);
+      expect(find.text('MAR'), findsOneWidget);
+    });
+
+    testWidgets('sta tra I miei spot e Ultime news', (tester) async {
+      final events = FakeEventsRepository()..followed = [makeEvent(1)];
+      final news = FakeNewsRepository()..followed = [makeNews(1)];
+      await pumpApp(
+        tester,
+        events: events,
+        news: news,
+        spots: FakeSpotsRepository(mine: [makeMySpot(1)]),
+        screenSize: tallScreen,
+      );
+
+      final spots = tester.getTopLeft(find.text('I miei spot')).dy;
+      final upcoming = tester.getTopLeft(find.text('Prossimi eventi')).dy;
+      final latest = tester.getTopLeft(find.text('Ultime news')).dy;
+      expect(spots, lessThan(upcoming));
+      expect(upcoming, lessThan(latest));
+    });
+
+    testWidgets('senza eventi la sezione c è e lo dice, senza freccia', (
+      tester,
+    ) async {
+      await pumpApp(tester, events: FakeEventsRepository());
+
+      expect(find.text('Prossimi eventi'), findsOneWidget);
+      expect(find.text('Nessun evento dai canali che segui'), findsOneWidget);
+      expect(
+        find.text('Qui compariranno gli eventi dei canali che segui.'),
+        findsOneWidget,
+      );
+      expect(find.byType(EventCarouselCard), findsNothing);
+      expect(find.byTooltip('Visualizza tutti'), findsNothing);
+    });
+
+    testWidgets('senza canali seguiti il messaggio è lo stesso', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        events: FakeEventsRepository(),
+        subscriptions: FakeSubscriptionsRepository(),
+      );
+
+      expect(find.text('Nessun evento dai canali che segui'), findsOneWidget);
+    });
+
+    testWidgets('mostra al massimo 5 card e poi Visualizza tutti', (
+      tester,
+    ) async {
+      final events = FakeEventsRepository()
+        ..followed = [for (var i = 1; i <= 7; i++) makeEvent(i)];
+      await pumpApp(tester, events: events, screenSize: tallScreen);
+
+      await tester.drag(find.byType(ListView).at(1), const Offset(-3000, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Visualizza tutti'), findsOneWidget);
+      expect(find.text('Evento 5'), findsOneWidget);
+      expect(find.text('Evento 6'), findsNothing);
+      expect(find.text('Evento 7'), findsNothing);
+    });
+
+    testWidgets('con 5 eventi o meno non c è la card Visualizza tutti', (
+      tester,
+    ) async {
+      final events = FakeEventsRepository()
+        ..followed = [for (var i = 1; i <= 5; i++) makeEvent(i)];
+      await pumpApp(tester, events: events, screenSize: tallScreen);
+
+      await tester.drag(find.byType(ListView).at(1), const Offset(-3000, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Visualizza tutti'), findsNothing);
+    });
+
+    testWidgets('toccare una card apre l evento', (tester) async {
+      final event = makeEvent(1, title: 'Aperitivo');
+      final events = FakeEventsRepository(events: [event])..followed = [event];
+      await pumpApp(tester, events: events, screenSize: tallScreen);
+
+      await tester.tap(find.text('Aperitivo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Evento'), findsOneWidget);
+      expect(find.text("Descrizione dell'evento 1"), findsOneWidget);
+    });
+
+    testWidgets('la freccia apre l elenco completo', (tester) async {
+      final events = FakeEventsRepository()
+        ..followed = [for (var i = 1; i <= 7; i++) makeEvent(i)];
+      await pumpApp(tester, events: events, screenSize: tallScreen);
+
+      await tester.tap(find.byTooltip('Visualizza tutti'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Prossimi eventi'), findsOneWidget);
+      expect(find.text('Evento 1'), findsOneWidget);
+      expect(find.byType(EventCarouselCard), findsNothing);
+    });
+
+    testWidgets('errore: messaggio e Riprova, senza toccare gli altri', (
+      tester,
+    ) async {
+      final events = FakeEventsRepository()
+        ..followed = [makeEvent(1, title: 'Aperitivo')]
+        ..followedError = const NetworkFailure();
+      await pumpApp(
+        tester,
+        events: events,
+        spots: FakeSpotsRepository(mine: [makeMySpot(1)]),
+        screenSize: tallScreen,
+      );
+
+      expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
+      expect(find.text('Spot 1'), findsOneWidget);
+
+      events.followedError = null;
+      await tester.tap(find.text('Riprova'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Aperitivo'), findsOneWidget);
+    });
+
+    testWidgets('tirando giù si ricaricano anche gli eventi', (tester) async {
+      final events = FakeEventsRepository()..followed = [makeEvent(1)];
+      final news = FakeNewsRepository()..followed = [makeNews(1)];
+      final spots = FakeSpotsRepository(mine: [makeMySpot(1)]);
+      await pumpApp(
+        tester,
+        events: events,
+        news: news,
+        spots: spots,
+        screenSize: tallScreen,
+      );
+      expect(events.followedCalls, hasLength(1));
+
+      await tester.fling(
+        find.byType(ListView).first,
+        const Offset(0, 800),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(events.followedCalls, hasLength(2));
+      expect(news.followedCalls, hasLength(2));
+      expect(spots.mineCalls, hasLength(2));
+    });
+
+    testWidgets('se gli eventi falliscono, ricaricare non dà errori', (
+      tester,
+    ) async {
+      final events = FakeEventsRepository()
+        ..followed = [makeEvent(1)]
+        ..followedError = const NetworkFailure();
+      await pumpApp(tester, events: events, screenSize: tallScreen);
+
+      await tester.fling(
+        find.byType(ListView).first,
+        const Offset(0, 800),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      // Il gesto ha ricaricato davvero, e l'errore non esce dalla sezione.
+      expect(events.followedCalls, hasLength(2));
+      expect(tester.takeException(), isNull);
+      expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
+    });
+
+    group('quando si ricaricano da soli', () {
+      Future<void> openChannel(WidgetTester tester) async {
+        await tester.tap(find.byIcon(Icons.tag_rounded));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Spotted Pisa'));
+        await tester.pumpAndSettle();
+      }
+
+      /// Torna alla Home: finché non è visibile le sezioni restano in pausa e
+      /// si ricaricano solo quando ricompare.
+      Future<void> backToHome(WidgetTester tester) async {
+        final back = find.byTooltip('Indietro');
+        if (back.evaluate().isNotEmpty) {
+          await tester.tap(back);
+          await tester.pumpAndSettle();
+        }
+        await tester.tap(find.byIcon(Icons.home_rounded));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('seguendo un canale', (tester) async {
+        final events = FakeEventsRepository();
+        await pumpApp(
+          tester,
+          events: events,
+          channels: FakeChannelsRepository(channels: [channel]),
+          subscriptions: FakeSubscriptionsRepository(channels: [channel]),
+        );
+        expect(events.followedCalls, hasLength(1));
+
+        await openChannel(tester);
+        await tester.tap(find.text('Segui'));
+        await tester.pumpAndSettle();
+        await backToHome(tester);
+
+        expect(events.followedCalls, hasLength(2));
+      });
+
+      testWidgets('smettendo di seguire un canale', (tester) async {
+        final events = FakeEventsRepository();
+        await pumpApp(
+          tester,
+          events: events,
+          channels: FakeChannelsRepository(channels: [channel]),
+          subscriptions: FakeSubscriptionsRepository(
+            channels: [channel],
+            subscribedIds: {'c1'},
+          ),
+        );
+
+        await openChannel(tester);
+        await tester.tap(find.text('Smetti di seguire'));
+        await tester.pumpAndSettle();
+        await backToHome(tester);
+
+        expect(events.followedCalls, hasLength(2));
+      });
+
+      testWidgets('pubblicando un evento', (tester) async {
+        final events = FakeEventsRepository();
+        await pumpApp(
+          tester,
+          events: events,
+          channels: FakeChannelsRepository(channels: [channel]),
+          moderation: FakeModerationRepository(ownedChannelIds: {'c1'}),
+          screenSize: const Size(800, 1400),
+        );
+        await openChannel(tester);
+        await tester.tap(find.widgetWithText(Tab, 'Eventi'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Pubblica un evento'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Titolo'),
+          'Aperitivo',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Descrizione'),
+          'Testo',
+        );
+        await tester.tap(find.text('Inizio'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+        final submit = find.widgetWithText(FilledButton, 'Pubblica');
+        await tester.ensureVisible(submit);
+        await tester.tap(submit);
+        await tester.pumpAndSettle();
+        await backToHome(tester);
+
+        expect(events.createCalls, hasLength(1));
+        expect(events.followedCalls, hasLength(2));
+      });
+
+      testWidgets('eliminando il canale', (tester) async {
+        final events = FakeEventsRepository();
+        await pumpApp(
+          tester,
+          events: events,
+          channels: FakeChannelsRepository(
+            channels: [channel],
+            mine: [channel],
+          ),
+          moderation: FakeModerationRepository(ownedChannelIds: {'c1'}),
+          screenSize: const Size(800, 1400),
+        );
+        await openChannel(tester);
+        await tester.tap(find.byTooltip('Altre azioni'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Elimina canale'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(TextButton, 'Elimina'));
+        await tester.pumpAndSettle();
+        await backToHome(tester);
+
+        expect(events.followedCalls, hasLength(2));
+      });
     });
   });
 }

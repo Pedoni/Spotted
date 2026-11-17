@@ -11,6 +11,7 @@ import 'package:spotted/features/auth/presentation/providers/auth_providers.dart
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
+import 'package:spotted/features/events/presentation/providers/events_providers.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/municipalities/presentation/providers/municipalities_providers.dart';
 import 'package:spotted/features/news/presentation/providers/news_providers.dart';
@@ -22,6 +23,7 @@ import 'package:spotted/features/topics/presentation/providers/topics_providers.
 
 import 'fake_auth_repository.dart';
 import 'fake_channel_images.dart';
+import 'fake_events.dart';
 import 'fake_news.dart';
 import 'fake_repositories.dart';
 
@@ -40,6 +42,7 @@ Future<void> pumpApp(
   FakeChatRepository? chat,
   FakeMunicipalitiesRepository? municipalities,
   FakeNewsRepository? news,
+  FakeEventsRepository? events,
   Duration? chatPollInterval,
   FakeChannelImagesRepository? channelImages,
   FakeChannelImagePicker? imagePicker,
@@ -100,6 +103,9 @@ Future<void> pumpApp(
           municipalities ?? FakeMunicipalitiesRepository(),
         ),
         newsRepositoryProvider.overrideWithValue(news ?? FakeNewsRepository()),
+        eventsRepositoryProvider.overrideWithValue(
+          events ?? FakeEventsRepository(),
+        ),
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
