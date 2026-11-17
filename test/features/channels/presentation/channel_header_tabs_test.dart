@@ -160,7 +160,7 @@ void main() {
   });
 
   group('schede', () {
-    testWidgets('sotto gli iscritti ci sono Spots, Eventi e News', (
+    testWidgets('sotto l intestazione ci sono Spots, Eventi e News', (
       tester,
     ) async {
       await openChannel(tester);
@@ -172,7 +172,7 @@ void main() {
           findsOneWidget,
         );
       }
-      final subscribers = tester.getRect(find.text('Nessun iscritto'));
+      final subscribers = tester.getRect(find.byTooltip('Nessun iscritto'));
       final tabs = tester.getRect(find.byType(TabBar));
       expect(tabs.top, greaterThan(subscribers.bottom));
     });

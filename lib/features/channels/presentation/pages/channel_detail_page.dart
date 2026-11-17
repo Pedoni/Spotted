@@ -361,10 +361,14 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                           ? (kind) => unawaited(_editImage(channel, kind))
                           : null,
                       busy: _busyImages,
-                      footer: _SubscriptionRow(channelId: channel.id),
+                      follow: _FollowButton(channelId: channel.id),
+                      subscriberCount: ref
+                          .watch(channelSubscriptionProvider(channel.id))
+                          .value
+                          ?.subscriberCount,
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 4)),
                   ChannelTabsBar(controller: _tabs),
                   if (_tab == ChannelTab.spots) ...[
                     ChannelSpotsSliver(channelId: channel.id),
@@ -426,9 +430,11 @@ class _EventsWhenToggle extends StatelessWidget {
   }
 }
 
-/// Numero di iscritti e pulsante Segui / Smetti di seguire.
-class _SubscriptionRow extends ConsumerWidget {
-  const _SubscriptionRow({required this.channelId});
+/// Il pulsante Segui / Smetti di seguire, in una riga bassa a destra della
+/// foto del canale (vedi `ChannelHeader`). Il numero di iscritti sta in
+/// sovrimpressione sulla copertina.
+class _FollowButton extends ConsumerWidget {
+  const _FollowButton({required this.channelId});
 
   final String channelId;
 
@@ -452,22 +458,41 @@ class _SubscriptionRow extends ConsumerWidget {
     // consultabile.
     if (info == null) return const SizedBox.shrink();
 
-    return Row(
-      children: [
-        Expanded(child: Text(l10n.subscribersCount(info.subscriberCount))),
-        if (info.isSubscribed)
-          OutlinedButton(
-            onPressed: () => unawaited(_toggle(context, ref)),
-            child: Text(l10n.unfollow),
+    final style = ChannelHeader.followButtonStyle;
+    // Lo stato lo dice l'icona (una persona con il più o con il meno) e il
+    // pulsante (pieno o con il bordo); il testo è breve, "Segui". Per chi non
+    // vede il pulsante e per i lettori di schermo c'è la descrizione intera.
+    return info.isSubscribed
+        ? Tooltip(
+            message: l10n.unfollow,
+            child: OutlinedButton(
+              style: style,
+              onPressed: () => unawaited(_toggle(context, ref)),
+              child: _label(Icons.person_remove_rounded, l10n.follow),
+            ),
           )
-        else
-          FilledButton(
-            onPressed: () => unawaited(_toggle(context, ref)),
-            child: Text(l10n.follow),
-          ),
-      ],
-    );
+        : Tooltip(
+            message: l10n.follow,
+            child: FilledButton(
+              style: style,
+              onPressed: () => unawaited(_toggle(context, ref)),
+              child: _label(Icons.person_add_rounded, l10n.follow),
+            ),
+          );
   }
+
+  /// Icona e testo su una riga; se lo spazio è poco il testo ha i puntini
+  /// invece di uscire dallo schermo.
+  Widget _label(IconData icon, String text) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 18),
+      const SizedBox(width: 8),
+      Flexible(
+        child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
+    ],
+  );
 }
 
 /// Strumenti del proprietario del canale (gli altri non vedono niente):
