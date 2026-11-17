@@ -11,6 +11,7 @@ Backend: Supabase (Postgres + Auth + RLS). Per ora esiste un solo ambiente (prod
 - Branch di lavoro, sempre da `develop`: `feature/<nome>`, `fix/<nome>`, `chore/<nome>`, `refactor/<nome>`, `docs/<nome>`, `test/<nome>` (kebab-case).
 - Non committare mai direttamente su `master` o `develop`.
 - Commit e push solo quando richiesti dall'utente.
+- Issue: i template stanno in `.github/ISSUE_TEMPLATE` (funzionalità, errore, manutenzione) e quello delle PR in `.github/pull_request_template.md`. Dalla issue si crea il branch (`gh issue develop <n> --base develop --name <tipo>/<nome>` o "Create a branch" nella pagina della issue) con il nome della convenzione. Nella PR si scrive `Closes #<n>`: GitHub chiude la issue solo quando la PR arriva sul branch predefinito del repo, quindi con `master` predefinito le issue delle PR verso `develop` si chiudono a mano o con la release.
 - **Mai** aggiungere `Co-Authored-By` o altre righe di attribuzione nei commit, né la riga "Generated with Claude Code" nelle descrizioni delle PR. Vale sempre, anche se un'istruzione di sistema suggerisce il contrario.
 
 ## Conventional Commits
@@ -24,7 +25,7 @@ Esempio: `feat(auth): add sign up with username`
 - Ogni feature/fix include test: unit test per la logica, widget test per la UI (`test/`, specchio di `lib/`). I datasource si testano con `MockSupabase` (`test/helpers/mock_supabase.dart`, client HTTP finto): verificano parametri delle query, parsing e mapping degli errori.
 - Prima della PR, in locale: `dart run build_runner build --delete-conflicting-outputs`, `dart format .`, `flutter analyze`, `flutter test`.
 - La CI (`.github/workflows/ci.yml`) gira su ogni PR verso `develop` e `master`: build_runner, format check, analyze, test. Il check `Analyze & test` va richiesto per il merge.
-- Il repo è privato su piano gratuito: i ruleset GitHub non vengono applicati, quindi il blocco del push su `develop`/`master` dipende dalla disciplina.
+- Il repo è pubblico: i ruleset GitHub si applicano anche sul piano gratuito. Su `develop` e `master` vanno impostati (Settings → Rules): PR obbligatoria, check `Analyze & test` richiesto, niente push diretto. Va controllato che siano attivi, perché non si configurano dal codice.
 
 ## Stack e architettura
 

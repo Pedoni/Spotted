@@ -1,0 +1,23 @@
+name: Manutenzione
+description: Pulizia, refactor, documentazione, test, dipendenze o CI
+title: "chore: "
+labels: ["chore"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Tipo
+      description: Corrisponde al prefisso del branch.
+      options:
+        - chore
+        - refactor
+        - docs
+        - test
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Cosa c'è da fare e perché
+    validations:
+      required: true
