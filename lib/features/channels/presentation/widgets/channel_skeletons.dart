@@ -56,24 +56,26 @@ class ChannelHeaderSkeleton extends StatelessWidget {
               createdAt: DateTime(2026),
             ),
             topicName: 'Argomento',
-            footer: Row(
-              children: [
-                const Expanded(child: Text('120 iscritti')),
-                FilledButton(onPressed: () {}, child: const Text('Segui')),
-              ],
+            subscriberCount: 120,
+            follow: FilledButton(
+              style: ChannelHeader.followButtonStyle,
+              onPressed: () {},
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person_add_rounded, size: 18),
+                  SizedBox(width: 8),
+                  Text('Segui', maxLines: 1),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Text('Spots'),
-                SizedBox(width: 32),
-                Text('Eventi'),
-                SizedBox(width: 32),
-                Text('News'),
-              ],
+            child: Wrap(
+              spacing: 32,
+              children: [Text('Spots'), Text('Eventi'), Text('News')],
             ),
           ),
         ],
