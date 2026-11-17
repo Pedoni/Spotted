@@ -14,6 +14,9 @@ import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/presentation/widgets/chat_skeletons.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_skeletons.dart';
+import 'package:spotted/features/news/domain/entities/channel_news.dart';
+import 'package:spotted/features/news/presentation/widgets/latest_news_section.dart';
+import 'package:spotted/features/news/presentation/widgets/news_skeletons.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_skeletons.dart';
@@ -26,11 +29,58 @@ import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart'
 import 'package:spotted/l10n/app_localizations.dart';
 
 import '../../helpers/fake_auth_repository.dart';
+import '../../helpers/fake_news.dart';
 import '../../helpers/fake_repositories.dart';
 import '../../helpers/pump_app.dart';
 
 // Repository che tengono ferma la lettura finché non si completa `hold`: la
 // schermata resta in caricamento.
+
+class HeldNews extends FakeNewsRepository {
+  HeldNews(
+    this.hold, {
+    super.news,
+    this.list = false,
+    this.detail = false,
+    this.home = false,
+  });
+
+  final Completer<void> hold;
+  final bool list;
+  final bool detail;
+
+  /// Le news dei canali seguiti (la Home).
+  final bool home;
+
+  @override
+  Future<List<ChannelNews>> getFollowedNews({
+    required int offset,
+    required int limit,
+  }) async {
+    if (home) await hold.future;
+    return super.getFollowedNews(offset: offset, limit: limit);
+  }
+
+  @override
+  Future<List<ChannelNews>> getChannelNews({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    if (list) await hold.future;
+    return super.getChannelNews(
+      channelId: channelId,
+      offset: offset,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<ChannelNews> getNews(String newsId) async {
+    if (detail) await hold.future;
+    return super.getNews(newsId);
+  }
+}
 
 class HeldChannels extends FakeChannelsRepository {
   HeldChannels(
@@ -410,6 +460,61 @@ void main() {
 
     await release(tester, hold);
     expect(find.text('Commento 1'), findsOneWidget);
+  });
+
+  testWidgets('Canale: la scheda News', (tester) async {
+    final hold = Completer<void>();
+    await pumpApp(
+      tester,
+      channels: FakeChannelsRepository(channels: [channel]),
+      news: HeldNews(hold, news: [makeNews(1)], list: true),
+      screenSize: const Size(800, 1400),
+    );
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Spotted Pisa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(Tab, 'News'));
+    await advance(tester);
+
+    expectSkeleton(find.byType(NewsCardsSkeleton));
+
+    await release(tester, hold);
+    expect(find.text('News 1'), findsOneWidget);
+  });
+
+  testWidgets('Home: il carosello delle ultime news', (tester) async {
+    final hold = Completer<void>();
+    final news = HeldNews(hold, home: true)..followed = [makeNews(1)];
+    await pumpApp(tester, news: news, settle: false);
+    await advance(tester);
+
+    expectSkeleton(find.byType(LatestNewsCarouselSkeleton));
+    expect(find.text('Ultime news'), findsOneWidget);
+
+    await release(tester, hold);
+    expect(find.text('News 1'), findsOneWidget);
+  });
+
+  testWidgets('Dettaglio di una news', (tester) async {
+    final hold = Completer<void>();
+    await pumpApp(
+      tester,
+      channels: FakeChannelsRepository(channels: [channel]),
+      news: HeldNews(hold, news: [makeNews(1)], detail: true),
+      screenSize: const Size(800, 1400),
+    );
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Spotted Pisa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(Tab, 'News'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('News 1'));
+    await advance(tester);
+
+    expectSkeleton(find.byType(NewsCardsSkeleton));
+
+    await release(tester, hold);
+    expect(find.text('Testo della news 1'), findsOneWidget);
   });
 
   testWidgets('Le mie chat', (tester) async {

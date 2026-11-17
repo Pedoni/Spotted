@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
 
 import '../../../helpers/fake_auth_repository.dart';
+import '../../../helpers/fake_news.dart';
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
 
@@ -83,5 +84,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('@luigi_99'), findsOneWidget);
     expect(find.text('@mario_88'), findsNothing);
+  });
+
+  testWidgets('le news dei canali seguiti sono quelle di chi ha eseguito '
+      'l accesso, non del precedente', (tester) async {
+    final auth = FakeAuthRepository(user: loggedInUser);
+    final news = FakeNewsRepository()
+      ..followed = [makeNews(1, title: 'News di A')];
+    await pumpApp(tester, auth: auth, news: news, screenSize: tallScreen);
+    expect(find.text('News di A'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.person_outline_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Esci'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Esci'));
+    await tester.pumpAndSettle();
+    expect(find.text('News di A'), findsNothing);
+
+    // Accede un'altra persona, che segue altri canali.
+    news.followed = [makeNews(2, title: 'News di B')];
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'luigi@b.it',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      'secret123',
+    );
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('News di B'), findsOneWidget);
+    expect(find.text('News di A'), findsNothing);
   });
 }
