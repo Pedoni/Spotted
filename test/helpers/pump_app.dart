@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotted/app.dart';
+import 'package:spotted/core/app_info/app_info.dart';
 import 'package:spotted/core/riverpod/no_retry.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/features/auth/domain/entities/app_user.dart';
@@ -10,8 +11,10 @@ import 'package:spotted/features/auth/presentation/providers/auth_providers.dart
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
+import 'package:spotted/features/events/presentation/providers/events_providers.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/municipalities/presentation/providers/municipalities_providers.dart';
+import 'package:spotted/features/news/presentation/providers/news_providers.dart';
 import 'package:spotted/features/profile/presentation/providers/profile_providers.dart';
 import 'package:spotted/features/reports/presentation/providers/reports_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
@@ -19,6 +22,9 @@ import 'package:spotted/features/subscriptions/presentation/providers/subscripti
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 
 import 'fake_auth_repository.dart';
+import 'fake_channel_images.dart';
+import 'fake_events.dart';
+import 'fake_news.dart';
 import 'fake_repositories.dart';
 
 /// Avvia l'app con repository finti. Per default l'utente è già loggato.
@@ -35,7 +41,14 @@ Future<void> pumpApp(
   FakeReportsRepository? reports,
   FakeChatRepository? chat,
   FakeMunicipalitiesRepository? municipalities,
+  FakeNewsRepository? news,
+  FakeEventsRepository? events,
   Duration? chatPollInterval,
+  FakeChannelImagesRepository? channelImages,
+  FakeChannelImagePicker? imagePicker,
+  FakeChannelImageCropper? imageCropper,
+  Future<AppInfo> Function()? appInfo,
+  ChannelImageUrlBuilder? imageUrl,
   Map<String, Object> preferences = const {},
 
   /// Dimensione dello schermo: le liste costruiscono solo ciò che si vede, per
@@ -89,9 +102,33 @@ Future<void> pumpApp(
         municipalitiesRepositoryProvider.overrideWithValue(
           municipalities ?? FakeMunicipalitiesRepository(),
         ),
+        newsRepositoryProvider.overrideWithValue(news ?? FakeNewsRepository()),
+        eventsRepositoryProvider.overrideWithValue(
+          events ?? FakeEventsRepository(),
+        ),
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
+        // La versione dell'app: nei test non c'è il sistema da cui leggerla.
+        appInfoProvider.overrideWith(
+          (ref) => appInfo?.call() ?? Future.value(testAppInfo),
+        ),
+        // Le immagini dei canali: repository, selettore e ritaglio finti. Il
+        // processore non serve, perché il repository finto non lo usa.
+        channelImagesRepositoryProvider.overrideWithValue(
+          channelImages ?? FakeChannelImagesRepository(channels),
+        ),
+        channelImageProcessorProvider.overrideWithValue(
+          FakeChannelImageProcessor(),
+        ),
+        channelImagePickerProvider.overrideWithValue(
+          imagePicker ?? FakeChannelImagePicker(),
+        ),
+        channelImageCropperProvider.overrideWithValue(
+          imageCropper ?? FakeChannelImageCropper(),
+        ),
+        if (imageUrl != null)
+          channelImageUrlProvider.overrideWithValue(imageUrl),
       ],
       child: const App(),
     ),
@@ -103,6 +140,9 @@ Future<void> pumpApp(
     await tester.pump(const Duration(milliseconds: 50));
   }
 }
+
+/// La versione dell'app che mostrano i test.
+const testAppInfo = AppInfo(version: '0.8.0', buildNumber: '1');
 
 /// Schermo abbastanza alto da mostrare tutto il profilo.
 const tallScreen = Size(800, 2000);

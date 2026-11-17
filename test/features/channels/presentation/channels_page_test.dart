@@ -8,9 +8,10 @@ import '../../../helpers/pump_app.dart';
 void main() {
   Future<void> openChannels(
     WidgetTester tester,
-    FakeChannelsRepository repository,
-  ) async {
-    await pumpApp(tester, channels: repository);
+    FakeChannelsRepository repository, {
+    Size? screenSize,
+  }) async {
+    await pumpApp(tester, channels: repository, screenSize: screenSize);
     await tester.tap(find.byIcon(Icons.tag_rounded));
     await tester.pumpAndSettle();
   }
@@ -122,13 +123,16 @@ void main() {
         ),
       ],
     );
-    await openChannels(tester, repo);
+    // L'intestazione del canale (copertina, foto, schede) è alta: serve uno
+    // schermo alto per vedere anche gli spot.
+    await openChannels(tester, repo, screenSize: const Size(800, 1400));
 
     await tester.tap(find.text('Spotted Pisa'));
     await tester.pumpAndSettle();
 
     expect(find.text('Il canale di Pisa'), findsOneWidget);
     expect(find.text('Università'), findsOneWidget);
-    expect(find.text('Ancora nessuno spot. Scrivi il primo!'), findsOneWidget);
+    expect(find.text('Ancora nessuno spot'), findsOneWidget);
+    expect(find.text('Scrivi il primo!'), findsOneWidget);
   });
 }

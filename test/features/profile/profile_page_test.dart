@@ -148,5 +148,31 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(NavigationBar), findsNothing);
     });
+
+    testWidgets('se la pagina sparisce prima della risposta non dà errori', (
+      tester,
+    ) async {
+      // Come nell'app vera: l'evento "uscito" arriva, il router porta
+      // all'accesso, la pagina del profilo non c'è più e poi finisce la
+      // chiamata.
+      final auth = await openProfile(tester);
+      auth
+        ..signOutEventFirst = true
+        ..signOutGate = Completer<void>();
+
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Esci'));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(NavigationBar), findsNothing);
+
+      auth.signOutGate!.complete();
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(auth.signOutCalls, 1);
+    });
   });
 }

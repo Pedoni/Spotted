@@ -43,7 +43,9 @@ void main() {
       expect(find.byType(BrandBlobs), findsOneWidget);
       final cover = tester.getRect(find.byType(ChannelCover));
       expect(cover.width, 800);
-      expect(cover.height, ChannelCover.defaultHeight);
+      // Segue la proporzione 8:3 ma non supera l'altezza massima.
+      expect(cover.height, ChannelCover.heightFor(800));
+      expect(cover.height, ChannelCover.maxHeight);
     });
 
     testWidgets('la foto è quadrata e sovrappone la copertina, a sinistra', (
@@ -185,7 +187,7 @@ void main() {
 
       expect(find.text('Spot 1'), findsOneWidget);
       expect(find.text('Pubblica uno spot'), findsOneWidget);
-      expect(find.text('Ancora nessun evento'), findsNothing);
+      expect(find.text('Nessun evento in programma'), findsNothing);
     });
 
     testWidgets('Eventi dice che non c è niente e nasconde gli spot', (
@@ -199,7 +201,7 @@ void main() {
       await tester.tap(find.text('Eventi'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ancora nessun evento'), findsOneWidget);
+      expect(find.text('Nessun evento in programma'), findsOneWidget);
       expect(
         find.text('Qui compariranno gli eventi del canale.'),
         findsOneWidget,
@@ -256,7 +258,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Spot 1'), findsOneWidget);
-      expect(find.text('Ancora nessun evento'), findsNothing);
+      expect(find.text('Nessun evento in programma'), findsNothing);
     });
 
     testWidgets('la barra delle schede resta ferma in cima scorrendo', (

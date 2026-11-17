@@ -89,20 +89,76 @@ void main() {
     expect(brightness(tester), Brightness.dark);
   });
 
-  testWidgets('Cambia password ed Elimina profilo non fanno nulla', (
+  /// Le voci che ci sono ma ancora non fanno niente.
+  const soon = [
+    'Modifica i miei dati',
+    'Cambia email',
+    'Cambia password',
+    'Notifiche',
+    'Privacy',
+    "Condizioni d'uso",
+    'Elimina profilo',
+  ];
+
+  testWidgets('le voci in arrivo ci sono, spente e con scritto "In arrivo"', (
     tester,
   ) async {
     await openProfile(tester);
 
-    expect(find.text('Cambia password'), findsOneWidget);
-    expect(find.text('Elimina profilo'), findsOneWidget);
-    expect(find.text('In arrivo'), findsNWidgets(2));
+    for (final title in soon) {
+      expect(find.text(title), findsOneWidget, reason: title);
+      final tile = tester.widget<ListTile>(
+        find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+      );
+      expect(tile.enabled, isFalse, reason: title);
+    }
+    expect(find.text('In arrivo'), findsNWidgets(soon.length));
+  });
 
-    await tester.tap(find.text('Cambia password'));
-    await tester.tap(find.text('Elimina profilo'));
+  testWidgets('toccare le voci in arrivo non fa niente', (tester) async {
+    await openProfile(tester);
+
+    for (final title in soon) {
+      await tester.tap(find.text(title));
+      await tester.pump();
+    }
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('@mario_88'), findsOneWidget);
+    expect(find.text('Tema'), findsOneWidget);
+  });
+
+  testWidgets('le voci sono raggruppate in Account e Informazioni', (
+    tester,
+  ) async {
+    await openProfile(tester);
+
+    final account = tester.getRect(find.text('Account')).top;
+    final info = tester.getRect(find.text('Informazioni')).top;
+    final data = tester.getRect(find.text('Modifica i miei dati')).top;
+    final email = tester.getRect(find.text('Cambia email')).top;
+    final privacy = tester.getRect(find.text('Privacy')).top;
+    final about = tester.getRect(find.text("Informazioni sull'app")).top;
+
+    expect(account, lessThan(data));
+    expect(email, lessThan(info));
+    expect(info, lessThan(about));
+    expect(about, lessThan(privacy));
+  });
+
+  testWidgets('Informazioni sull app è l unica voce attiva delle due liste', (
+    tester,
+  ) async {
+    await openProfile(tester);
+
+    final tile = tester.widget<ListTile>(
+      find.ancestor(
+        of: find.text("Informazioni sull'app"),
+        matching: find.byType(ListTile),
+      ),
+    );
+    expect(tile.enabled, isTrue);
+    expect(tile.onTap, isNotNull);
   });
 }

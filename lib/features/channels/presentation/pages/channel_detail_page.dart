@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
@@ -8,12 +9,20 @@ import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_image_kind.dart';
 import 'package:spotted/features/channels/presentation/providers/channel_actions.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/channels/presentation/services/channel_image_picker.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_header.dart';
+import 'package:spotted/features/channels/presentation/widgets/channel_image_dialog.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tabs.dart';
+import 'package:spotted/features/events/domain/entities/events_when.dart';
+import 'package:spotted/features/events/presentation/providers/channel_events_feed.dart';
+import 'package:spotted/features/events/presentation/widgets/channel_events_sliver.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
+import 'package:spotted/features/news/presentation/providers/channel_news_feed.dart';
+import 'package:spotted/features/news/presentation/widgets/channel_news_sliver.dart';
 import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/channel_spots_sliver.dart';
@@ -42,6 +51,12 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     vsync: this,
   );
   ChannelTab _tab = ChannelTab.spots;
+
+  /// Quali eventi mostra la scheda Eventi: i prossimi o i passati.
+  EventsWhen _eventsWhen = EventsWhen.upcoming;
+
+  /// Le immagini che si stanno caricando o togliendo in questo momento.
+  final _busyImages = <ChannelImageKind>{};
   Timer? _debounce;
   bool _searching = false;
 
@@ -64,6 +79,79 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     _debounce?.cancel();
     _search.dispose();
     super.dispose();
+  }
+
+  /// Cambia, scatta o toglie la foto o la copertina: la finestra, poi (per un
+  /// file nuovo) la scelta, il ritaglio nella proporzione giusta e il
+  /// caricamento.
+  Future<void> _editImage(Channel channel, ChannelImageKind kind) async {
+    if (_busyImages.contains(kind)) return;
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final isAvatar = kind == ChannelImageKind.avatar;
+    final hasImage =
+        (isAvatar ? channel.avatarPath : channel.coverPath) != null;
+
+    final choice = await showChannelImageDialog(
+      context,
+      kind: kind,
+      hasImage: hasImage,
+    );
+    if (choice == null || !mounted) return;
+
+    try {
+      final actions = ref.read(channelActionsProvider.notifier);
+      if (choice == ChannelImageChoice.remove) {
+        final confirmed = await confirmRemoveChannelImage(context, kind: kind);
+        if (!confirmed || !mounted) return;
+        setState(() => _busyImages.add(kind));
+        await actions.removeImage(channel: channel, kind: kind);
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(isAvatar ? l10n.photoRemoved : l10n.coverRemoved),
+            ),
+          );
+        return;
+      }
+
+      final picked = await ref
+          .read(channelImagePickerProvider)
+          .pick(
+            choice == ChannelImageChoice.camera
+                ? ChannelImageSource.camera
+                : ChannelImageSource.gallery,
+          );
+      if (picked == null || !mounted) return;
+      final cropped = await ref
+          .read(channelImageCropperProvider)
+          .crop(context, picked, kind);
+      if (cropped == null || !mounted) return;
+
+      setState(() => _busyImages.add(kind));
+      await actions.setImage(channel: channel, kind: kind, source: cropped);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(isAvatar ? l10n.photoUpdated : l10n.coverUpdated),
+          ),
+        );
+    } on PlatformException {
+      // La galleria o la fotocamera non si aprono (per esempio senza permesso).
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.errorImagePicker)));
+    } on Exception catch (error) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(failureMessage(l10n, error))),
+        );
+    } finally {
+      if (mounted) setState(() => _busyImages.remove(kind));
+    }
   }
 
   void _openSearch() {
@@ -160,6 +248,45 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     );
   }
 
+  /// Il pulsante della scheda: "Pubblica uno spot" (di tutti), "Pubblica una
+  /// news" e "Pubblica un evento" (solo del proprietario).
+  Widget? _floatingButton(
+    AppLocalizations l10n,
+    Channel? channel,
+    bool searching,
+  ) {
+    if (channel == null || searching) return null;
+    switch (_tab) {
+      case ChannelTab.spots:
+        return FloatingActionButton.extended(
+          onPressed: () =>
+              unawaited(context.push(AppRoutes.spotNewPath(channel.slug))),
+          icon: const Icon(Icons.edit_rounded),
+          label: Text(l10n.publishSpot),
+        );
+      case ChannelTab.news:
+        if (ref.watch(isChannelOwnerProvider(channel.id)).value != true) {
+          return null;
+        }
+        return FloatingActionButton.extended(
+          onPressed: () =>
+              unawaited(context.push(AppRoutes.newsNewPath(channel.slug))),
+          icon: const Icon(Icons.edit_rounded),
+          label: Text(l10n.publishNews),
+        );
+      case ChannelTab.events:
+        if (ref.watch(isChannelOwnerProvider(channel.id)).value != true) {
+          return null;
+        }
+        return FloatingActionButton.extended(
+          onPressed: () =>
+              unawaited(context.push(AppRoutes.eventNewPath(channel.slug))),
+          icon: const Icon(Icons.edit_rounded),
+          label: Text(l10n.publishEvent),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -190,15 +317,7 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                   ],
                 ],
               ),
-        floatingActionButton:
-            channel.hasValue && !searching && _tab == ChannelTab.spots
-            ? FloatingActionButton.extended(
-                onPressed: () =>
-                    context.push(AppRoutes.spotNewPath(channel.value!.slug)),
-                icon: const Icon(Icons.edit_rounded),
-                label: Text(l10n.publishSpot),
-              )
-            : null,
+        floatingActionButton: _floatingButton(l10n, channel.value, searching),
         body: channel.when(
           loading: () => const SkeletonScroll(
             child: Column(
@@ -217,8 +336,17 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                 .map((t) => t.name)
                 .firstOrNull;
             return RefreshIndicator(
-              onRefresh: () =>
-                  ref.refresh(channelSpotsFeedProvider(channel.id).future),
+              onRefresh: () => switch (_tab) {
+                ChannelTab.news => ref.refresh(
+                  channelNewsFeedProvider(channel.id).future,
+                ),
+                ChannelTab.events => ref.refresh(
+                  channelEventsFeedProvider(channel.id, _eventsWhen).future,
+                ),
+                ChannelTab.spots => ref.refresh(
+                  channelSpotsFeedProvider(channel.id).future,
+                ),
+              },
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
@@ -226,6 +354,13 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                     child: ChannelHeader(
                       channel: channel,
                       topicName: topicName,
+                      // Le matite sulle immagini sono solo del proprietario.
+                      onEditImage:
+                          ref.watch(isChannelOwnerProvider(channel.id)).value ==
+                              true
+                          ? (kind) => unawaited(_editImage(channel, kind))
+                          : null,
+                      busy: _busyImages,
                       footer: _SubscriptionRow(channelId: channel.id),
                     ),
                   ),
@@ -235,13 +370,57 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                     ChannelSpotsSliver(channelId: channel.id),
                     // Spazio per non coprire l'ultimo spot con il pulsante.
                     const SliverToBoxAdapter(child: SizedBox(height: 88)),
-                  ] else
-                    ChannelEmptyTabSliver(tab: _tab),
+                  ] else if (_tab == ChannelTab.news) ...[
+                    ChannelNewsSliver(channelId: channel.id),
+                    // Spazio per non coprire l'ultima news con il pulsante.
+                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                  ] else ...[
+                    SliverToBoxAdapter(
+                      child: _EventsWhenToggle(
+                        value: _eventsWhen,
+                        onChanged: (v) => setState(() => _eventsWhen = v),
+                      ),
+                    ),
+                    ChannelEventsSliver(
+                      channelId: channel.id,
+                      when: _eventsWhen,
+                    ),
+                    // Spazio per non coprire l'ultimo evento con il pulsante.
+                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                  ],
                 ],
               ),
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// "Prossimi" e "Passati": quali eventi del canale si vedono.
+class _EventsWhenToggle extends StatelessWidget {
+  const _EventsWhenToggle({required this.value, required this.onChanged});
+
+  final EventsWhen value;
+  final ValueChanged<EventsWhen> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: SegmentedButton<EventsWhen>(
+        segments: [
+          ButtonSegment(
+            value: EventsWhen.upcoming,
+            label: Text(l10n.eventsUpcoming),
+          ),
+          ButtonSegment(value: EventsWhen.past, label: Text(l10n.eventsPast)),
+        ],
+        selected: {value},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) => onChanged(selection.single),
       ),
     );
   }

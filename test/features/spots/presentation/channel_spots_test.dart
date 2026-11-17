@@ -49,7 +49,8 @@ void main() {
   testWidgets('canale senza spot: invito a scrivere il primo', (tester) async {
     await openChannel(tester, FakeSpotsRepository());
 
-    expect(find.text('Ancora nessuno spot. Scrivi il primo!'), findsOneWidget);
+    expect(find.text('Ancora nessuno spot'), findsOneWidget);
+    expect(find.text('Scrivi il primo!'), findsOneWidget);
   });
 
   testWidgets('canale senza spot: lo stato vuoto è al centro dello spazio '

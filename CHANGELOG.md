@@ -3,6 +3,41 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.9.0] - 2026-11-17
+
+### Aggiunto
+- News dei canali: comunicazioni del canale, scritte solo dal proprietario e lette da tutti (titolo e testo). Si vedono nella scheda News della pagina del canale, in una pagina di dettaglio, e il proprietario può pubblicarle, modificarle ed eliminarle (con conferma). Nessun autore mostrato: parla il canale.
+- Eventi dei canali: titolo, descrizione, luogo facoltativo (testo libero, per esempio "Aula magna"), inizio e fine facoltativa, scelti con i selettori di data e ora. La scheda Eventi ha "Prossimi" e "Passati"; un evento senza fine resta tra i prossimi per tre ore dopo l'inizio. Solo il proprietario li crea, li modifica e li elimina; creando, l'inizio deve essere nel futuro.
+- Home: i caroselli "Prossimi eventi" e "Ultime news" dei canali che segui, con la freccia (e la sesta card "Visualizza tutti") verso l'elenco completo. Le sezioni ci sono sempre: senza contenuti dicono che non c'è niente.
+- Foto e copertina dei canali personalizzabili dal proprietario: una matita sulla foto e sulla copertina apre le scelte galleria, fotocamera e rimuovi; l'immagine si ritaglia nella proporzione giusta (quadrata la foto, 8:3 la copertina), si ridimensiona, si comprime e perde i dati nascosti come la posizione.
+- Informazioni sull'app nel Profilo: logo, versione e numero di build, e le licenze open source (anche quelle dei font dell'app). Nel Profilo ci sono anche le voci "Modifica i miei dati", "Cambia email", "Notifiche", "Privacy" e "Condizioni d'uso", per ora spente e con scritto "In arrivo".
+- Modelli di issue e di pull request per il repository.
+
+### Modificato
+- Home: non c'è più il pulsante "Pubblica": gli spot si pubblicano dalla pagina del canale. Il carosello "I miei spot" resta, e i tre caroselli condividono lo stesso aspetto.
+- Il segnaposto della scheda Spots ha ora un sottotitolo ("Scrivi il primo!"), come Eventi e News.
+- Eliminando un canale spariscono anche le sue news e i suoi eventi; il testo di conferma lo dice.
+
+### Corretto
+- Uscendo dall'account dal Profilo poteva comparire un errore ("Using ref when a widget is about to or has been unmounted"): ora l'uscita funziona senza errori. Stessa precauzione nella cancellazione di un commento.
+
+### Database
+Migrazioni da applicare **prima** di distribuire l'app, in ordine:
+- `20261121100000`: foto e copertina dei canali (colonne, bucket `channel-images` pubblico con tetto di 1 MB e regole sui file).
+- `20261122100000`: `channel_news` e le sue funzioni (`channel_news_page`, `news_detail`, `create_`, `update_` e `delete_channel_news`).
+- `20261123100000`: `followed_news_page`, le news dei canali seguiti.
+- `20261124100000`: `channel_events` e le sue funzioni (`channel_events_page`, `event_detail`, `create_`, `update_` e `delete_channel_event`).
+- `20261125100000`: `followed_events_page`, i prossimi eventi dei canali seguiti.
+
+### Sicurezza
+- Lo storage registra chi carica ogni file: per non rivelare il proprietario di un canale, le regole sul bucket delle immagini (inserire, leggere e cancellare) sono tutte limitate al proprietario del canale. Gli altri vedono le immagini perché il bucket è pubblico, ma non possono elencarle né cancellarle.
+- News ed eventi hanno la tabella chiusa ai client e nessuna colonna con l'autore; le funzioni non restituiscono mai id di utenti.
+- Verificato con un test che dopo l'uscita non resti niente delle news e degli eventi dell'utente precedente.
+
+### Note
+- Cambio password, cambio email, modifica dei dati, foto del profilo, notifiche, eliminazione dell'account e pagine di privacy e condizioni d'uso arrivano dopo.
+- Il feed degli spot dei canali seguiti è ancora pronto ma non mostrato: si deciderà cosa aggiungere sotto i caroselli.
+
 ## [0.8.0] - 2026-11-15
 
 ### Aggiunto

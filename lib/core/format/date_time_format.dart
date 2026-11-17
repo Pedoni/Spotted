@@ -13,3 +13,29 @@ String formatDateTime(BuildContext context, DateTime value) {
   );
   return '$date · $time';
 }
+
+/// L'ora locale di un momento, a 24 ore ("14:30").
+String formatTime(BuildContext context, DateTime value) {
+  return MaterialLocalizations.of(context).formatTimeOfDay(
+    TimeOfDay.fromDateTime(value.toLocal()),
+    alwaysUse24HourFormat: true,
+  );
+}
+
+/// Da quando a quando dura qualcosa. Senza fine è solo l'inizio
+/// ("31 dic 2025 · 14:30"); se finisce lo stesso giorno aggiunge l'ora di fine
+/// ("31 dic 2025 · 14:30 – 16:00"); altrimenti scrive entrambe le date.
+String formatDateTimeRange(
+  BuildContext context,
+  DateTime start,
+  DateTime? end,
+) {
+  final from = formatDateTime(context, start);
+  if (end == null) return from;
+  final s = start.toLocal();
+  final e = end.toLocal();
+  final sameDay = s.year == e.year && s.month == e.month && s.day == e.day;
+  return sameDay
+      ? '$from – ${formatTime(context, end)}'
+      : '$from – ${formatDateTime(context, end)}';
+}

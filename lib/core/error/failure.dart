@@ -43,6 +43,24 @@ final class ValidationFailure extends Failure {
   const ValidationFailure([super.message]);
 }
 
+enum ImageFailureReason {
+  /// L'immagine pesa troppo.
+  tooLarge,
+
+  /// Il file non è un'immagine che si può usare.
+  invalid,
+}
+
+/// Un'immagine scelta dall'utente che non si può usare.
+final class ImageFailure extends Failure {
+  const ImageFailure(this.reason, [super.message]);
+
+  final ImageFailureReason reason;
+
+  @override
+  List<Object?> get props => [reason, message];
+}
+
 /// Operazione non consentita (es. violazione RLS).
 final class PermissionFailure extends Failure {
   const PermissionFailure([super.message]);

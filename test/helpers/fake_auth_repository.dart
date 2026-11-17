@@ -16,6 +16,10 @@ class FakeAuthRepository implements AuthRepository {
   Failure? signUpError;
   Failure? signOutError;
   Completer<void>? signOutGate;
+
+  /// Come Supabase: l'utente risulta uscito (evento) prima che la chiamata
+  /// `signOut` finisca di rispondere.
+  bool signOutEventFirst = false;
   Set<String> takenUsernames = {};
   Failure? availabilityError;
 
@@ -69,9 +73,10 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     signOutCalls++;
+    if (signOutEventFirst) _setUser(null);
     if (signOutGate != null) await signOutGate!.future;
     if (signOutError != null) throw signOutError!;
-    _setUser(null);
+    if (!signOutEventFirst) _setUser(null);
   }
 
   @override

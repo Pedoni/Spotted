@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spotted/core/error/failure_message.dart';
+import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
@@ -49,10 +51,10 @@ class ProfilePage extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(signOutControllerProvider.notifier).submit();
-    // Se esce, il router porta all'accesso e questa pagina non c'è più. Se
+    final error = await ref.read(signOutControllerProvider.notifier).submit();
+    // Se esce, il router porta all'accesso e questa pagina non c'è più (e il
+    // suo `ref` non si può più usare): da qui in poi si usa solo `error`. Se
     // fallisce l'utente resta loggato e deve saperlo.
-    final error = ref.read(signOutControllerProvider).error;
     if (error != null && context.mounted) {
       messenger.showSnackBar(
         SnackBar(content: Text(failureMessage(l10n, error))),
@@ -144,18 +146,35 @@ class ProfilePage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           Text(l10n.settingsAccount, style: theme.textTheme.titleMedium),
-          // Per ora non fanno nulla: arrivano più avanti.
-          ListTile(
-            enabled: false,
-            leading: const Icon(Icons.lock_outline_rounded),
-            title: Text(l10n.changePassword),
-            subtitle: Text(l10n.comingSoon),
+          // Queste voci ci sono ma per ora non fanno nulla: arrivano più
+          // avanti.
+          _SoonTile(
+            icon: Icons.manage_accounts_rounded,
+            title: l10n.editMyData,
           ),
+          _SoonTile(icon: Icons.mail_outline_rounded, title: l10n.changeEmail),
+          _SoonTile(
+            icon: Icons.lock_outline_rounded,
+            title: l10n.changePassword,
+          ),
+          _SoonTile(
+            icon: Icons.notifications_none_rounded,
+            title: l10n.notificationsSettings,
+          ),
+          const SizedBox(height: 24),
+          Text(l10n.settingsInfoSection, style: theme.textTheme.titleMedium),
           ListTile(
-            enabled: false,
-            leading: const Icon(Icons.delete_outline_rounded),
-            title: Text(l10n.deleteProfile),
-            subtitle: Text(l10n.comingSoon),
+            leading: const Icon(Icons.info_outline_rounded),
+            title: Text(l10n.aboutApp),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => unawaited(context.push(AppRoutes.about)),
+          ),
+          _SoonTile(icon: Icons.privacy_tip_rounded, title: l10n.privacyPolicy),
+          _SoonTile(icon: Icons.description_rounded, title: l10n.termsOfUse),
+          const SizedBox(height: 24),
+          _SoonTile(
+            icon: Icons.delete_outline_rounded,
+            title: l10n.deleteProfile,
           ),
           ListTile(
             enabled: !signingOut,
@@ -167,6 +186,24 @@ class ProfilePage extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Una voce che ancora non fa niente: spenta, con scritto "In arrivo".
+class _SoonTile extends StatelessWidget {
+  const _SoonTile({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      enabled: false,
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(AppLocalizations.of(context).comingSoon),
     );
   }
 }

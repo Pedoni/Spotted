@@ -1,0 +1,29 @@
+name: Errore
+description: Qualcosa non funziona come dovrebbe
+title: "fix: "
+labels: ["fix"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Cosa succede
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Come riprodurlo
+      placeholder: |
+        1. Apri...
+        2. Tocca...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Cosa dovrebbe succedere
+  - type: input
+    id: device
+    attributes:
+      label: Dispositivo e versione dell'app
+      placeholder: Android 15 emulatore, 0.8.0 (1)

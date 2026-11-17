@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotted/app.dart';
 import 'package:spotted/core/config/env.dart';
+import 'package:spotted/core/licenses/font_licenses.dart';
 import 'package:spotted/core/riverpod/no_retry.dart';
 import 'package:spotted/core/supabase/timeout_client.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
@@ -10,6 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Le licenze dei font vanno nella pagina delle licenze insieme a quelle dei
+  // pacchetti.
+  registerFontLicenses();
 
   if (!Env.isConfigured) {
     runApp(const ConfigErrorApp());

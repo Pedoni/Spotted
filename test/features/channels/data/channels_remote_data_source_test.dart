@@ -70,6 +70,34 @@ void main() {
       expect(select, contains('region_name'));
     });
 
+    test('chiede anche i percorsi di foto e copertina', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannels(offset: 0, limit: 20);
+
+      final select = supabase.lastRequest.url.queryParameters['select']!;
+      expect(select, contains('avatar_path'));
+      expect(select, contains('cover_path'));
+    });
+
+    test('legge i percorsi di foto e copertina, o null se mancano', () async {
+      respondWith([
+        channelRow(
+          '1',
+          avatarPath: 'c1/avatar-1.jpg',
+          coverPath: 'c1/cover-2.jpg',
+        ),
+        channelRow('2'),
+      ]);
+
+      final channels = await dataSource.getChannels(offset: 0, limit: 20);
+
+      expect(channels[0].avatarPath, 'c1/avatar-1.jpg');
+      expect(channels[0].coverPath, 'c1/cover-2.jpg');
+      expect(channels[1].avatarPath, isNull);
+      expect(channels[1].coverPath, isNull);
+    });
+
     test('chiede solo le colonne pubbliche, mai owner_id', () async {
       respondWith(<Object>[]);
 
