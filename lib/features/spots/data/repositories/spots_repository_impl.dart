@@ -46,12 +46,14 @@ class SpotsRepositoryImpl implements SpotsRepository {
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   }) {
     return guardFailures(
       () => _dataSource.createSpot(
         channelId: channelId,
         title: title,
         content: content,
+        tags: tags,
       ),
     );
   }

@@ -126,6 +126,15 @@ class MySpotCard extends ConsumerWidget {
   final SpotWithChannel item;
   final VoidCallback? onTap;
 
+  /// Lo spot non pubblico (nascosto, in attesa, rifiutato) ha un'icona in
+  /// fondo alla card.
+  static IconData? _statusIcon(SpotStatus status) => switch (status) {
+    SpotStatus.published => null,
+    SpotStatus.hidden => Icons.visibility_off_rounded,
+    SpotStatus.pending => Icons.hourglass_top_rounded,
+    SpotStatus.rejected => Icons.block_rounded,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -134,7 +143,6 @@ class MySpotCard extends ConsumerWidget {
       spot,
       ref.watch(spotInteractionProvider(spot.id)),
     );
-    final hidden = spot.status == SpotStatus.hidden;
     final date = formatDateTime(context, spot.createdAt);
 
     return SizedBox(
@@ -201,12 +209,14 @@ class MySpotCard extends ConsumerWidget {
                         color: theme.colorScheme.outline,
                       ),
                     ),
-                    if (hidden) ...[
+                    if (_statusIcon(spot.status) case final icon?) ...[
                       const Spacer(),
                       Icon(
-                        Icons.visibility_off_rounded,
+                        icon,
                         size: 16,
-                        color: theme.colorScheme.error,
+                        color: spot.status == SpotStatus.pending
+                            ? theme.colorScheme.outline
+                            : theme.colorScheme.error,
                       ),
                     ],
                   ],

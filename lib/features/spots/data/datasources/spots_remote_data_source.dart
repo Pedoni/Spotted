@@ -80,11 +80,27 @@ class SpotsRemoteDataSource {
         .toList();
   }
 
+  /// Senza [tags] lo spot nasce `pending`, in attesa del proprietario. Con
+  /// [tags] lo pubblica subito il proprietario del canale (RPC
+  /// `publish_owner_spot`: per chiunque altro risponde `42501`).
   Future<Spot> createSpot({
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   }) async {
+    if (tags != null) {
+      final rows = await _client.rpc<List<dynamic>>(
+        'publish_owner_spot',
+        params: {
+          'p_channel_id': channelId,
+          'p_title': title,
+          'p_content': content,
+          'p_tags': tags,
+        },
+      );
+      return _toSpots(rows).single;
+    }
     final authorId = _currentUserId();
     if (authorId == null) {
       throw const AuthFailure(AuthFailureReason.unknown);

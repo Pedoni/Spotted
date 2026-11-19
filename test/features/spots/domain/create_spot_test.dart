@@ -69,4 +69,45 @@ void main() {
     );
     expect(repository.createCalls, hasLength(1));
   });
+
+  group('tag (solo il proprietario)', () {
+    test('senza tag: lo spot nasce in attesa', () async {
+      await createSpot(channelId: 'c1', title: 'Titolo', content: 'Testo');
+
+      expect(repository.createTagCalls.single, isNull);
+    });
+
+    test('con i tag li passa al repository', () async {
+      await createSpot(
+        channelId: 'c1',
+        title: 'Titolo',
+        content: 'Testo',
+        tags: ['crush', 'meme'],
+      );
+
+      expect(repository.createTagCalls.single, ['crush', 'meme']);
+    });
+
+    test('lista vuota o più di tre tag: ValidationFailure', () async {
+      await expectLater(
+        createSpot(
+          channelId: 'c1',
+          title: 'Titolo',
+          content: 'Testo',
+          tags: [],
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+      await expectLater(
+        createSpot(
+          channelId: 'c1',
+          title: 'Titolo',
+          content: 'Testo',
+          tags: ['a', 'b', 'c', 'd'],
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+      expect(repository.createCalls, isEmpty);
+    });
+  });
 }

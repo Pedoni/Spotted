@@ -12,6 +12,7 @@ class Spot extends Equatable {
     required this.createdAt,
     this.stats = const SpotStats(),
     this.status = SpotStatus.published,
+    this.tags = const [],
   });
 
   final String id;
@@ -25,6 +26,10 @@ class Spot extends Equatable {
   /// l'autore).
   final SpotStatus status;
 
+  /// I nomi tecnici dei tag, scelti dal proprietario alla pubblicazione (da 1
+  /// a 3). Vuoti per gli spot scritti prima dei tag e per quelli in attesa.
+  final List<String> tags;
+
   @override
   List<Object?> get props => [
     id,
@@ -34,5 +39,6 @@ class Spot extends Equatable {
     createdAt,
     stats,
     status,
+    tags,
   ];
 }

@@ -350,6 +350,7 @@ Spot makeSpot(
   String? content,
   SpotStats stats = const SpotStats(),
   SpotStatus status = SpotStatus.published,
+  List<String> tags = const [],
 }) {
   return Spot(
     id: 's$i',
@@ -359,12 +360,17 @@ Spot makeSpot(
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     stats: stats,
     status: status,
+    tags: tags,
   );
 }
 
-SpotWithChannel makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
+SpotWithChannel makeMySpot(
+  int i, {
+  String channelName = 'Spotted Pisa',
+  SpotStatus status = SpotStatus.published,
+}) {
   return SpotWithChannel(
-    spot: makeSpot(i),
+    spot: makeSpot(i, status: status),
     channelName: channelName,
     channelSlug: 'canale-1',
   );
@@ -398,6 +404,10 @@ class FakeSpotsRepository implements SpotsRepository {
   final queries = <String?>[];
   final mineCalls = <({int offset, int limit})>[];
   final createCalls = <Map<String, String>>[];
+
+  /// I tag di ogni chiamata di `createSpot`, nello stesso ordine di
+  /// [createCalls] (`null` se non c'erano: l'utente non è il proprietario).
+  final createTagCalls = <List<String>?>[];
   final deleteCalls = <String>[];
 
   static String _plain(String text) => text
@@ -487,19 +497,25 @@ class FakeSpotsRepository implements SpotsRepository {
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   }) async {
     createCalls.add({
       'channelId': channelId,
       'title': title,
       'content': content,
     });
+    createTagCalls.add(tags);
     if (createError != null) throw createError!;
+    // Come il database: con i tag (solo il proprietario) lo spot è
+    // pubblicato, senza nasce in attesa.
     final spot = Spot(
       id: 'new-${createCalls.length}',
       channelId: channelId,
       title: title,
       content: content,
       createdAt: DateTime(2026),
+      status: tags == null ? SpotStatus.pending : SpotStatus.published,
+      tags: tags ?? const [],
     );
     spots = [spot, ...spots];
     return spot;
@@ -635,6 +651,10 @@ class FakeModerationRepository implements ModerationRepository {
   final commentCalls = <({String commentId, bool hidden})>[];
   final authorCalls = <String>[];
   final hiddenCalls = <({String channelId, int offset, int limit})>[];
+  final pendingCalls = <({String channelId, int offset, int limit})>[];
+  final approveCalls = <({String spotId, List<String> tags})>[];
+  final rejectCalls = <String>[];
+  Failure? approveError;
 
   @override
   Future<bool> isChannelOwner(String channelId) async {
@@ -694,6 +714,63 @@ class FakeModerationRepository implements ModerationRepository {
         else
           c,
     ];
+  }
+
+  void _setSpot(String spotId, SpotStatus status, {List<String>? tags}) {
+    final repository = spotsRepository;
+    if (repository == null) return;
+    repository.spots = [
+      for (final s in repository.spots)
+        if (s.id == spotId)
+          Spot(
+            id: s.id,
+            channelId: s.channelId,
+            title: s.title,
+            content: s.content,
+            createdAt: s.createdAt,
+            stats: s.stats,
+            status: status,
+            tags: tags ?? s.tags,
+          )
+        else
+          s,
+    ];
+  }
+
+  Iterable<Spot> _pending(String channelId) =>
+      (spotsRepository?.spots ?? const <Spot>[]).where(
+        (s) => s.channelId == channelId && s.status == SpotStatus.pending,
+      );
+
+  @override
+  Future<List<Spot>> getPendingSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    pendingCalls.add((channelId: channelId, offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    return _pending(channelId).skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<int> getPendingSpotsCount(String channelId) async {
+    if (listError != null) throw listError!;
+    return _pending(channelId).length;
+  }
+
+  @override
+  Future<void> approveSpot(String spotId, List<String> tags) async {
+    approveCalls.add((spotId: spotId, tags: tags));
+    if (approveError != null) throw approveError!;
+    _setSpot(spotId, SpotStatus.published, tags: tags);
+  }
+
+  @override
+  Future<void> rejectSpot(String spotId) async {
+    rejectCalls.add(spotId);
+    if (approveError != null) throw approveError!;
+    _setSpot(spotId, SpotStatus.rejected);
   }
 
   @override

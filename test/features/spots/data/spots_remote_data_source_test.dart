@@ -196,6 +196,153 @@ void main() {
     });
   });
 
+  group('createSpot: il proprietario pubblica con i tag', () {
+    test("chiama l'RPC publish_owner_spot, non l'insert", () async {
+      respondWith([
+        spotRow('9', status: 'published', tags: ['crush', 'meme']),
+      ]);
+
+      final spot = await dataSource.createSpot(
+        channelId: 'c1',
+        title: 'Titolo',
+        content: 'Testo',
+        tags: ['crush', 'meme'],
+      );
+
+      expect(supabase.requests, hasLength(1));
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/publish_owner_spot');
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_channel_id': 'c1',
+        'p_title': 'Titolo',
+        'p_content': 'Testo',
+        'p_tags': ['crush', 'meme'],
+      });
+      expect(spot.status, SpotStatus.published);
+      expect(spot.tags, ['crush', 'meme']);
+    });
+
+    test('senza sessione non serve: decide il database', () async {
+      respondWith([
+        spotRow('9', status: 'published', tags: ['crush']),
+      ], userId: () => null);
+
+      final spot = await dataSource.createSpot(
+        channelId: 'c1',
+        title: 't',
+        content: 'c',
+        tags: ['crush'],
+      );
+
+      expect(spot.id, '9');
+    });
+
+    test('non proprietario (42501): PermissionFailure', () async {
+      supabase = MockSupabase((_) async => postgrestError('42501', 'no'));
+      final repository = SpotsRepositoryImpl(
+        SpotsRemoteDataSource(supabase.client, currentUserId: () => 'u'),
+      );
+
+      await expectLater(
+        repository.createSpot(
+          channelId: 'c1',
+          title: 't',
+          content: 'c',
+          tags: ['crush'],
+        ),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('tag non validi (23514): ValidationFailure', () async {
+      supabase = MockSupabase((_) async => postgrestError('23514', 'no'));
+      final repository = SpotsRepositoryImpl(
+        SpotsRemoteDataSource(supabase.client, currentUserId: () => 'u'),
+      );
+
+      await expectLater(
+        repository.createSpot(
+          channelId: 'c1',
+          title: 't',
+          content: 'c',
+          tags: ['inventato'],
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+  });
+
+  group('stato e tag degli spot', () {
+    test('un nuovo spot nasce in attesa e senza tag', () async {
+      respondWith(spotRow('9', status: 'pending'));
+
+      final spot = await dataSource.createSpot(
+        channelId: 'c1',
+        title: 'Titolo',
+        content: 'Testo',
+      );
+
+      expect(spot.status, SpotStatus.pending);
+      expect(spot.tags, isEmpty);
+    });
+
+    test(
+      'il feed del canale legge i tag; senza tag la lista è vuota',
+      () async {
+        respondWith([
+          spotRow('1', tags: ['crush', 'animali']),
+          spotRow('2'),
+        ]);
+
+        final spots = await dataSource.getChannelSpots(
+          channelId: 'c1',
+          offset: 0,
+          limit: 20,
+        );
+
+        expect(spots[0].tags, ['crush', 'animali']);
+        expect(spots[1].tags, isEmpty);
+      },
+    );
+
+    test('i miei spot: stato in attesa, rifiutato e tag', () async {
+      respondWith([
+        {
+          ...spotRow('1', status: 'pending', likeCount: 0, commentCount: 0),
+          'channel_name': 'Pisa',
+          'channel_slug': 'pisa',
+          'liked_by_me': false,
+        },
+        {
+          ...spotRow('2', status: 'rejected', likeCount: 0, commentCount: 0),
+          'channel_name': 'Pisa',
+          'channel_slug': 'pisa',
+          'liked_by_me': false,
+        },
+        {
+          ...spotRow(
+            '3',
+            status: 'published',
+            likeCount: 1,
+            commentCount: 0,
+            tags: ['meme'],
+          ),
+          'channel_name': 'Pisa',
+          'channel_slug': 'pisa',
+          'liked_by_me': false,
+        },
+      ]);
+
+      final spots = await dataSource.getMySpots(offset: 0, limit: 20);
+
+      expect(spots.map((s) => s.spot.status), [
+        SpotStatus.pending,
+        SpotStatus.rejected,
+        SpotStatus.published,
+      ]);
+      expect(spots.last.spot.tags, ['meme']);
+    });
+  });
+
   group('deleteSpot', () {
     test('cancella per id', () async {
       respondWith([

@@ -6,12 +6,16 @@ import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
+import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
 import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:spotted/features/spots/presentation/providers/create_spot_controller.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
+import 'package:spotted/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
-/// Form per pubblicare uno spot (anonimo) nel canale [slug].
+/// Form per scrivere uno spot (anonimo) nel canale [slug]. Un utente lo invia e
+/// aspetta l'approvazione del proprietario; il proprietario sceglie i tag e lo
+/// pubblica subito.
 class CreateSpotPage extends ConsumerStatefulWidget {
   const CreateSpotPage({required this.slug, super.key});
 
@@ -26,6 +30,12 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
   final _title = TextEditingController();
   final _content = TextEditingController();
 
+  /// I tag scelti: solo il proprietario li sceglie.
+  var _tags = <String>[];
+
+  /// Il proprietario ha provato a pubblicare senza tag.
+  var _tagsMissing = false;
+
   @override
   void dispose() {
     _title.dispose();
@@ -33,8 +43,11 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
     super.dispose();
   }
 
-  Future<void> _submit(String channelId) async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _submit(String channelId, {required bool owner}) async {
+    final valid = _formKey.currentState!.validate();
+    final tagsValid = !owner || SpotValidators.isValidTagCount(_tags.length);
+    setState(() => _tagsMissing = !tagsValid);
+    if (!valid || !tagsValid) return;
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
@@ -44,9 +57,14 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
           channelId: channelId,
           title: _title.text,
           content: _content.text,
+          tags: owner ? _tags : null,
         );
     if (spot != null && mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.spotPublished)));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(owner ? l10n.spotPublished : l10n.spotSubmitted),
+        ),
+      );
       router.pop();
     }
   }
@@ -65,79 +83,121 @@ class _CreateSpotPageState extends ConsumerState<CreateSpotPage> {
           error: error,
           onRetry: () => ref.invalidate(channelDetailProvider(widget.slug)),
         ),
-        data: (channel) => SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 500),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        channel.name,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.spotAnonymousNote,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _title,
-                        maxLength: SpotValidators.maxTitleLength,
-                        textCapitalization: TextCapitalization.sentences,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          labelText: l10n.spotTitleLabel,
-                        ),
-                        validator: (v) => SpotValidators.isValidTitle(v ?? '')
-                            ? null
-                            : l10n.validationRequired,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _content,
-                        minLines: 5,
-                        maxLines: 12,
-                        maxLength: SpotValidators.maxContentLength,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: InputDecoration(
-                          labelText: l10n.spotContentLabel,
-                          alignLabelWithHint: true,
-                        ),
-                        validator: (v) => SpotValidators.isValidContent(v ?? '')
-                            ? null
-                            : l10n.validationRequired,
-                      ),
-                      if (state.hasError) ...[
-                        const SizedBox(height: 16),
+        data: (channel) {
+          // Finché non si sa se sei il proprietario vale il caso comune.
+          final owner =
+              ref.watch(isChannelOwnerProvider(channel.id)).value ?? false;
+          return SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                         Text(
-                          failureMessage(l10n, state.error!),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
+                          channel.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.spotAnonymousNote,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (!owner) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.spotApprovalNote,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
+                        ],
+                        const SizedBox(height: 24),
+                        TextFormField(
+                          controller: _title,
+                          maxLength: SpotValidators.maxTitleLength,
+                          textCapitalization: TextCapitalization.sentences,
+                          textInputAction: TextInputAction.next,
+                          decoration: InputDecoration(
+                            labelText: l10n.spotTitleLabel,
+                          ),
+                          validator: (v) => SpotValidators.isValidTitle(v ?? '')
+                              ? null
+                              : l10n.validationRequired,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _content,
+                          minLines: 5,
+                          maxLines: 12,
+                          maxLength: SpotValidators.maxContentLength,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: InputDecoration(
+                            labelText: l10n.spotContentLabel,
+                            alignLabelWithHint: true,
+                          ),
+                          validator: (v) =>
+                              SpotValidators.isValidContent(v ?? '')
+                              ? null
+                              : l10n.validationRequired,
+                        ),
+                        if (owner) ...[
+                          const SizedBox(height: 24),
+                          Text(
+                            l10n.spotTagsTitle,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          TagPicker(
+                            channelId: channel.id,
+                            selected: _tags,
+                            onChanged: (tags) => setState(() {
+                              _tags = tags;
+                              _tagsMissing = false;
+                            }),
+                          ),
+                          if (_tagsMissing) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.tagsRequired,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ],
+                        ],
+                        if (state.hasError) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            failureMessage(l10n, state.error!),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        FilledButton(
+                          onPressed: state.isLoading
+                              ? null
+                              : () => _submit(channel.id, owner: owner),
+                          child: state.isLoading
+                              ? const InlineProgress()
+                              : Text(
+                                  owner
+                                      ? l10n.publishSpotButton
+                                      : l10n.sendSpotButton,
+                                ),
                         ),
                       ],
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        onPressed: state.isLoading
-                            ? null
-                            : () => _submit(channel.id),
-                        child: state.isLoading
-                            ? const InlineProgress()
-                            : Text(l10n.publishSpotButton),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

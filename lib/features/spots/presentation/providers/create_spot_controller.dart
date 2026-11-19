@@ -12,12 +12,13 @@ class CreateSpotController extends _$CreateSpotController {
   @override
   FutureOr<void> build() {}
 
-  /// Restituisce lo spot pubblicato, oppure `null` se fallisce (l'errore è in
-  /// `state`).
+  /// Restituisce lo spot creato (in attesa, o pubblicato se il proprietario
+  /// ha scelto i [tags]), oppure `null` se fallisce (l'errore è in `state`).
   Future<Spot?> submit({
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   }) async {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(
@@ -25,6 +26,7 @@ class CreateSpotController extends _$CreateSpotController {
         channelId: channelId,
         title: title,
         content: content,
+        tags: tags,
       ),
     );
     if (!ref.mounted) return result.value;

@@ -59,6 +59,56 @@ class ModerationRemoteDataSource {
     if (!changed) throw const NotFoundFailure();
   }
 
+  /// Gli spot in attesa non hanno né "mi piace" né commenti né tag: l'RPC non
+  /// restituisce nemmeno lo stato.
+  Future<List<Spot>> getPendingSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'channel_pending_spots_page',
+      params: {
+        'p_channel_id': channelId,
+        'p_limit': limit,
+        'p_offset': offset,
+      },
+    );
+    return rows
+        .cast<Map<String, dynamic>>()
+        .map(
+          (row) => SpotDto.fromJson({...row, 'status': 'pending'}).toEntity(),
+        )
+        .toList();
+  }
+
+  Future<int> getPendingSpotsCount(String channelId) async {
+    final count = await _client.rpc<int>(
+      'channel_pending_spots_count',
+      params: {'p_channel_id': channelId},
+    );
+    return count;
+  }
+
+  /// L'RPC restituisce `false` se lo spot non esiste o non è in attesa, e
+  /// risponde `23514` (`ValidationFailure`) se i tag non valgono.
+  Future<void> approveSpot(String spotId, List<String> tags) async {
+    final changed = await _client.rpc<bool>(
+      'approve_spot',
+      params: {'p_spot_id': spotId, 'p_tags': tags},
+    );
+    if (!changed) throw const NotFoundFailure();
+  }
+
+  /// L'RPC restituisce `false` se lo spot non esiste o non è in attesa.
+  Future<void> rejectSpot(String spotId) async {
+    final changed = await _client.rpc<bool>(
+      'reject_spot',
+      params: {'p_spot_id': spotId},
+    );
+    if (!changed) throw const NotFoundFailure();
+  }
+
   Future<List<Spot>> getHiddenSpots({
     required String channelId,
     required int offset,

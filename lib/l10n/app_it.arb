@@ -378,5 +378,41 @@
   "eventsUpcoming": "Prossimi",
   "eventsPast": "Passati",
   "noPastEvents": "Nessun evento passato",
-  "noPastEventsHint": "Gli eventi già svolti compariranno qui."
+  "noPastEventsHint": "Gli eventi già svolti compariranno qui.",
+  "pendingSpotLabel": "In attesa di approvazione",
+  "rejectedSpotLabel": "Rifiutato dal proprietario del canale",
+  "spotSubmitted": "Spot inviato: comparirà quando il proprietario lo approva",
+  "spotApprovalNote": "Il proprietario del canale deve approvare lo spot prima che venga pubblicato. L'esito lo trovi in «I miei spot».",
+  "sendSpotButton": "Invia lo spot",
+  "spotTagsTitle": "Tag",
+  "tagsRequired": "Scegli almeno un tag",
+  "tagsChooseHint": "Scegli da {min} a {max} tag",
+  "@tagsChooseHint": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pendingSpotsTab": "Da approvare",
+  "pendingSpotsTabCount": "Da approvare ({count})",
+  "@pendingSpotsTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPendingSpots": "Nessuno spot da approvare",
+  "noPendingSpotsHint": "Gli spot che gli utenti inviano al canale compaiono qui: tu li pubblichi con i tag o li rifiuti.",
+  "approveSpotAction": "Pubblica",
+  "rejectSpotAction": "Rifiuta",
+  "approveSpotTitle": "Scegli i tag dello spot",
+  "spotApproved": "Spot pubblicato",
+  "spotRejected": "Spot rifiutato",
+  "rejectSpotTitle": "Rifiutare lo spot?",
+  "rejectSpotMessage": "L'autore vedrà che lo spot è stato rifiutato. Non si può annullare."
 }
