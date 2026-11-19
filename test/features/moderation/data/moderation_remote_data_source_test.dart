@@ -165,6 +165,99 @@ void main() {
     });
   });
 
+  group('getPendingSpots', () {
+    test("chiama l'RPC channel_pending_spots_page", () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getPendingSpots(channelId: 'c1', offset: 20, limit: 20);
+
+      expect(
+        supabase.lastRequest.url.path,
+        '/rest/v1/rpc/channel_pending_spots_page',
+      );
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_channel_id': 'c1',
+        'p_limit': 20,
+        'p_offset': 20,
+      });
+    });
+
+    test('gli spot letti risultano in attesa, senza tag', () async {
+      respondWith([spotRow('1'), spotRow('2')]);
+
+      final spots = await dataSource.getPendingSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+      );
+
+      expect(spots.map((s) => s.id), ['1', '2']);
+      expect(spots.every((s) => s.status == SpotStatus.pending), isTrue);
+      expect(spots.every((s) => s.tags.isEmpty), isTrue);
+    });
+  });
+
+  group('getPendingSpotsCount', () {
+    test(
+      "chiama l'RPC channel_pending_spots_count e legge il numero",
+      () async {
+        respondWith(3);
+
+        final count = await dataSource.getPendingSpotsCount('c1');
+
+        expect(
+          supabase.lastRequest.url.path,
+          '/rest/v1/rpc/channel_pending_spots_count',
+        );
+        expect(jsonDecode(supabase.lastRequest.body), {'p_channel_id': 'c1'});
+        expect(count, 3);
+      },
+    );
+  });
+
+  group('approveSpot', () {
+    test("chiama l'RPC approve_spot con i tag", () async {
+      respondWith(true);
+
+      await dataSource.approveSpot('s1', ['crush', 'meme']);
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/approve_spot');
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_spot_id': 's1',
+        'p_tags': ['crush', 'meme'],
+      });
+    });
+
+    test('spot inesistente o non in attesa (false): NotFoundFailure', () async {
+      respondWith(false);
+
+      await expectLater(
+        dataSource.approveSpot('s1', ['crush']),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+  });
+
+  group('rejectSpot', () {
+    test("chiama l'RPC reject_spot", () async {
+      respondWith(true);
+
+      await dataSource.rejectSpot('s1');
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/reject_spot');
+      expect(jsonDecode(supabase.lastRequest.body), {'p_spot_id': 's1'});
+    });
+
+    test('spot inesistente o non in attesa (false): NotFoundFailure', () async {
+      respondWith(false);
+
+      await expectLater(
+        dataSource.rejectSpot('s1'),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+  });
+
   group('errori (repository)', () {
     late ModerationRepositoryImpl repository;
 
@@ -193,6 +286,36 @@ void main() {
       await expectLater(
         repository.getHiddenSpots(channelId: 'c1', offset: 0, limit: 20),
         throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('approvare e rifiutare: non proprietario (42501)', () async {
+      respondError('42501');
+
+      await expectLater(
+        repository.approveSpot('s1', ['crush']),
+        throwsA(isA<PermissionFailure>()),
+      );
+      await expectLater(
+        repository.rejectSpot('s1'),
+        throwsA(isA<PermissionFailure>()),
+      );
+      await expectLater(
+        repository.getPendingSpots(channelId: 'c1', offset: 0, limit: 20),
+        throwsA(isA<PermissionFailure>()),
+      );
+      await expectLater(
+        repository.getPendingSpotsCount('c1'),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+
+    test('approvare con tag non validi (23514): ValidationFailure', () async {
+      respondError('23514');
+
+      await expectLater(
+        repository.approveSpot('s1', ['inventato']),
+        throwsA(isA<ValidationFailure>()),
       );
     });
 

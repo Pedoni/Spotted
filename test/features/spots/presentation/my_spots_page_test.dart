@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
+import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 
@@ -150,5 +151,45 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Spot 1'), findsOneWidget);
+  });
+
+  testWidgets('uno spot in attesa o rifiutato mostra l esito, senza like', (
+    tester,
+  ) async {
+    await openMySpots(
+      tester,
+      FakeSpotsRepository(
+        mine: [
+          makeMySpot(1, status: SpotStatus.pending),
+          makeMySpot(2, status: SpotStatus.rejected),
+          makeMySpot(3),
+        ],
+      ),
+    );
+
+    expect(find.text('In attesa di approvazione'), findsOneWidget);
+    expect(find.text('Rifiutato dal proprietario del canale'), findsOneWidget);
+    // Solo lo spot pubblicato ha il cuore dei "mi piace".
+    expect(find.byType(LikeButton), findsOneWidget);
+  });
+
+  testWidgets('uno spot pubblicato mostra i tag scelti dal proprietario', (
+    tester,
+  ) async {
+    await openMySpots(
+      tester,
+      FakeSpotsRepository(
+        mine: [
+          SpotWithChannel(
+            spot: makeSpot(1, tags: ['crush', 'curiosita']),
+            channelName: 'Spotted Pisa',
+            channelSlug: 'canale-1',
+          ),
+        ],
+      ),
+    );
+
+    expect(find.text('Crush'), findsOneWidget);
+    expect(find.text('Curiosità'), findsOneWidget);
   });
 }

@@ -100,6 +100,10 @@ class SpotModerationMenu extends ConsumerWidget {
 
     final l10n = AppLocalizations.of(context);
     final hidden = spot.status == SpotStatus.hidden;
+    // Uno spot in attesa o rifiutato si decide dalla coda: qui resta solo
+    // l'autore da vedere.
+    final moderable =
+        spot.status == SpotStatus.published || spot.status == SpotStatus.hidden;
     return PopupMenuButton<_Action>(
       tooltip: l10n.ownerTools,
       onSelected: (action) => unawaited(switch (action) {
@@ -116,11 +120,13 @@ class SpotModerationMenu extends ConsumerWidget {
           value: _Action.viewAuthor,
           child: Text(l10n.viewSpotAuthor),
         ),
-        PopupMenuItem(
-          value: _Action.toggleHidden,
-          child: Text(hidden ? l10n.restoreSpot : l10n.hideSpot),
-        ),
-        PopupMenuItem(value: _Action.remove, child: Text(l10n.removeSpot)),
+        if (moderable) ...[
+          PopupMenuItem(
+            value: _Action.toggleHidden,
+            child: Text(hidden ? l10n.restoreSpot : l10n.hideSpot),
+          ),
+          PopupMenuItem(value: _Action.remove, child: Text(l10n.removeSpot)),
+        ],
       ],
     );
   }

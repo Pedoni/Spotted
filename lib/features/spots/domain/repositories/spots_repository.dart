@@ -28,11 +28,14 @@ abstract interface class SpotsRepository {
     required int limit,
   });
 
-  /// Pubblica uno spot nel canale a nome (anonimo) dell'utente loggato.
+  /// Invia uno spot al canale a nome (anonimo) dell'utente loggato: nasce in
+  /// attesa dell'approvazione del proprietario. Se il proprietario passa i
+  /// [tags] (da 1 a 3) lo spot è pubblicato subito.
   Future<Spot> createSpot({
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   });
 
   /// Cancella uno spot dell'utente. Lancia `NotFoundFailure` se non esiste o

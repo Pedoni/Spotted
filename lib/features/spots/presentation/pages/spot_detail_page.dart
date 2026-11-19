@@ -10,6 +10,7 @@ import 'package:spotted/features/comments/presentation/widgets/comment_skeletons
 import 'package:spotted/features/comments/presentation/widgets/spot_comments_sliver.dart';
 import 'package:spotted/features/moderation/presentation/widgets/spot_moderation_menu.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_actions.dart';
+import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 import 'package:spotted/features/spots/presentation/providers/spot_interaction.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
@@ -32,12 +33,14 @@ class SpotDetailPage extends ConsumerWidget {
         title: Text(l10n.spotTitle),
         actions: [
           if (spot.value case final loaded?) ...[
-            IconButton(
-              tooltip: l10n.report,
-              icon: const Icon(Icons.flag_rounded),
-              onPressed: () =>
-                  unawaited(reportSpotFlow(context, ref, loaded.id)),
-            ),
+            // Si segnala solo uno spot pubblicato.
+            if (loaded.status == SpotStatus.published)
+              IconButton(
+                tooltip: l10n.report,
+                icon: const Icon(Icons.flag_rounded),
+                onPressed: () =>
+                    unawaited(reportSpotFlow(context, ref, loaded.id)),
+              ),
             SpotModerationMenu(spot: loaded),
           ],
         ],
@@ -57,6 +60,10 @@ class SpotDetailPage extends ConsumerWidget {
             spot,
             ref.watch(spotInteractionProvider(spot.id)),
           );
+          // Uno spot in attesa o rifiutato non ha commenti.
+          final open =
+              spot.status != SpotStatus.pending &&
+              spot.status != SpotStatus.rejected;
           return Column(
             children: [
               Expanded(
@@ -72,7 +79,7 @@ class SpotDetailPage extends ConsumerWidget {
                       SliverToBoxAdapter(child: SpotCard(spot: spot)),
                       // Senza commenti c'è già lo stato vuoto: un titolo
                       // "Nessun commento" sopra sarebbe doppio.
-                      if (stats.commentCount > 0)
+                      if (open && stats.commentCount > 0)
                         SliverPadding(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
                           sliver: SliverToBoxAdapter(
@@ -82,12 +89,12 @@ class SpotDetailPage extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      SpotCommentsSliver(spot: spot),
+                      if (open) SpotCommentsSliver(spot: spot),
                     ],
                   ),
                 ),
               ),
-              CommentComposer(spot: spot),
+              if (open) CommentComposer(spot: spot),
             ],
           );
         },

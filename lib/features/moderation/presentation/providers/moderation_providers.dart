@@ -5,12 +5,17 @@ import 'package:spotted/features/moderation/data/repositories/moderation_reposit
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
+import 'package:spotted/features/moderation/domain/usecases/approve_spot.dart';
 import 'package:spotted/features/moderation/domain/usecases/get_hidden_spots.dart';
+import 'package:spotted/features/moderation/domain/usecases/get_pending_spots.dart';
+import 'package:spotted/features/moderation/domain/usecases/get_pending_spots_count.dart';
 import 'package:spotted/features/moderation/domain/usecases/get_spot_author.dart';
 import 'package:spotted/features/moderation/domain/usecases/is_channel_owner.dart';
+import 'package:spotted/features/moderation/domain/usecases/reject_spot.dart';
 import 'package:spotted/features/moderation/domain/usecases/set_comment_hidden.dart';
 import 'package:spotted/features/moderation/domain/usecases/set_spot_status.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
+import 'package:spotted/features/moderation/presentation/providers/pending_spots_feed.dart';
 import 'package:spotted/features/reports/presentation/providers/channel_reports_feed.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
@@ -52,6 +57,32 @@ GetHiddenSpots getHiddenSpotsUseCase(Ref ref) {
   return GetHiddenSpots(ref.watch(moderationRepositoryProvider));
 }
 
+@riverpod
+GetPendingSpots getPendingSpotsUseCase(Ref ref) {
+  return GetPendingSpots(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+GetPendingSpotsCount getPendingSpotsCountUseCase(Ref ref) {
+  return GetPendingSpotsCount(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+ApproveSpot approveSpotUseCase(Ref ref) {
+  return ApproveSpot(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+RejectSpot rejectSpotUseCase(Ref ref) {
+  return RejectSpot(ref.watch(moderationRepositoryProvider));
+}
+
+/// Quanti spot del canale aspettano l'approvazione (solo per il proprietario).
+@riverpod
+Future<int> pendingSpotsCount(Ref ref, String channelId) {
+  return ref.watch(getPendingSpotsCountUseCaseProvider)(channelId);
+}
+
 /// L'utente loggato è il proprietario del canale (mostra gli strumenti di
 /// moderazione). Se la richiesta fallisce gli strumenti restano nascosti.
 @riverpod
@@ -84,6 +115,32 @@ class SpotModeration extends _$SpotModeration {
       ..invalidate(channelSpotsFeedProvider)
       ..invalidate(hiddenSpotsFeedProvider(spot.channelId))
       ..invalidate(channelReportsFeedProvider(spot.channelId))
+      ..invalidate(followedSpotsFeedProvider)
+      ..invalidate(mySpotsFeedProvider);
+  }
+
+  /// Pubblica uno spot in attesa con i [tags] scelti. Se fallisce rilancia
+  /// l'errore e non cambia niente.
+  Future<void> approve(Spot spot, List<String> tags) async {
+    await ref.read(approveSpotUseCaseProvider)(spot.id, tags);
+    _reloadAfterDecision(spot);
+  }
+
+  /// Rifiuta uno spot in attesa. Se fallisce rilancia l'errore.
+  Future<void> reject(Spot spot) async {
+    await ref.read(rejectSpotUseCaseProvider)(spot.id);
+    _reloadAfterDecision(spot);
+  }
+
+  /// Dopo la decisione la coda, il contatore, il feed del canale e "i miei
+  /// spot" (dove l'autore vede l'esito) vanno ricaricati.
+  void _reloadAfterDecision(Spot spot) {
+    if (!ref.mounted) return;
+    ref
+      ..invalidate(spotDetailProvider(spot.id))
+      ..invalidate(pendingSpotsFeedProvider(spot.channelId))
+      ..invalidate(pendingSpotsCountProvider(spot.channelId))
+      ..invalidate(channelSpotsFeedProvider)
       ..invalidate(followedSpotsFeedProvider)
       ..invalidate(mySpotsFeedProvider);
   }

@@ -11,6 +11,7 @@ import 'package:spotted/core/widgets/like_button.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 import 'package:spotted/features/spots/presentation/providers/spot_interaction.dart';
+import 'package:spotted/features/tags/presentation/widgets/spot_tag_chips.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
 /// Uno spot: titolo, testo, data, like e commenti. Mai l'autore (gli spot sono
@@ -23,6 +24,7 @@ class SpotCard extends ConsumerWidget {
     this.onChannelTap,
     this.trailing,
     this.highlight,
+    this.showStatus = true,
     super.key,
   });
 
@@ -39,6 +41,22 @@ class SpotCard extends ConsumerWidget {
 
   /// Il testo cercato: nel titolo e nel testo dello spot viene evidenziato.
   final String? highlight;
+
+  /// Se mostrare perché lo spot non è pubblico (nascosto, in attesa,
+  /// rifiutato). La coda del proprietario lo toglie: lì sono tutti in attesa.
+  final bool showStatus;
+
+  /// L'icona e il testo che spiegano perché uno spot non è pubblico (nascosto,
+  /// in attesa o rifiutato); `null` se è pubblicato.
+  static (IconData, String)? _statusNote(
+    AppLocalizations l10n,
+    SpotStatus status,
+  ) => switch (status) {
+    SpotStatus.published => null,
+    SpotStatus.hidden => (Icons.visibility_off_rounded, l10n.hiddenSpotLabel),
+    SpotStatus.pending => (Icons.hourglass_top_rounded, l10n.pendingSpotLabel),
+    SpotStatus.rejected => (Icons.block_rounded, l10n.rejectedSpotLabel),
+  };
 
   Future<void> _toggleLike(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
@@ -62,6 +80,9 @@ class SpotCard extends ConsumerWidget {
       ref.watch(spotInteractionProvider(spot.id)),
     );
     final date = formatDateTime(context, spot.createdAt);
+    final note = showStatus
+        ? _statusNote(AppLocalizations.of(context), spot.status)
+        : null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -104,21 +125,25 @@ class SpotCard extends ConsumerWidget {
                   ?trailing,
                 ],
               ),
-              if (spot.status == SpotStatus.hidden) ...[
+              if (note case (final icon, final text)) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Icon(
-                      Icons.visibility_off_rounded,
+                      icon,
                       size: 16,
-                      color: theme.colorScheme.error,
+                      color: spot.status == SpotStatus.pending
+                          ? theme.colorScheme.outline
+                          : theme.colorScheme.error,
                     ),
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
-                        AppLocalizations.of(context).hiddenSpotLabel,
+                        text,
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.error,
+                          color: spot.status == SpotStatus.pending
+                              ? theme.colorScheme.outline
+                              : theme.colorScheme.error,
                         ),
                       ),
                     ),
@@ -137,29 +162,39 @@ class SpotCard extends ConsumerWidget {
                 query: highlight,
                 style: theme.textTheme.bodyLarge,
               ),
+              if (spot.tags.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SpotTagChips(tags: spot.tags),
+              ],
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  LikeButton(
-                    liked: stats.likedByMe,
-                    count: stats.likeCount,
-                    onPressed: () => unawaited(_toggleLike(context, ref)),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    size: 18,
-                    color: theme.colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${stats.commentCount}',
-                    style: theme.textTheme.labelLarge?.copyWith(
+              // Un "mi piace" o un commento ha senso solo su uno spot
+              // pubblicato: uno in attesa o rifiutato non li ha.
+              if (spot.status == SpotStatus.pending ||
+                  spot.status == SpotStatus.rejected)
+                const SizedBox(height: 8)
+              else
+                Row(
+                  children: [
+                    LikeButton(
+                      liked: stats.likedByMe,
+                      count: stats.likeCount,
+                      onPressed: () => unawaited(_toggleLike(context, ref)),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 18,
                       color: theme.colorScheme.outline,
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${stats.commentCount}',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

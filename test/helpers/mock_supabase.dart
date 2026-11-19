@@ -81,6 +81,7 @@ Map<String, dynamic> spotRow(
   int? commentCount,
   bool? likedByMe,
   String? status,
+  List<String>? tags,
 }) {
   return {
     'id': id,
@@ -92,6 +93,7 @@ Map<String, dynamic> spotRow(
     'comment_count': ?commentCount,
     'liked_by_me': ?likedByMe,
     'status': ?status,
+    'tags': ?tags,
   };
 }
 

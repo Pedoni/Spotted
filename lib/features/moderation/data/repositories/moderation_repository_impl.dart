@@ -33,6 +33,36 @@ class ModerationRepositoryImpl implements ModerationRepository {
   }
 
   @override
+  Future<List<Spot>> getPendingSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) {
+    return guardFailures(
+      () => _dataSource.getPendingSpots(
+        channelId: channelId,
+        offset: offset,
+        limit: limit,
+      ),
+    );
+  }
+
+  @override
+  Future<int> getPendingSpotsCount(String channelId) {
+    return guardFailures(() => _dataSource.getPendingSpotsCount(channelId));
+  }
+
+  @override
+  Future<void> approveSpot(String spotId, List<String> tags) {
+    return guardFailures(() => _dataSource.approveSpot(spotId, tags));
+  }
+
+  @override
+  Future<void> rejectSpot(String spotId) {
+    return guardFailures(() => _dataSource.rejectSpot(spotId));
+  }
+
+  @override
   Future<List<Spot>> getHiddenSpots({
     required String channelId,
     required int offset,

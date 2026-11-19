@@ -20,6 +20,25 @@ abstract interface class ModerationRepository {
   /// commento non esiste o ha già quello stato.
   Future<void> setCommentHidden(String commentId, {required bool hidden});
 
+  /// Pagina degli spot in attesa di approvazione, dal più vecchio.
+  Future<List<Spot>> getPendingSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  });
+
+  /// Quanti spot del canale aspettano l'approvazione.
+  Future<int> getPendingSpotsCount(String channelId);
+
+  /// Pubblica uno spot in attesa con i [tags] scelti (da 1 a 3, validi per il
+  /// canale). Lancia `NotFoundFailure` se lo spot non esiste o non è in
+  /// attesa, `ValidationFailure` se i tag non valgono.
+  Future<void> approveSpot(String spotId, List<String> tags);
+
+  /// Rifiuta uno spot in attesa. Lancia `NotFoundFailure` se lo spot non
+  /// esiste o non è in attesa.
+  Future<void> rejectSpot(String spotId);
+
   /// Pagina degli spot nascosti del canale, dal più recente.
   Future<List<Spot>> getHiddenSpots({
     required String channelId,
