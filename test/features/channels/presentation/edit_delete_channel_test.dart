@@ -108,7 +108,7 @@ void main() {
       expect(repo.channels.single.slug, 'canale-1');
     });
 
-    testWidgets('si può cambiare il comune e toglierlo', (tester) async {
+    testWidgets('togliendo il comune non si può salvare', (tester) async {
       await openChannel(tester);
       await openMenu(tester, 'Modifica canale');
 
@@ -118,7 +118,26 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
       await tester.pumpAndSettle();
 
-      expect(repo.updateCalls.single['municipalityId'], isNull);
+      expect(find.text("Scegli un comune dall'elenco"), findsOneWidget);
+      expect(repo.updateCalls, isEmpty);
+      expect(find.text('Modifica canale'), findsOneWidget);
+    });
+
+    testWidgets('si può cambiare il comune', (tester) async {
+      await openChannel(tester);
+      await openMenu(tester, 'Modifica canale');
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+      await tester.enterText(field('Comune'), 'pis');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Pisa').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      expect(repo.updateCalls.single['municipalityId'], '050026');
     });
 
     testWidgets('un nome troppo corto non parte', (tester) async {
@@ -230,6 +249,83 @@ void main() {
       expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
       expect(find.byTooltip('Altre azioni'), findsOneWidget);
       expect(repo.channels, hasLength(1));
+    });
+  });
+
+  group('canale nato senza città', () {
+    final legacy = makeChannel(1, name: 'Spotted Pisa', topicId: 't-uni');
+
+    Future<void> openLegacy(WidgetTester tester, {bool owner = true}) async {
+      repo = FakeChannelsRepository(channels: [legacy], mine: [legacy]);
+      await pumpApp(
+        tester,
+        channels: repo,
+        moderation: FakeModerationRepository(
+          ownedChannelIds: owner ? {'c1'} : {},
+        ),
+        screenSize: const Size(800, 1400),
+      );
+      await tester.tap(find.byIcon(Icons.tag_rounded));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Spotted Pisa'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('il proprietario è invitato ad aggiungerla', (tester) async {
+      await openLegacy(tester);
+
+      expect(find.text('Aggiungi la città del canale'), findsOneWidget);
+      expect(
+        find.text(
+          'Questo canale non ha ancora una città, e ora è obbligatoria.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('chi non è proprietario non vede l invito', (tester) async {
+      await openLegacy(tester, owner: false);
+
+      expect(find.text('Aggiungi la città del canale'), findsNothing);
+    });
+
+    testWidgets('un canale con la città non ha l invito', (tester) async {
+      await openChannel(tester);
+
+      expect(find.text('Aggiungi la città del canale'), findsNothing);
+    });
+
+    testWidgets('l invito apre la modifica, che parte senza comune', (
+      tester,
+    ) async {
+      await openLegacy(tester);
+
+      await tester.tap(find.text('Aggiungi la città'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Modifica canale'), findsOneWidget);
+      expect(
+        tester.widget<TextFormField>(field('Comune')).controller!.text,
+        isEmpty,
+      );
+
+      // Senza scegliere il comune non si salva.
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+      expect(find.text("Scegli un comune dall'elenco"), findsOneWidget);
+      expect(repo.updateCalls, isEmpty);
+
+      // Scelto il comune, il canale si salva e l'invito sparisce.
+      await tester.enterText(field('Comune'), 'pis');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Pisa').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      expect(repo.updateCalls.single['municipalityId'], '050026');
+      expect(find.text('Aggiungi la città del canale'), findsNothing);
     });
   });
 }

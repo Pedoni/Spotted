@@ -51,8 +51,9 @@ class MunicipalityChoice extends Equatable {
 
 /// Campo per scegliere un comune: si scrive il nome e compaiono i suggerimenti
 /// dell'elenco ufficiale. Si può solo **scegliere** un suggerimento: un testo
-/// scritto a mano e non scelto non è valido. È facoltativo (vuoto va bene) e si
-/// può togliere con la "x".
+/// scritto a mano e non scelto non è valido. Di default è facoltativo (vuoto va
+/// bene, come nei filtri); con [required] va scelto un comune. Si può togliere
+/// con la "x".
 ///
 /// [onChanged] riceve il comune scelto, o `null` quando si toglie o si
 /// modifica il testo dopo averlo scelto.
@@ -61,6 +62,7 @@ class MunicipalityField extends ConsumerStatefulWidget {
     required this.onChanged,
     this.initialValue,
     this.labelText,
+    this.required = false,
     this.debounce = const Duration(milliseconds: 300),
     super.key,
   });
@@ -68,8 +70,13 @@ class MunicipalityField extends ConsumerStatefulWidget {
   final MunicipalityChoice? initialValue;
   final ValueChanged<MunicipalityChoice?> onChanged;
 
-  /// Il testo del campo; di default "Comune (facoltativo)".
+  /// Il testo del campo; di default "Comune (facoltativo)", o "Comune" se
+  /// [required].
   final String? labelText;
+
+  /// Il comune è obbligatorio: vuoto non è valido ("Scegli un comune
+  /// dall'elenco").
+  final bool required;
 
   /// Quanto si aspetta, dopo l'ultima lettera scritta, prima di cercare.
   final Duration debounce;
@@ -178,8 +185,9 @@ class _MunicipalityFieldState extends ConsumerState<MunicipalityField> {
 
   String? _validate(String? text, AppLocalizations l10n) {
     final typed = text?.trim().isNotEmpty ?? false;
-    // Vuoto va bene; scritto ma non scelto no.
-    return typed && _selected == null ? l10n.municipalityChoose : null;
+    // Scritto ma non scelto non va mai bene; vuoto solo se è facoltativo.
+    if (_selected != null) return null;
+    return typed || widget.required ? l10n.municipalityChoose : null;
   }
 
   @override
@@ -205,7 +213,11 @@ class _MunicipalityFieldState extends ConsumerState<MunicipalityField> {
                 onFieldSubmitted: (_) => onSubmitted(),
                 validator: (text) => _validate(text, l10n),
                 decoration: InputDecoration(
-                  labelText: widget.labelText ?? l10n.channelMunicipalityLabel,
+                  labelText:
+                      widget.labelText ??
+                      (widget.required
+                          ? l10n.channelMunicipalityRequiredLabel
+                          : l10n.channelMunicipalityLabel),
                   hintText: l10n.municipalityHint,
                   helperText: _error != null
                       ? failureMessage(l10n, _error!)

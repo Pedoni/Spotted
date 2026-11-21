@@ -478,5 +478,9 @@
   "tagFilterHint": "Mostra gli spot che hanno almeno uno di questi tag.",
   "noSpotsWithTags": "Nessuno spot con questi tag",
   "noSpotsWithTagsHint": "Prova a togliere qualche filtro.",
-  "clearFiltersAction": "Azzera i filtri"
+  "clearFiltersAction": "Azzera i filtri",
+  "channelMunicipalityRequiredLabel": "Comune",
+  "missingMunicipalityTitle": "Aggiungi la città del canale",
+  "missingMunicipalityBody": "Questo canale non ha ancora una città, e ora è obbligatoria.",
+  "missingMunicipalityAction": "Aggiungi la città"
 }

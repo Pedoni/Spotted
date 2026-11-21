@@ -14,7 +14,9 @@ class CreateChannel {
   final ChannelsRepository _repository;
   final Random? _random;
 
-  /// Crea il canale generando lo slug dal nome. Se lo slug è già usato prova
+  /// Crea il canale generando lo slug dal nome. Il comune ([municipalityId])
+  /// è obbligatorio: senza, `ValidationFailure`.
+  /// Se lo slug è già usato prova
   /// con un suffisso casuale, fino a [maxAttempts] tentativi.
   Future<Channel> call({
     required String name,
@@ -22,8 +24,10 @@ class CreateChannel {
     String? municipalityId,
     String? topicId,
   }) async {
+    // La città è obbligatoria (decisione di prodotto: serve alla mappa).
     if (!ChannelValidators.isValidName(name) ||
-        !ChannelValidators.isValidDescription(description ?? '')) {
+        !ChannelValidators.isValidDescription(description ?? '') ||
+        _nullIfBlank(municipalityId) == null) {
       throw const ValidationFailure();
     }
 
