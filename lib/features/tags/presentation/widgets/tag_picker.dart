@@ -15,12 +15,21 @@ class TagPicker extends ConsumerWidget {
     required this.channelId,
     required this.selected,
     required this.onChanged,
+    this.maxSelected = SpotValidators.maxTags,
+    this.hint,
     super.key,
   });
 
   final String channelId;
   final List<String> selected;
   final ValueChanged<List<String>> onChanged;
+
+  /// Quanti tag si possono scegliere al massimo; `null` senza limite (i
+  /// filtri). Raggiunto il massimo gli altri si spengono.
+  final int? maxSelected;
+
+  /// Il testo sopra i tag. Se manca: "Scegli da 1 a 3 tag".
+  final String? hint;
 
   void _toggle(String slug) {
     final next = List.of(selected);
@@ -41,7 +50,8 @@ class TagPicker extends ConsumerWidget {
           error: (error, _) =>
               ErrorView(error: error, onRetry: () => ref.invalidate(provider)),
           data: (tags) {
-            final full = selected.length >= SpotValidators.maxTags;
+            final max = maxSelected;
+            final full = max != null && selected.length >= max;
             // Le categorie nell'ordine in cui arrivano dal database.
             final categories = <String, List<Tag>>{};
             for (final tag in tags) {
@@ -51,10 +61,11 @@ class TagPicker extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.tagsChooseHint(
-                    SpotValidators.minTags,
-                    SpotValidators.maxTags,
-                  ),
+                  hint ??
+                      l10n.tagsChooseHint(
+                        SpotValidators.minTags,
+                        SpotValidators.maxTags,
+                      ),
                   style: theme.textTheme.bodySmall,
                 ),
                 for (final entry in categories.entries) ...[

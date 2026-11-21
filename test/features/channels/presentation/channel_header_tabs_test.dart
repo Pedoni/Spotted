@@ -244,23 +244,6 @@ void main() {
       expect(find.text('Ancora nessuna news'), findsNothing);
     });
 
-    testWidgets('la ricerca porta sulla scheda Spots', (tester) async {
-      await openChannel(
-        tester,
-        spots: FakeSpotsRepository(spots: [makeSpot(1)]),
-      );
-      await tester.tap(find.text('Eventi'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.search_rounded));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Chiudi la ricerca'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Spot 1'), findsOneWidget);
-      expect(find.text('Nessun evento in programma'), findsNothing);
-    });
-
     testWidgets('la barra delle schede resta ferma in cima scorrendo', (
       tester,
     ) async {

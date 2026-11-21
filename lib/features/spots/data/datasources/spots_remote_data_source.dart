@@ -25,6 +25,7 @@ class SpotsRemoteDataSource {
     required int offset,
     required int limit,
     String? query,
+    List<String> tags = const [],
   }) async {
     final text = SpotValidators.searchText(query);
     final rows = await _client.rpc<List<dynamic>>(
@@ -35,6 +36,8 @@ class SpotsRemoteDataSource {
         'p_offset': offset,
         // Solo se si cerca: senza ricerca la richiesta è quella di sempre.
         'p_query': ?text,
+        // Idem per i tag: senza filtro la richiesta è quella di sempre.
+        if (tags.isNotEmpty) 'p_tags': tags,
       },
     );
     return _toSpots(rows);

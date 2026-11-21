@@ -15,6 +15,7 @@ class SpotsRepositoryImpl implements SpotsRepository {
     required int offset,
     required int limit,
     String? query,
+    List<String> tags = const [],
   }) {
     return guardFailures(
       () => _dataSource.getChannelSpots(
@@ -22,6 +23,7 @@ class SpotsRepositoryImpl implements SpotsRepository {
         offset: offset,
         limit: limit,
         query: query,
+        tags: tags,
       ),
     );
   }

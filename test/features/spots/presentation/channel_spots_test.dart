@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/features/spots/domain/entities/spot_stats.dart';
+import 'package:spotted/features/spots/presentation/widgets/spots_filter_bar.dart';
 
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
@@ -59,9 +60,9 @@ void main() {
 
     final empty = tester.getRect(find.byType(EmptyState));
     final screenBottom = tester.getSize(find.byType(Scaffold).last).height;
-    // Sotto la barra delle schede (l'ultimo elemento dell'intestazione) e
-    // sopra il fondo dello schermo.
-    final headerBottom = tester.getRect(find.byType(TabBar)).bottom;
+    // Sotto la barra di ricerca (l'ultimo elemento dell'intestazione) e sopra
+    // il fondo dello schermo.
+    final headerBottom = tester.getRect(find.byType(SpotsFilterBar)).bottom;
     final above = empty.top - headerBottom;
     final below = screenBottom - empty.bottom;
 

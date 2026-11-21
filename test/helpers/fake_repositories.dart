@@ -405,6 +405,10 @@ class FakeSpotsRepository implements SpotsRepository {
   /// Il testo cercato in ogni chiamata di `getChannelSpots` (`null` se non si
   /// cercava), nello stesso ordine di [listCalls].
   final queries = <String?>[];
+
+  /// I tag scelti in ogni chiamata di `getChannelSpots`, nello stesso ordine
+  /// di [listCalls] (vuoti se non c'era un filtro).
+  final tagFilters = <List<String>>[];
   final mineCalls = <({int offset, int limit})>[];
   final createCalls = <Map<String, String>>[];
 
@@ -427,9 +431,11 @@ class FakeSpotsRepository implements SpotsRepository {
     required int offset,
     required int limit,
     String? query,
+    List<String> tags = const [],
   }) async {
     listCalls.add((channelId: channelId, offset: offset, limit: limit));
     queries.add(query);
+    tagFilters.add(tags);
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
     final text = query == null ? null : _plain(query.trim());
@@ -437,6 +443,8 @@ class FakeSpotsRepository implements SpotsRepository {
         .where(
           (s) => s.channelId == channelId && s.status == SpotStatus.published,
         )
+        // Come l'RPC: almeno uno dei tag scelti.
+        .where((s) => tags.isEmpty || s.tags.any(tags.contains))
         // Come l'RPC: titolo o testo contengono il testo, senza maiuscole e
         // accenti.
         .where(
