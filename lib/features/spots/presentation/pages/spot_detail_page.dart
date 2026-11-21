@@ -8,6 +8,7 @@ import 'package:spotted/features/comments/presentation/providers/spot_comments_f
 import 'package:spotted/features/comments/presentation/widgets/comment_composer.dart';
 import 'package:spotted/features/comments/presentation/widgets/comment_skeletons.dart';
 import 'package:spotted/features/comments/presentation/widgets/spot_comments_sliver.dart';
+import 'package:spotted/features/moderation/presentation/widgets/spot_decision_bar.dart';
 import 'package:spotted/features/moderation/presentation/widgets/spot_moderation_menu.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_actions.dart';
 import 'package:spotted/features/spots/domain/entities/spot_status.dart';
@@ -95,6 +96,8 @@ class SpotDetailPage extends ConsumerWidget {
                 ),
               ),
               if (open) CommentComposer(spot: spot),
+              // Il proprietario decide uno spot in attesa anche da qui.
+              SpotDecisionBar(spot: spot),
             ],
           );
         },

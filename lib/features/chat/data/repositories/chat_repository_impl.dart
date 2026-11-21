@@ -20,6 +20,21 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
+  Future<String> startChannelChat(String channelId) {
+    return guardFailures(() => _dataSource.startChannelChat(channelId));
+  }
+
+  @override
+  Future<void> markChatRead(String chatId) {
+    return guardFailures(() => _dataSource.markChatRead(chatId));
+  }
+
+  @override
+  Future<int> getUnreadChatsCount() {
+    return guardFailures(_dataSource.getUnreadChatsCount);
+  }
+
+  @override
   Future<void> revealIdentity(String chatId) {
     return guardFailures(() => _dataSource.revealIdentity(chatId));
   }

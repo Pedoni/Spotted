@@ -47,6 +47,10 @@ Future<void> pumpApp(
   FakeEventsRepository? events,
   FakeTagsRepository? tags,
   Duration? chatPollInterval,
+
+  /// Ogni quanto si ricontrolla il numero di chat non lette (spento di
+  /// default: i timer periodici lascerebbero il test in attesa).
+  Duration? unreadPollInterval,
   FakeChannelImagesRepository? channelImages,
   FakeChannelImagePicker? imagePicker,
   FakeChannelImageCropper? imageCropper,
@@ -113,6 +117,7 @@ Future<void> pumpApp(
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
+        unreadPollIntervalProvider.overrideWithValue(unreadPollInterval),
         // La versione dell'app: nei test non c'è il sistema da cui leggerla.
         appInfoProvider.overrideWith(
           (ref) => appInfo?.call() ?? Future.value(testAppInfo),

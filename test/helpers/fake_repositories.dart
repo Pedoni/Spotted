@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
+import 'package:spotted/features/chat/domain/entities/chat_kind.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
+import 'package:spotted/features/chat/domain/entities/chat_message_kind.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/domain/repositories/chat_repository.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
@@ -874,9 +876,11 @@ ChatSummary makeChat(
   bool identityRevealed = false,
   String? lastMessage,
   bool? lastMessageIsMine,
+  bool unread = false,
 }) {
   return ChatSummary(
     id: 'ch$i',
+    unread: unread,
     spotId: 's1',
     spotTitle: 'Ombrello perso',
     channelName: 'Spotted Pisa',
@@ -893,12 +897,51 @@ ChatSummary makeChat(
   );
 }
 
-ChatMessage makeMessage(int i, {String? content, bool isMine = false}) {
+ChatMessage makeMessage(
+  int i, {
+  String? content,
+  bool isMine = false,
+  ChatMessageKind kind = ChatMessageKind.text,
+  String? spotId,
+}) {
   return ChatMessage(
     id: 'm$i',
     content: content ?? 'Messaggio $i',
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     isMine: isMine,
+    kind: kind,
+    spotId: spotId,
+  );
+}
+
+/// Una chat tra un utente e il canale "Spotted Pisa". [owner] è il punto di
+/// vista del proprietario, che vede lo username dell'utente e risponde a nome
+/// del canale; l'utente vede solo il canale.
+ChatSummary makeChannelChat(
+  int i, {
+  bool owner = false,
+  String? userName = 'giulia_77',
+  String? lastMessage,
+  bool? lastMessageIsMine,
+  ChatMessageKind? lastMessageKind,
+  bool unread = false,
+}) {
+  return ChatSummary(
+    id: 'cc$i',
+    unread: unread,
+    channelName: 'Spotted Pisa',
+    channelSlug: 'canale-1',
+    kind: ChatKind.channel,
+    iAmAuthor: owner,
+    otherUsername: owner ? userName : null,
+    identityRevealed: true,
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+    lastMessage: lastMessage,
+    lastMessageAt: lastMessage == null
+        ? null
+        : DateTime(2026).subtract(Duration(minutes: i)),
+    lastMessageIsMine: lastMessageIsMine,
+    lastMessageKind: lastMessageKind,
   );
 }
 
@@ -921,6 +964,8 @@ class FakeChatRepository implements ChatRepository {
 
   Failure? authorError;
   Failure? startError;
+  Failure? channelChatError;
+  Failure? unreadError;
   Failure? revealError;
   Failure? listError;
   Failure? detailError;
@@ -929,6 +974,9 @@ class FakeChatRepository implements ChatRepository {
   Completer<void>? gate;
 
   final startCalls = <String>[];
+  final channelChatCalls = <String>[];
+  final readCalls = <String>[];
+  int unreadCountCalls = 0;
   final revealCalls = <String>[];
   final listCalls = <({int offset, int limit})>[];
   final messageCalls = <({String chatId, int offset, int limit})>[];
@@ -945,6 +993,33 @@ class FakeChatRepository implements ChatRepository {
     startCalls.add(commentId);
     if (startError != null) throw startError!;
     return chats.isEmpty ? 'ch-new' : chats.first.id;
+  }
+
+  @override
+  Future<void> markChatRead(String chatId) async {
+    readCalls.add(chatId);
+    chats = [
+      for (final c in chats)
+        if (c.id == chatId) c.withUnread(unread: false) else c,
+    ];
+  }
+
+  @override
+  Future<int> getUnreadChatsCount() async {
+    unreadCountCalls++;
+    if (unreadError != null) throw unreadError!;
+    return chats.where((c) => c.unread).length;
+  }
+
+  @override
+  Future<String> startChannelChat(String channelId) async {
+    channelChatCalls.add(channelId);
+    if (channelChatError != null) throw channelChatError!;
+    return chats
+            .where((c) => c.isChannelChat && !c.iAmAuthor)
+            .firstOrNull
+            ?.id ??
+        'cc-new';
   }
 
   @override
