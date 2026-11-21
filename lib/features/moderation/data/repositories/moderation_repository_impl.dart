@@ -1,5 +1,6 @@
 import 'package:spotted/core/error/failure_guard.dart';
 import 'package:spotted/features/moderation/data/datasources/moderation_remote_data_source.dart';
+import 'package:spotted/features/moderation/domain/entities/blocked_user.dart';
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
@@ -60,6 +61,38 @@ class ModerationRepositoryImpl implements ModerationRepository {
   @override
   Future<void> rejectSpot(String spotId) {
     return guardFailures(() => _dataSource.rejectSpot(spotId));
+  }
+
+  @override
+  Future<void> setChatUserBlocked(String chatId, {required bool blocked}) {
+    return guardFailures(
+      () => _dataSource.setChatUserBlocked(chatId, blocked: blocked),
+    );
+  }
+
+  @override
+  Future<bool> isChatUserBlocked(String chatId) {
+    return guardFailures(() => _dataSource.isChatUserBlocked(chatId));
+  }
+
+  @override
+  Future<List<BlockedUser>> getBlockedUsers({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) {
+    return guardFailures(
+      () => _dataSource.getBlockedUsers(
+        channelId: channelId,
+        offset: offset,
+        limit: limit,
+      ),
+    );
+  }
+
+  @override
+  Future<void> unblockChannelUser(String blockId) {
+    return guardFailures(() => _dataSource.unblockChannelUser(blockId));
   }
 
   @override

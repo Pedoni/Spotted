@@ -11,6 +11,7 @@ import 'package:spotted/features/chat/domain/repositories/chat_repository.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/domain/repositories/comments_repository.dart';
+import 'package:spotted/features/moderation/domain/entities/blocked_user.dart';
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
@@ -654,6 +655,15 @@ class FakeModerationRepository implements ModerationRepository {
   final authorCalls = <String>[];
   final hiddenCalls = <({String channelId, int offset, int limit})>[];
   final pendingCalls = <({String channelId, int offset, int limit})>[];
+  final blockCalls = <({String chatId, bool blocked})>[];
+  final unblockCalls = <String>[];
+  Failure? blockError;
+
+  /// Le chat (con un canale) il cui utente è bloccato.
+  Set<String> blockedChats = {};
+
+  /// Gli utenti bloccati che si vedono nell'elenco (id del blocco, username).
+  List<BlockedUser> blockedUsers = [];
   final approveCalls = <({String spotId, List<String> tags})>[];
   final rejectCalls = <String>[];
   Failure? approveError;
@@ -773,6 +783,43 @@ class FakeModerationRepository implements ModerationRepository {
     rejectCalls.add(spotId);
     if (approveError != null) throw approveError!;
     _setSpot(spotId, SpotStatus.rejected);
+  }
+
+  @override
+  Future<void> setChatUserBlocked(
+    String chatId, {
+    required bool blocked,
+  }) async {
+    blockCalls.add((chatId: chatId, blocked: blocked));
+    if (blockError != null) throw blockError!;
+    if (blocked) {
+      blockedChats = {...blockedChats, chatId};
+    } else {
+      blockedChats = {...blockedChats}..remove(chatId);
+    }
+  }
+
+  @override
+  Future<bool> isChatUserBlocked(String chatId) async {
+    if (listError != null) throw listError!;
+    return blockedChats.contains(chatId);
+  }
+
+  @override
+  Future<List<BlockedUser>> getBlockedUsers({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    if (listError != null) throw listError!;
+    return blockedUsers.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<void> unblockChannelUser(String blockId) async {
+    unblockCalls.add(blockId);
+    if (blockError != null) throw blockError!;
+    blockedUsers = blockedUsers.where((u) => u.id != blockId).toList();
   }
 
   @override
