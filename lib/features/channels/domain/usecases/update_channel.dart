@@ -3,7 +3,8 @@ import 'package:spotted/features/channels/domain/channel_validators.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 
-/// Modifica un canale dell'utente. Lo slug (l'indirizzo) non cambia.
+/// Modifica un canale dell'utente. Lo slug (l'indirizzo) non cambia. Il comune
+/// è obbligatorio.
 class UpdateChannel {
   const UpdateChannel(this._repository);
 
@@ -16,8 +17,11 @@ class UpdateChannel {
     String? topicId,
     String? municipalityId,
   }) {
+    // Modificare un canale vuol dire indicarne la città, anche se prima non ce
+    // l'aveva (i canali nati quando era facoltativa).
     if (!ChannelValidators.isValidName(name) ||
-        !ChannelValidators.isValidDescription(description ?? '')) {
+        !ChannelValidators.isValidDescription(description ?? '') ||
+        _nullIfBlank(municipalityId) == null) {
       throw const ValidationFailure();
     }
     return _repository.updateChannel(

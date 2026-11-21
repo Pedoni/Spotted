@@ -17,6 +17,7 @@ import 'package:spotted/features/channels/presentation/widgets/channel_header.da
 import 'package:spotted/features/channels/presentation/widgets/channel_image_dialog.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tabs.dart';
+import 'package:spotted/features/channels/presentation/widgets/missing_municipality_banner.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/events/domain/entities/events_when.dart';
 import 'package:spotted/features/events/presentation/providers/channel_events_feed.dart';
@@ -305,6 +306,17 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
                         ?.subscriberCount,
                   ),
                 ),
+                // Un canale nato senza città (quando era facoltativa): il
+                // proprietario è invitato ad aggiungerla.
+                if (channel.municipalityId == null &&
+                    ref.watch(isChannelOwnerProvider(channel.id)).value == true)
+                  SliverToBoxAdapter(
+                    child: MissingMunicipalityBanner(
+                      onAdd: () => unawaited(
+                        context.push(AppRoutes.channelEditPath(channel.slug)),
+                      ),
+                    ),
+                  ),
                 const SliverToBoxAdapter(child: SizedBox(height: 4)),
                 ChannelTabsBar(controller: _tabs),
                 if (_tab == ChannelTab.spots) ...[

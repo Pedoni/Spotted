@@ -19,6 +19,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> pickPisa(WidgetTester tester) async {
+    await tester.enterText(field('Comune'), 'pis');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pisa'));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('valida il nome', (tester) async {
     final repo = FakeChannelsRepository();
     await openForm(tester, repo);
@@ -36,7 +44,7 @@ void main() {
     await openForm(tester, repo);
 
     await tester.enterText(field('Nome del canale'), 'Spotted Università Pisa');
-    await tester.enterText(field('Comune (facoltativo)'), 'pis');
+    await tester.enterText(field('Comune'), 'pis');
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Pisa'));
@@ -64,6 +72,7 @@ void main() {
     await openForm(tester, repo);
 
     await tester.enterText(field('Nome del canale'), 'Spotted Pisa');
+    await pickPisa(tester);
     await tester.tap(find.text('Crea canale'));
     await tester.pumpAndSettle();
 
@@ -72,26 +81,20 @@ void main() {
   });
 
   group('comune', () {
-    Future<void> pickPisa(WidgetTester tester) async {
-      await tester.enterText(field('Comune (facoltativo)'), 'pis');
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Pisa'));
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('è facoltativo: il canale si crea anche senza', (
+    testWidgets('è obbligatorio: senza comune il canale non si crea', (
       tester,
     ) async {
       final repo = FakeChannelsRepository();
       await openForm(tester, repo);
 
+      expect(find.text('Comune (facoltativo)'), findsNothing);
       await tester.enterText(field('Nome del canale'), 'Università online');
       await tester.tap(find.text('Crea canale'));
       await tester.pumpAndSettle();
 
-      expect(repo.createCalls.single['municipalityId'], isNull);
-      expect(find.text('Crea canale'), findsNothing);
+      expect(find.text("Scegli un comune dall'elenco"), findsOneWidget);
+      expect(repo.createCalls, isEmpty);
+      expect(find.text('Crea canale'), findsOneWidget);
     });
 
     testWidgets('un comune scritto a mano e non scelto blocca l invio', (
@@ -101,7 +104,7 @@ void main() {
       await openForm(tester, repo);
 
       await tester.enterText(field('Nome del canale'), 'Spotted Pisa');
-      await tester.enterText(field('Comune (facoltativo)'), 'Cittàinventata');
+      await tester.enterText(field('Comune'), 'Cittàinventata');
       await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.text('Crea canale'));
       await tester.pumpAndSettle();
@@ -126,7 +129,9 @@ void main() {
       expect(repo.createCalls.single['municipalityId'], '050026');
     });
 
-    testWidgets('togliendo il comune scelto si crea senza', (tester) async {
+    testWidgets('togliendo il comune scelto non si può creare', (
+      tester,
+    ) async {
       final repo = FakeChannelsRepository();
       await openForm(tester, repo);
 
@@ -137,7 +142,8 @@ void main() {
       await tester.tap(find.text('Crea canale'));
       await tester.pumpAndSettle();
 
-      expect(repo.createCalls.single['municipalityId'], isNull);
+      expect(find.text("Scegli un comune dall'elenco"), findsOneWidget);
+      expect(repo.createCalls, isEmpty);
     });
 
     testWidgets('il canale creato mostra il luogo calcolato dal comune', (
