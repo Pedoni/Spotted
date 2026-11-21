@@ -103,6 +103,42 @@ void main() {
       expect(find.text('Ombrello perso'), findsNothing);
     });
 
+    testWidgets('troppi spot in attesa: spiega di aspettare', (tester) async {
+      final spots = FakeSpotsRepository()
+        ..createError = const LimitFailure(LimitReason.pendingSpots);
+      await openForm(tester, spots);
+
+      await tester.enterText(field('Titolo'), 'Titolo');
+      await tester.enterText(field('Testo'), 'Testo');
+      await tester.tap(find.text('Invia lo spot'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Hai già degli spot in attesa in questo canale: aspetta che il '
+          'proprietario li guardi.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Invia lo spot'), findsOneWidget);
+    });
+
+    testWidgets('utente bloccato: messaggio generico', (tester) async {
+      final spots = FakeSpotsRepository()
+        ..createError = const PermissionFailure();
+      await openForm(tester, spots);
+
+      await tester.enterText(field('Titolo'), 'Titolo');
+      await tester.enterText(field('Testo'), 'Testo');
+      await tester.tap(find.text('Invia lo spot'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Non hai i permessi per eseguire questa azione'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('errore di rete: messaggio e resta sul form', (tester) async {
       final spots = FakeSpotsRepository()..createError = const NetworkFailure();
       await openForm(tester, spots);

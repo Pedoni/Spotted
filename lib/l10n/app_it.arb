@@ -445,5 +445,34 @@
       }
     }
   },
-  "unreadChat": "Messaggi non letti"
+  "unreadChat": "Messaggi non letti",
+  "errorLimitMessages": "Hai già scritto diversi messaggi senza risposta: aspetta che il canale risponda.",
+  "errorLimitSpots": "Hai già degli spot in attesa in questo canale: aspetta che il proprietario li guardi.",
+  "blockUser": "Blocca utente",
+  "unblockUser": "Sblocca utente",
+  "blockUserTitle": "Bloccare {user}?",
+  "@blockUserTitle": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "blockUserBody": "Non potrà più scriverti né inviare spot al canale. Gli spot già in attesa restano in coda. Puoi sbloccarlo quando vuoi.",
+  "blockAction": "Blocca",
+  "userBlocked": "Utente bloccato",
+  "userUnblocked": "Utente sbloccato",
+  "chatUserBlockedNote": "Hai bloccato {user}: non può più scrivere né inviare spot al canale.",
+  "@chatUserBlockedNote": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlockedUsers": "Bloccati",
+  "noBlockedUsers": "Nessun utente bloccato",
+  "noBlockedUsersHint": "Gli utenti che blocchi dalle chat compaiono qui e puoi sbloccarli.",
+  "unblockAction": "Sblocca",
+  "loadMoreBlockedError": "Impossibile caricare altri utenti"
 }

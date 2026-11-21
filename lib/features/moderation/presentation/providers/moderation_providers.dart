@@ -8,14 +8,19 @@ import 'package:spotted/features/moderation/domain/entities/moderation_status.da
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
 import 'package:spotted/features/moderation/domain/usecases/approve_spot.dart';
+import 'package:spotted/features/moderation/domain/usecases/get_blocked_users.dart';
 import 'package:spotted/features/moderation/domain/usecases/get_hidden_spots.dart';
 import 'package:spotted/features/moderation/domain/usecases/get_pending_spots.dart';
 import 'package:spotted/features/moderation/domain/usecases/get_pending_spots_count.dart';
 import 'package:spotted/features/moderation/domain/usecases/get_spot_author.dart';
 import 'package:spotted/features/moderation/domain/usecases/is_channel_owner.dart';
+import 'package:spotted/features/moderation/domain/usecases/is_chat_user_blocked.dart';
 import 'package:spotted/features/moderation/domain/usecases/reject_spot.dart';
+import 'package:spotted/features/moderation/domain/usecases/set_chat_user_blocked.dart';
 import 'package:spotted/features/moderation/domain/usecases/set_comment_hidden.dart';
 import 'package:spotted/features/moderation/domain/usecases/set_spot_status.dart';
+import 'package:spotted/features/moderation/domain/usecases/unblock_channel_user.dart';
+import 'package:spotted/features/moderation/presentation/providers/blocked_users_feed.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
 import 'package:spotted/features/moderation/presentation/providers/pending_spots_feed.dart';
 import 'package:spotted/features/reports/presentation/providers/channel_reports_feed.dart';
@@ -77,6 +82,66 @@ ApproveSpot approveSpotUseCase(Ref ref) {
 @riverpod
 RejectSpot rejectSpotUseCase(Ref ref) {
   return RejectSpot(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+GetBlockedUsers getBlockedUsersUseCase(Ref ref) {
+  return GetBlockedUsers(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+IsChatUserBlocked isChatUserBlockedUseCase(Ref ref) {
+  return IsChatUserBlocked(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+SetChatUserBlocked setChatUserBlockedUseCase(Ref ref) {
+  return SetChatUserBlocked(ref.watch(moderationRepositoryProvider));
+}
+
+@riverpod
+UnblockChannelUser unblockChannelUserUseCase(Ref ref) {
+  return UnblockChannelUser(ref.watch(moderationRepositoryProvider));
+}
+
+/// L'utente di una chat con il canale è bloccato (solo per il proprietario).
+/// Se la richiesta fallisce non si mostra niente di speciale.
+@riverpod
+Future<bool> chatUserBlocked(Ref ref, String chatId) {
+  return ref.watch(isChatUserBlockedUseCaseProvider)(chatId);
+}
+
+/// Blocca e sblocca gli utenti di un canale aggiornando le liste. Resta vivo
+/// (`keepAlive`) come `SpotModeration`: nessuno lo ascolta e, se si
+/// distruggesse a metà operazione, le liste non verrebbero aggiornate.
+@Riverpod(keepAlive: true)
+class ChannelBlocks extends _$ChannelBlocks {
+  @override
+  void build() {}
+
+  /// Blocca o sblocca l'utente di una chat. Se fallisce rilancia l'errore.
+  Future<void> setChatUserBlocked(
+    String chatId, {
+    required bool blocked,
+  }) async {
+    await ref.read(setChatUserBlockedUseCaseProvider)(chatId, blocked: blocked);
+    _reload(chatId);
+  }
+
+  /// Toglie un blocco dall'elenco dei bloccati. Se fallisce rilancia l'errore.
+  Future<void> unblock(String blockId) async {
+    await ref.read(unblockChannelUserUseCaseProvider)(blockId);
+    _reload(null);
+  }
+
+  void _reload(String? chatId) {
+    if (!ref.mounted) return;
+    if (chatId != null) ref.invalidate(chatUserBlockedProvider(chatId));
+    // Tutti i canali e tutte le chat: l'utente può comparire in più posti.
+    ref
+      ..invalidate(chatUserBlockedProvider)
+      ..invalidate(blockedUsersFeedProvider);
+  }
 }
 
 /// Quanti spot del canale aspettano l'approvazione (solo per il proprietario).

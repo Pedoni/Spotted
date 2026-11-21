@@ -258,6 +258,127 @@ void main() {
     });
   });
 
+  group('blocco degli utenti', () {
+    test("setChatUserBlocked chiama l'RPC set_chat_user_blocked", () async {
+      respondWith(true);
+
+      await dataSource.setChatUserBlocked('cc1', blocked: true);
+
+      expect(
+        supabase.lastRequest.url.path,
+        '/rest/v1/rpc/set_chat_user_blocked',
+      );
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_chat_id': 'cc1',
+        'p_blocked': true,
+      });
+    });
+
+    test('sbloccare manda blocked false', () async {
+      respondWith(true);
+
+      await dataSource.setChatUserBlocked('cc1', blocked: false);
+
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_chat_id': 'cc1',
+        'p_blocked': false,
+      });
+    });
+
+    test('chat inesistente o già in quello stato (false): NotFoundFailure', () {
+      respondWith(false);
+
+      expect(
+        dataSource.setChatUserBlocked('cc1', blocked: true),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+
+    test("isChatUserBlocked chiama l'RPC is_chat_user_blocked", () async {
+      respondWith(true);
+
+      final blocked = await dataSource.isChatUserBlocked('cc1');
+
+      expect(
+        supabase.lastRequest.url.path,
+        '/rest/v1/rpc/is_chat_user_blocked',
+      );
+      expect(jsonDecode(supabase.lastRequest.body), {'p_chat_id': 'cc1'});
+      expect(blocked, isTrue);
+    });
+
+    test("getBlockedUsers chiama l'RPC channel_blocked_users", () async {
+      respondWith([
+        {
+          'id': 'b1',
+          'username': 'giulia_77',
+          'created_at': '2026-01-01T10:00:00+00:00',
+        },
+      ]);
+
+      final users = await dataSource.getBlockedUsers(
+        channelId: 'c1',
+        offset: 20,
+        limit: 20,
+      );
+
+      expect(
+        supabase.lastRequest.url.path,
+        '/rest/v1/rpc/channel_blocked_users',
+      );
+      expect(jsonDecode(supabase.lastRequest.body), {
+        'p_channel_id': 'c1',
+        'p_limit': 20,
+        'p_offset': 20,
+      });
+      // L'id è quello del blocco, mai quello dell'utente.
+      expect(users.single.id, 'b1');
+      expect(users.single.username, 'giulia_77');
+      expect(users.single.createdAt, DateTime.utc(2026, 1, 1, 10));
+    });
+
+    test("unblockChannelUser chiama l'RPC unblock_channel_user", () async {
+      respondWith(true);
+
+      await dataSource.unblockChannelUser('b1');
+
+      expect(
+        supabase.lastRequest.url.path,
+        '/rest/v1/rpc/unblock_channel_user',
+      );
+      expect(jsonDecode(supabase.lastRequest.body), {'p_block_id': 'b1'});
+    });
+
+    test('blocco inesistente (false): NotFoundFailure', () {
+      respondWith(false);
+
+      expect(
+        dataSource.unblockChannelUser('b1'),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+
+    test('non proprietario (42501): PermissionFailure', () async {
+      supabase = MockSupabase((_) async => postgrestError('42501', 'no'));
+      final repository = ModerationRepositoryImpl(
+        ModerationRemoteDataSource(supabase.client),
+      );
+
+      await expectLater(
+        repository.setChatUserBlocked('cc1', blocked: true),
+        throwsA(isA<PermissionFailure>()),
+      );
+      await expectLater(
+        repository.getBlockedUsers(channelId: 'c1', offset: 0, limit: 20),
+        throwsA(isA<PermissionFailure>()),
+      );
+      await expectLater(
+        repository.unblockChannelUser('b1'),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+  });
+
   group('errori (repository)', () {
     late ModerationRepositoryImpl repository;
 

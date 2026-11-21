@@ -12,6 +12,7 @@ import 'package:spotted/features/channels/presentation/providers/channels_provid
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
+import 'package:spotted/features/moderation/presentation/widgets/blocked_users_list.dart';
 import 'package:spotted/features/moderation/presentation/widgets/pending_spots_list.dart';
 import 'package:spotted/features/reports/presentation/widgets/channel_reports_list.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
@@ -52,11 +53,15 @@ class ModerationPage extends ConsumerWidget {
     };
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.moderationTitle),
           bottom: TabBar(
+            // Quattro schede con nomi lunghi non starebbero in uno schermo
+            // stretto.
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             tabs: [
               Tab(
                 text: switch (pendingCount) {
@@ -68,6 +73,7 @@ class ModerationPage extends ConsumerWidget {
               ),
               Tab(text: l10n.reportsTab),
               Tab(text: l10n.moderationHiddenSpots),
+              Tab(text: l10n.moderationBlockedUsers),
             ],
           ),
         ),
@@ -86,6 +92,7 @@ class ModerationPage extends ConsumerWidget {
                 channelId: channel.id,
                 onRestore: (spot) => unawaited(_restore(context, ref, spot)),
               ),
+              BlockedUsersList(channelId: channel.id),
             ],
           ),
         ),

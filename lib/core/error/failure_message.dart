@@ -16,6 +16,10 @@ String failureMessage(AppLocalizations l10n, Object error) {
       ImageFailureReason.tooLarge => l10n.errorImageTooLarge,
       ImageFailureReason.invalid => l10n.errorImageInvalid,
     },
+    LimitFailure(:final reason) => switch (reason) {
+      LimitReason.unansweredMessages => l10n.errorLimitMessages,
+      LimitReason.pendingSpots => l10n.errorLimitSpots,
+    },
     ValidationFailure() => l10n.errorInvalidInput,
     ConflictFailure() => l10n.errorConflict,
     PermissionFailure() => l10n.errorPermission,
