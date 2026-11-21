@@ -20,6 +20,110 @@ void main() {
     );
   }
 
+  group('getChannelsMap', () {
+    Map<String, dynamic> pinRow(
+      String code, {
+      int count = 1,
+      bool single = true,
+    }) => {
+      'municipality_id': code,
+      'municipality_label': 'Pisa (PI)',
+      'latitude': 43.7228,
+      'longitude': 10.4017,
+      'channel_count': count,
+      'channel_id': single ? 'c1' : null,
+      'channel_name': single ? 'Spotted Pisa' : null,
+      'channel_slug': single ? 'spotted-pisa' : null,
+      'channel_avatar_path': single ? 'c1/avatar-1.jpg' : null,
+    };
+
+    Map<String, dynamic> sentBody() =>
+        jsonDecode(supabase.lastRequest.body) as Map<String, dynamic>;
+
+    test(
+      "chiama l'RPC channels_map, senza filtri non manda parametri",
+      () async {
+        respondWith(<Object>[]);
+
+        await dataSource.getChannelsMap();
+
+        expect(supabase.lastRequest.url.path, '/rest/v1/rpc/channels_map');
+        expect(sentBody(), isEmpty);
+      },
+    );
+
+    test('manda solo i filtri attivi, con i nomi dei parametri', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelsMap(
+        query: 'pisa',
+        topicId: 't1',
+        regionName: 'Toscana',
+        provinceCode: 'PI',
+        municipalityId: '050026',
+      );
+
+      expect(sentBody(), {
+        'p_query': 'pisa',
+        'p_topic_id': 't1',
+        'p_region_name': 'Toscana',
+        'p_province_code': 'PI',
+        'p_municipality_id': '050026',
+      });
+    });
+
+    test('un comune con un solo canale ha il canale', () async {
+      respondWith([pinRow('050026')]);
+
+      final pin = (await dataSource.getChannelsMap()).single;
+
+      expect(pin.municipalityId, '050026');
+      expect(pin.municipalityLabel, 'Pisa (PI)');
+      expect(pin.latitude, 43.7228);
+      expect(pin.longitude, 10.4017);
+      expect(pin.channelCount, 1);
+      expect(pin.channel?.id, 'c1');
+      expect(pin.channel?.name, 'Spotted Pisa');
+      expect(pin.channel?.slug, 'spotted-pisa');
+      expect(pin.channel?.avatarPath, 'c1/avatar-1.jpg');
+    });
+
+    test('un comune con più canali non ha il canale, ma il numero', () async {
+      respondWith([pinRow('050026', count: 7, single: false)]);
+
+      final pin = (await dataSource.getChannelsMap()).single;
+
+      expect(pin.channelCount, 7);
+      expect(pin.channel, isNull);
+    });
+
+    test('le coordinate intere si leggono come numeri decimali', () async {
+      respondWith([
+        {...pinRow('050026'), 'latitude': 44, 'longitude': 10},
+      ]);
+
+      final pin = (await dataSource.getChannelsMap()).single;
+
+      expect(pin.latitude, 44.0);
+      expect(pin.longitude, 10.0);
+    });
+
+    test(
+      'errori: la rete diventa NetworkFailure, il resto UnknownFailure',
+      () async {
+        supabase = MockSupabase((_) async => postgrestError('XX000', 'boom'));
+        final repository = ChannelsRepositoryImpl(
+          ChannelsRemoteDataSource(supabase.client, currentUserId: () => 'u'),
+        );
+
+        await expectLater(
+          repository.getChannelsMap(),
+          throwsA(isA<UnknownFailure>()),
+        );
+      },
+    );
+  });
+
   group('getChannels', () {
     test('legge le righe e le converte in entità', () async {
       respondWith([

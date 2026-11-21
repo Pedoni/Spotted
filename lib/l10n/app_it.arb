@@ -482,5 +482,39 @@
   "channelMunicipalityRequiredLabel": "Comune",
   "missingMunicipalityTitle": "Aggiungi la città del canale",
   "missingMunicipalityBody": "Questo canale non ha ancora una città, e ora è obbligatoria.",
-  "missingMunicipalityAction": "Aggiungi la città"
+  "missingMunicipalityAction": "Aggiungi la città",
+  "viewList": "Lista",
+  "viewMap": "Mappa",
+  "mapNoChannels": "Nessun canale sulla mappa",
+  "mapNoChannelsHint": "Sulla mappa compaiono i canali che hanno una città, con i filtri che hai scelto.",
+  "channelsCount": "{count, plural, =1{1 canale} other{{count} canali}}",
+  "@channelsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPinSingle": "{channel}, {place}",
+  "@mapPinSingle": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPinMany": "{count, plural, =1{1 canale} other{{count} canali}} a {place}",
+  "@mapPinMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  }
 }

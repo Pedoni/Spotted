@@ -8,9 +8,11 @@ import 'package:spotted/core/widgets/empty_state.dart';
 import 'package:spotted/core/widgets/error_view.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_feed.dart';
+import 'package:spotted/features/channels/presentation/providers/channels_map_providers.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_filters_sheet.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tile.dart';
+import 'package:spotted/features/channels/presentation/widgets/channels_map_view.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
@@ -60,6 +62,7 @@ class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView>
     super.build(context);
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(channelsFeedProvider);
+    final mode = ref.watch(channelsViewModeControllerProvider);
     final filter = ref.watch(channelFilterProvider);
     final topics = ref.watch(topicsProvider).value ?? const [];
     final topicNames = {for (final t in topics) t.id: t.name};
@@ -95,77 +98,108 @@ class _ExploreChannelsViewState extends ConsumerState<ExploreChannelsView>
             ],
           ),
         ),
+        // Lista o mappa: gli stessi filtri valgono per tutte e due.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: SegmentedButton<ChannelsViewMode>(
+            segments: [
+              ButtonSegment(
+                value: ChannelsViewMode.list,
+                icon: const Icon(Icons.view_list_rounded),
+                label: Text(l10n.viewList),
+              ),
+              ButtonSegment(
+                value: ChannelsViewMode.map,
+                icon: const Icon(Icons.map_rounded),
+                label: Text(l10n.viewMap),
+              ),
+            ],
+            selected: {mode},
+            showSelectedIcon: false,
+            onSelectionChanged: (selection) => ref
+                .read(channelsViewModeControllerProvider.notifier)
+                .select(selection.single),
+          ),
+        ),
         Expanded(
-          child: feed.when(
-            loading: () => const SkeletonScroll(child: ChannelTilesSkeleton()),
-            error: (error, _) => ErrorView(
-              error: error,
-              onRetry: () => ref.invalidate(channelsFeedProvider),
-            ),
-            data: (paged) {
-              if (paged.items.isEmpty) {
-                final narrowed = filter.hasFilters || filter.query.isNotEmpty;
-                return Center(
-                  child: EmptyState(
-                    icon: Icons.search_rounded,
-                    title: l10n.noChannelsFound,
-                    message: narrowed
-                        ? l10n.noChannelsFoundHint
-                        : l10n.noChannelsAtAllHint,
-                    action: filter.hasFilters
-                        ? OutlinedButton(
-                            onPressed: () => ref
-                                .read(channelFilterProvider.notifier)
-                                .clearFilters(),
-                            child: Text(l10n.filtersReset),
-                          )
-                        : null,
+          child: mode == ChannelsViewMode.map
+              ? const ChannelsMapView()
+              : feed.when(
+                  loading: () =>
+                      const SkeletonScroll(child: ChannelTilesSkeleton()),
+                  error: (error, _) => ErrorView(
+                    error: error,
+                    onRetry: () => ref.invalidate(channelsFeedProvider),
                   ),
-                );
-              }
-              return RefreshIndicator(
-                onRefresh: () => ref.refresh(channelsFeedProvider.future),
-                child: ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 88),
-                  itemCount: paged.items.length + (paged.hasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == paged.items.length) {
-                      if (paged.loadMoreFailed) {
-                        return ListTile(
-                          title: Text(l10n.loadMoreError),
-                          trailing: TextButton(
-                            onPressed: () => unawaited(
-                              ref
-                                  .read(channelsFeedProvider.notifier)
-                                  .loadMore(),
-                            ),
-                            child: Text(l10n.retry),
-                          ),
-                        );
-                      }
-                      // L'ultimo elemento è il caricamento: quando compare
-                      // a schermo si chiede la pagina successiva.
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          unawaited(
-                            ref.read(channelsFeedProvider.notifier).loadMore(),
-                          );
-                        }
-                      });
-                      return const ChannelTilesSkeleton(count: 1);
+                  data: (paged) {
+                    if (paged.items.isEmpty) {
+                      final narrowed =
+                          filter.hasFilters || filter.query.isNotEmpty;
+                      return Center(
+                        child: EmptyState(
+                          icon: Icons.search_rounded,
+                          title: l10n.noChannelsFound,
+                          message: narrowed
+                              ? l10n.noChannelsFoundHint
+                              : l10n.noChannelsAtAllHint,
+                          action: filter.hasFilters
+                              ? OutlinedButton(
+                                  onPressed: () => ref
+                                      .read(channelFilterProvider.notifier)
+                                      .clearFilters(),
+                                  child: Text(l10n.filtersReset),
+                                )
+                              : null,
+                        ),
+                      );
                     }
-                    final channel = paged.items[index];
-                    return ChannelTile(
-                      channel: channel,
-                      topicName: topicNames[channel.topicId],
-                      onTap: () =>
-                          context.push(AppRoutes.channelPath(channel.slug)),
+                    return RefreshIndicator(
+                      onRefresh: () => ref.refresh(channelsFeedProvider.future),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 88),
+                        itemCount: paged.items.length + (paged.hasMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == paged.items.length) {
+                            if (paged.loadMoreFailed) {
+                              return ListTile(
+                                title: Text(l10n.loadMoreError),
+                                trailing: TextButton(
+                                  onPressed: () => unawaited(
+                                    ref
+                                        .read(channelsFeedProvider.notifier)
+                                        .loadMore(),
+                                  ),
+                                  child: Text(l10n.retry),
+                                ),
+                              );
+                            }
+                            // L'ultimo elemento è il caricamento: quando
+                            // compare a schermo si chiede la pagina
+                            // successiva.
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                unawaited(
+                                  ref
+                                      .read(channelsFeedProvider.notifier)
+                                      .loadMore(),
+                                );
+                              }
+                            });
+                            return const ChannelTilesSkeleton(count: 1);
+                          }
+                          final channel = paged.items[index];
+                          return ChannelTile(
+                            channel: channel,
+                            topicName: topicNames[channel.topicId],
+                            onTap: () => context.push(
+                              AppRoutes.channelPath(channel.slug),
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
