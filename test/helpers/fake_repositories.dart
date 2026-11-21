@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 import 'package:spotted/features/chat/domain/entities/chat_kind.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
@@ -80,6 +81,23 @@ class FakeChannelsRepository implements ChannelsRepository {
   Failure? createError;
   Failure? updateError;
   Failure? deleteError;
+  Failure? mapError;
+
+  /// I pin che restituisce la mappa (il test li sceglie: il database li
+  /// calcola dai canali e dalle coordinate dei comuni).
+  List<ChannelMapPin> pins = [];
+
+  /// Le chiamate alla mappa, con i filtri.
+  final mapCalls =
+      <
+        ({
+          String? query,
+          String? topicId,
+          String? regionName,
+          String? provinceCode,
+          String? municipalityId,
+        })
+      >[];
 
   final listCalls =
       <
@@ -133,6 +151,25 @@ class FakeChannelsRepository implements ChannelsRepository {
           matchesMunicipality;
     }).toList();
     return filtered.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<List<ChannelMapPin>> getChannelsMap({
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  }) async {
+    mapCalls.add((
+      query: query,
+      topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
+    ));
+    if (mapError != null) throw mapError!;
+    return pins;
   }
 
   @override
@@ -1238,4 +1275,24 @@ class FakeMunicipalitiesRepository implements MunicipalitiesRepository {
     };
     return found.values.toList()..sort((a, b) => a.name.compareTo(b.name));
   }
+}
+
+/// Un pin della mappa. Con [channel] è un comune con un solo canale; senza, un
+/// comune con [count] canali.
+ChannelMapPin makePin(
+  String code, {
+  String label = 'Pisa (PI)',
+  double latitude = 43.7228,
+  double longitude = 10.4017,
+  int count = 1,
+  MapChannel? channel,
+}) {
+  return ChannelMapPin(
+    municipalityId: code,
+    municipalityLabel: label,
+    latitude: latitude,
+    longitude: longitude,
+    channelCount: channel == null ? count : 1,
+    channel: channel,
+  );
 }

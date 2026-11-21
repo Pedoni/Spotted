@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/riverpod/no_retry.dart';
@@ -8,6 +9,7 @@ import 'package:spotted/core/theme/app_theme.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
@@ -142,6 +144,7 @@ class HeldChannels extends FakeChannelsRepository {
     this.hold, {
     super.channels,
     super.mine,
+    this.map = false,
     this.list = false,
     this.detail = false,
     this.mineList = false,
@@ -149,8 +152,27 @@ class HeldChannels extends FakeChannelsRepository {
 
   final Completer<void> hold;
   final bool list;
+  final bool map;
   final bool detail;
   final bool mineList;
+
+  @override
+  Future<List<ChannelMapPin>> getChannelsMap({
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  }) async {
+    if (map) await hold.future;
+    return super.getChannelsMap(
+      query: query,
+      topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
+    );
+  }
 
   @override
   Future<List<Channel>> getChannels({
@@ -829,5 +851,22 @@ void main() {
     hold.complete();
     await tester.pumpAndSettle();
     expect(find.byType(FilterChip), findsNWidgets(fakeTags.length));
+  });
+
+  testWidgets('mappa dei canali: scheletro mentre arrivano i pin', (
+    tester,
+  ) async {
+    final hold = Completer<void>();
+    final repo = HeldChannels(hold, map: true)..pins = [makePin('050026')];
+    await pumpApp(tester, channels: repo);
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Mappa'));
+    await advance(tester);
+
+    expectSkeleton(find.byType(Skeleton));
+    expect(find.byType(FlutterMap), findsNothing);
+
+    await release(tester, hold);
+    expect(find.byType(FlutterMap), findsOneWidget);
   });
 }
