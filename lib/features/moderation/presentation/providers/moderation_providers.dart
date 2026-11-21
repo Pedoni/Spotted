@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/core/supabase/supabase_providers.dart';
+import 'package:spotted/features/chat/presentation/providers/chat_messages_feed.dart';
+import 'package:spotted/features/chat/presentation/providers/chats_feed.dart';
 import 'package:spotted/features/moderation/data/datasources/moderation_remote_data_source.dart';
 import 'package:spotted/features/moderation/data/repositories/moderation_repository_impl.dart';
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
@@ -140,6 +142,9 @@ class SpotModeration extends _$SpotModeration {
       ..invalidate(spotDetailProvider(spot.id))
       ..invalidate(pendingSpotsFeedProvider(spot.channelId))
       ..invalidate(pendingSpotsCountProvider(spot.channelId))
+      // L'esito compare anche nella chat con l'autore (e la sua anteprima).
+      ..invalidate(chatsFeedProvider)
+      ..invalidate(chatMessagesFeedProvider)
       ..invalidate(channelSpotsFeedProvider)
       ..invalidate(followedSpotsFeedProvider)
       ..invalidate(mySpotsFeedProvider);
