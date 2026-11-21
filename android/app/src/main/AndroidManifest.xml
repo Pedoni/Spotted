@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- L'app parla con Supabase e scarica le mappe: serve anche nelle versioni
+         di rilascio (nelle versioni di debug la aggiunge Flutter). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Spotted"
         android:name="${applicationName}"
