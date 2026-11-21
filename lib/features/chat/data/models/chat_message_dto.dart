@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
+import 'package:spotted/features/chat/domain/entities/chat_message_kind.dart';
 
 part 'chat_message_dto.g.dart';
 
@@ -11,6 +12,8 @@ class ChatMessageDto {
     required this.content,
     required this.createdAt,
     required this.isMine,
+    this.kind = ChatMessageKind.text,
+    this.spotId,
   });
 
   factory ChatMessageDto.fromJson(Map<String, dynamic> json) =>
@@ -21,10 +24,19 @@ class ChatMessageDto {
   final DateTime createdAt;
   final bool isMine;
 
+  @JsonKey(
+    defaultValue: ChatMessageKind.text,
+    unknownEnumValue: ChatMessageKind.text,
+  )
+  final ChatMessageKind kind;
+  final String? spotId;
+
   ChatMessage toEntity() => ChatMessage(
     id: id,
     content: content,
     createdAt: createdAt,
     isMine: isMine,
+    kind: kind,
+    spotId: spotId,
   );
 }

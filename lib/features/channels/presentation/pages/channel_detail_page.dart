@@ -17,6 +17,7 @@ import 'package:spotted/features/channels/presentation/widgets/channel_header.da
 import 'package:spotted/features/channels/presentation/widgets/channel_image_dialog.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_tabs.dart';
+import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/events/domain/entities/events_when.dart';
 import 'package:spotted/features/events/presentation/providers/channel_events_feed.dart';
 import 'package:spotted/features/events/presentation/widgets/channel_events_sliver.dart';
@@ -537,10 +538,36 @@ class _OwnerActions extends ConsumerWidget {
     router.go(AppRoutes.channels);
   }
 
+  /// Apre la chat con il canale (la crea se non c'è).
+  Future<void> _writeToChannel(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    try {
+      final chatId = await ref
+          .read(chatActionsProvider.notifier)
+          .startChannel(channel.id);
+      unawaited(router.push(AppRoutes.chatPath(chatId)));
+    } on Exception catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failureMessage(l10n, error))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final isOwner = ref.watch(isChannelOwnerProvider(channel.id)).value;
+    // Chi non è il proprietario può scrivere al canale. Finché non si sa chi
+    // è (o se il controllo fallisce) non si mostra niente.
+    if (isOwner == false) {
+      return IconButton(
+        tooltip: l10n.writeToChannel,
+        icon: const Icon(Icons.forum_rounded),
+        onPressed: () => unawaited(_writeToChannel(context, ref)),
+      );
+    }
     if (isOwner != true) return const SizedBox.shrink();
 
     return Row(

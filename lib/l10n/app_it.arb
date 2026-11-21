@@ -269,7 +269,7 @@
   "loadMoreReportsError": "Impossibile caricare altre segnalazioni",
   "myChatsTitle": "Le mie chat",
   "noChats": "Ancora nessuna chat",
-  "noChatsHint": "Le chat nascono dagli spot: l'autore può scrivere a chi ha commentato.",
+  "noChatsHint": "Le chat nascono dagli spot (l'autore scrive a chi ha commentato) e dai canali: puoi sempre scrivere a un canale.",
   "loadMoreChatsError": "Impossibile caricare altre chat",
   "noMessagesYet": "Nessun messaggio",
   "youPrefix": "Tu: {message}",
@@ -414,5 +414,36 @@
   "spotApproved": "Spot pubblicato",
   "spotRejected": "Spot rifiutato",
   "rejectSpotTitle": "Rifiutare lo spot?",
-  "rejectSpotMessage": "L'autore vedrà che lo spot è stato rifiutato. Non si può annullare."
+  "rejectSpotMessage": "L'autore vedrà che lo spot è stato rifiutato. Non si può annullare.",
+  "writeToChannel": "Scrivi al canale",
+  "chatChannelOwnerNote": "Rispondi a nome del canale: chi scrive non vede chi sei.",
+  "chatChannelUserNote": "Stai scrivendo al canale: chi lo gestisce ti risponde qui.",
+  "systemSpotSentMine": "Hai inviato uno spot",
+  "systemSpotSentTheirs": "{user} ha inviato uno spot",
+  "@systemSpotSentTheirs": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "systemSpotApprovedMine": "Hai pubblicato lo spot",
+  "systemSpotApprovedTheirs": "{channel} ha pubblicato il tuo spot",
+  "@systemSpotApprovedTheirs": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "systemSpotRejectedMine": "Hai rifiutato lo spot",
+  "systemSpotRejectedTheirs": "{channel} ha rifiutato il tuo spot",
+  "@systemSpotRejectedTheirs": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "unreadChat": "Messaggi non letti"
 }

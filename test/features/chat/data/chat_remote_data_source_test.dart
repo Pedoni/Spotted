@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/chat/data/datasources/chat_remote_data_source.dart';
 import 'package:spotted/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:spotted/features/chat/domain/entities/chat_kind.dart';
+import 'package:spotted/features/chat/domain/entities/chat_message_kind.dart';
 
 import '../../../helpers/mock_supabase.dart';
 
@@ -48,6 +50,182 @@ void main() {
       await expectLater(
         dataSource.startChat('k1'),
         throwsA(isA<NotFoundFailure>()),
+      );
+    });
+  });
+
+  group('startChannelChat', () {
+    test("chiama l'RPC start_channel_chat e restituisce l'id", () async {
+      respondWith('cc1');
+
+      final chatId = await dataSource.startChannelChat('c1');
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/start_channel_chat');
+      expect(sentBody(), {'p_channel_id': 'c1'});
+      expect(chatId, 'cc1');
+    });
+
+    test('canale inesistente (null): NotFoundFailure', () async {
+      respondWith(null);
+
+      await expectLater(
+        dataSource.startChannelChat('c1'),
+        throwsA(isA<NotFoundFailure>()),
+      );
+    });
+
+    test('il proprietario non può scrivere al suo canale (42501)', () async {
+      supabase = MockSupabase((_) async => postgrestError('42501', 'no'));
+      final repository = ChatRepositoryImpl(
+        ChatRemoteDataSource(supabase.client),
+      );
+
+      await expectLater(
+        repository.startChannelChat('c1'),
+        throwsA(isA<PermissionFailure>()),
+      );
+    });
+  });
+
+  group('chat con un canale', () {
+    test('l utente vede il canale, senza spot né username', () async {
+      respondWith([
+        channelChatRow(
+          'cc1',
+          lastMessage: 'Hai domande?',
+          lastMessageIsMine: false,
+          lastMessageKind: 'text',
+        ),
+      ]);
+
+      final chats = await dataSource.getChats(offset: 0, limit: 20);
+
+      final chat = chats.single;
+      expect(chat.kind, ChatKind.channel);
+      expect(chat.isChannelChat, isTrue);
+      expect(chat.spotId, isNull);
+      expect(chat.spotTitle, isNull);
+      expect(chat.iAmAuthor, isFalse);
+      expect(chat.otherUsername, isNull);
+      expect(chat.channelName, 'Spotted Pisa');
+      expect(chat.lastMessageKind, ChatMessageKind.text);
+    });
+
+    test('il proprietario vede lo username dell utente', () async {
+      respondWith([channelChatRow('cc1', owner: true)]);
+
+      final chat = (await dataSource.getChats(offset: 0, limit: 20)).single;
+
+      expect(chat.iAmAuthor, isTrue);
+      expect(chat.otherUsername, 'giulia_77');
+    });
+
+    test('l ultimo messaggio può essere di sistema', () async {
+      respondWith([
+        channelChatRow(
+          'cc1',
+          lastMessage: 'Ombrello perso',
+          lastMessageIsMine: false,
+          lastMessageKind: 'spot_approved',
+        ),
+      ]);
+
+      final chat = (await dataSource.getChats(offset: 0, limit: 20)).single;
+
+      expect(chat.lastMessageKind, ChatMessageKind.spotApproved);
+    });
+
+    test('una chat degli spot resta una chat degli spot', () async {
+      respondWith([chatRow('1')]);
+
+      final chat = (await dataSource.getChats(offset: 0, limit: 20)).single;
+
+      expect(chat.kind, ChatKind.spot);
+      expect(chat.spotId, 's1');
+      expect(chat.lastMessageKind, isNull);
+    });
+
+    test('messaggi di sistema: tipo e spot', () async {
+      respondWith([
+        messageRow('3', kind: 'spot_rejected', spotId: 's9', content: 'Titolo'),
+        messageRow('2', kind: 'spot_approved'),
+        messageRow('1', kind: 'spot_sent', isMine: true),
+        messageRow('0'),
+      ]);
+
+      final messages = await dataSource.getMessages(
+        chatId: 'cc1',
+        offset: 0,
+        limit: 20,
+      );
+
+      expect(messages.map((m) => m.kind), [
+        ChatMessageKind.spotRejected,
+        ChatMessageKind.spotApproved,
+        ChatMessageKind.spotSent,
+        ChatMessageKind.text,
+      ]);
+      expect(messages.first.spotId, 's9');
+      expect(messages.first.content, 'Titolo');
+      expect(messages.last.spotId, isNull);
+      expect(messages.last.kind.isSystem, isFalse);
+      expect(messages.first.kind.isSystem, isTrue);
+    });
+
+    test('un tipo sconosciuto si legge come messaggio normale', () async {
+      respondWith([messageRow('1', kind: 'qualcosa_di_nuovo')]);
+
+      final messages = await dataSource.getMessages(
+        chatId: 'cc1',
+        offset: 0,
+        limit: 20,
+      );
+
+      expect(messages.single.kind, ChatMessageKind.text);
+    });
+  });
+
+  group('messaggi non letti', () {
+    test("markChatRead chiama l'RPC mark_chat_read", () async {
+      respondWith(null);
+
+      await dataSource.markChatRead('ch1');
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/mark_chat_read');
+      expect(sentBody(), {'p_chat_id': 'ch1'});
+    });
+
+    test("getUnreadChatsCount chiama l'RPC unread_chats_count", () async {
+      respondWith(3);
+
+      final count = await dataSource.getUnreadChatsCount();
+
+      expect(supabase.lastRequest.url.path, '/rest/v1/rpc/unread_chats_count');
+      expect(count, 3);
+    });
+
+    test('le chat dicono se sono non lette; senza il campo, lette', () async {
+      respondWith([
+        chatRow('1', unread: true),
+        channelChatRow('2', unread: true),
+        chatRow('3', unread: false),
+        chatRow('4'),
+      ]);
+
+      final chats = await dataSource.getChats(offset: 0, limit: 20);
+
+      expect(chats.map((c) => c.unread), [true, true, false, false]);
+    });
+
+    test('errori: la rete diventa NetworkFailure', () async {
+      supabase = MockSupabase((_) async => postgrestError('42501', 'no'));
+      final repository = ChatRepositoryImpl(
+        ChatRemoteDataSource(supabase.client),
+      );
+
+      await expectLater(
+        repository.getUnreadChatsCount(),
+        throwsA(isA<PermissionFailure>()),
       );
     });
   });

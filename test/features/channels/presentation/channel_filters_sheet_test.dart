@@ -87,8 +87,13 @@ void main() {
     await tester.tap(find.widgetWithText(OutlinedButton, 'Azzera'));
     await apply(tester);
 
-    expect(find.byType(Badge), findsOneWidget);
-    expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isFalse);
+    // Il secondo Badge è il numero dell'icona Chat nella barra in basso: il
+    // primo (il corpo della pagina viene prima) è quello dei filtri.
+    expect(find.byType(Badge), findsNWidgets(2));
+    expect(
+      tester.widget<Badge>(find.byType(Badge).first).isLabelVisible,
+      isFalse,
+    );
   });
 
   testWidgets('filtrare per argomento: solo i canali di quell argomento', (
