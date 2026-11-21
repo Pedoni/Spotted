@@ -86,4 +86,49 @@ void main() {
       expect(SpotValidators.isSearchLongEnough(' ab '), isTrue);
     });
   });
+
+  group('con i tag', () {
+    setUp(() {
+      repository.spots = [
+        makeSpot(1, title: 'Uno', tags: ['crush']),
+        makeSpot(2, title: 'Due', tags: ['crush', 'perso']),
+        makeSpot(3, title: 'Tre', tags: ['esami']),
+        makeSpot(4, title: 'Quattro'),
+      ];
+    });
+
+    Future<List<String>> byTags(List<String> tags, {String? query}) async {
+      final spots = await getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        query: query,
+        tags: tags,
+      );
+      return spots.map((s) => s.title).toList();
+    }
+
+    test('senza tag restano tutti', () async {
+      expect(await byTags([]), ['Uno', 'Due', 'Tre', 'Quattro']);
+    });
+
+    test('un tag: chi lo ha', () async {
+      expect(await byTags(['crush']), ['Uno', 'Due']);
+    });
+
+    test('più tag: chi ne ha almeno uno', () async {
+      expect(await byTags(['perso', 'esami']), ['Due', 'Tre']);
+    });
+
+    test('si sommano al testo', () async {
+      expect(await byTags(['crush'], query: 'due'), ['Due']);
+    });
+
+    test('un testo troppo corto non fa richieste, nemmeno con i tag', () async {
+      final before = repository.listCalls.length;
+
+      expect(await byTags(['crush'], query: 'd'), isEmpty);
+      expect(repository.listCalls, hasLength(before));
+    });
+  });
 }

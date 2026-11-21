@@ -307,7 +307,6 @@
   "clearMunicipality": "Togli il comune",
   "logoutConfirmTitle": "Uscire dall'account?",
   "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo.",
-  "searchSpotsTooltip": "Cerca negli spot",
   "searchSpotsHint": "Cerca negli spot",
   "searchSpotsMinChars": "Scrivi almeno {count} lettere per cercare",
   "@searchSpotsMinChars": {
@@ -325,7 +324,6 @@
       }
     }
   },
-  "closeSearch": "Chiudi la ricerca",
   "clearSearch": "Cancella",
   "newsTitle": "News",
   "upcomingEventsTitle": "Prossimi eventi",
@@ -474,5 +472,11 @@
   "noBlockedUsers": "Nessun utente bloccato",
   "noBlockedUsersHint": "Gli utenti che blocchi dalle chat compaiono qui e puoi sbloccarli.",
   "unblockAction": "Sblocca",
-  "loadMoreBlockedError": "Impossibile caricare altri utenti"
+  "loadMoreBlockedError": "Impossibile caricare altri utenti",
+  "tagFilterTooltip": "Filtra per tag",
+  "tagFilterTitle": "Filtra per tag",
+  "tagFilterHint": "Mostra gli spot che hanno almeno uno di questi tag.",
+  "noSpotsWithTags": "Nessuno spot con questi tag",
+  "noSpotsWithTagsHint": "Prova a togliere qualche filtro.",
+  "clearFiltersAction": "Azzera i filtri"
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
+import 'package:spotted/features/spots/presentation/widgets/spots_filter_bar.dart';
 
 import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
@@ -43,16 +44,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  final searchButton = find.byTooltip('Cerca negli spot');
+  /// Il campo di ricerca: sempre visibile in cima alla scheda Spots.
   final searchField = find.descendant(
-    of: find.byType(AppBar),
+    of: find.byType(SpotsFilterBar),
     matching: find.byType(TextField),
   );
-
-  Future<void> openSearch(WidgetTester tester) async {
-    await tester.tap(searchButton);
-    await tester.pumpAndSettle();
-  }
 
   /// Scrive [text] e aspetta che la ricerca (con la sua attesa) finisca.
   Future<void> searchFor(WidgetTester tester, String text) async {
@@ -80,85 +76,47 @@ void main() {
     return pieces;
   }
 
-  group('apertura e chiusura', () {
-    testWidgets('la lente c è, il pulsante Pubblica anche', (tester) async {
-      await openChannel(tester);
-
-      expect(searchButton, findsOneWidget);
-      expect(find.text('Pubblica uno spot'), findsOneWidget);
-    });
-
-    testWidgets(
-      'aprendo la ricerca: campo, suggerimento, niente intestazione',
-      (
-        tester,
-      ) async {
-        await openChannel(tester);
-
-        await openSearch(tester);
-
-        expect(searchField, findsOneWidget);
-        expect(
-          find.text('Cerca negli spot'),
-          findsOneWidget,
-        ); // il suggerimento
-        expect(
-          find.text('Scrivi almeno 2 lettere per cercare'),
-          findsOneWidget,
-        );
-        // L'intestazione del canale e il pulsante spariscono.
-        expect(find.text('Pubblica uno spot'), findsNothing);
-        expect(find.byType(SpotCard), findsNothing);
-        expect(find.byTooltip('Chiudi la ricerca'), findsOneWidget);
-      },
-    );
-
-    testWidgets('il campo è già attivo: si può scrivere subito', (
+  group('la barra di ricerca', () {
+    testWidgets('è sempre visibile, senza dover aprire niente', (
       tester,
     ) async {
       await openChannel(tester);
-      await openSearch(tester);
 
-      final field = tester.widget<TextField>(searchField);
-      expect(field.autofocus, isTrue);
-    });
-
-    testWidgets('la freccia chiude la ricerca e torna il canale', (
-      tester,
-    ) async {
-      await openChannel(tester);
-      await openSearch(tester);
-      await searchFor(tester, 'ombrello');
-      expect(shownSpots(tester), isNotEmpty);
-
-      await tester.tap(find.byTooltip('Chiudi la ricerca'));
-      await tester.pumpAndSettle();
-
-      expect(searchField, findsNothing);
+      expect(searchField, findsOneWidget);
+      expect(find.text('Cerca negli spot'), findsOneWidget); // il suggerimento
+      // Non c'è più la lente nella barra dell'app.
+      expect(find.byTooltip('Cerca negli spot'), findsNothing);
+      // E il canale resta com'è: intestazione, spot e pulsante Pubblica.
       expect(find.text('Pubblica uno spot'), findsOneWidget);
-      // Tornano gli spot del canale (la lista mostra quelli che entrano).
-      expect(shownSpots(tester), contains('Perché non rispondi?'));
       expect(shownSpots(tester), contains('Sconto libri'));
-      expect(spots.queries.last, isNull);
     });
 
-    testWidgets('"indietro" del telefono chiude la ricerca, non il canale', (
+    testWidgets('sta sotto la barra delle schede, non sopra', (tester) async {
+      await openChannel(tester);
+
+      expect(
+        tester.getRect(searchField).top,
+        greaterThan(tester.getRect(find.byType(TabBar)).bottom),
+      );
+    });
+
+    testWidgets('c è solo nella scheda Spots', (tester) async {
+      await openChannel(tester);
+
+      await tester.tap(find.text('News'));
+      await tester.pumpAndSettle();
+      expect(searchField, findsNothing);
+
+      await tester.tap(find.text('Spots'));
+      await tester.pumpAndSettle();
+      expect(searchField, findsOneWidget);
+    });
+
+    testWidgets('"indietro" lascia il canale (non c è una ricerca aperta)', (
       tester,
     ) async {
       await openChannel(tester);
-      await openSearch(tester);
-
-      await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
-
-      expect(searchField, findsNothing);
-      // Siamo ancora nel canale.
-      expect(find.text('Pubblica uno spot'), findsOneWidget);
-      expect(find.text('Spotted Pisa'), findsWidgets);
-    });
-
-    testWidgets('"indietro" a ricerca chiusa lascia il canale', (tester) async {
-      await openChannel(tester);
+      await searchFor(tester, 'ombrello');
 
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
@@ -166,35 +124,20 @@ void main() {
       expect(find.text('Pubblica uno spot'), findsNothing);
       expect(find.byType(NavigationBar), findsOneWidget);
     });
-
-    testWidgets('riaprendo la ricerca si riparte da capo', (tester) async {
-      await openChannel(tester);
-      await openSearch(tester);
-      await searchFor(tester, 'ombrello');
-      await tester.tap(find.byTooltip('Chiudi la ricerca'));
-      await tester.pumpAndSettle();
-
-      await openSearch(tester);
-
-      expect(tester.widget<TextField>(searchField).controller!.text, isEmpty);
-      expect(
-        find.text('Scrivi almeno 2 lettere per cercare'),
-        findsOneWidget,
-      );
-      expect(find.byType(SpotCard), findsNothing);
-    });
   });
 
   group('ricerca', () {
-    testWidgets('con una sola lettera non cerca', (tester) async {
+    testWidgets('con una sola lettera non cerca: restano tutti gli spot', (
+      tester,
+    ) async {
       await openChannel(tester);
-      await openSearch(tester);
       final before = spots.queries.length;
 
       await searchFor(tester, 'o');
 
-      expect(find.byType(SpotCard), findsNothing);
       expect(spots.queries, hasLength(before));
+      expect(shownSpots(tester), hasLength(4));
+      // Ricorda che serve qualche lettera in più.
       expect(
         find.text('Scrivi almeno 2 lettere per cercare'),
         findsOneWidget,
@@ -203,7 +146,6 @@ void main() {
 
     testWidgets('cerca nel titolo e nel testo, ovunque', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, 'ombrello');
 
@@ -217,7 +159,6 @@ void main() {
 
     testWidgets('cerca a metà parola', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, 'brell');
 
@@ -226,7 +167,6 @@ void main() {
 
     testWidgets('non distingue maiuscole e accenti', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, 'PERCHE');
 
@@ -237,12 +177,9 @@ void main() {
       tester,
     ) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, 'ombrello');
 
-      // Nel titolo di uno spot e nel testo dell'altro la parte trovata è
-      // evidenziata.
       expect(highlightedIn(tester, 'Ombrello perso'), ['Ombrello']);
       expect(
         highlightedIn(tester, 'Qualcuno ha un ombrello?'),
@@ -256,21 +193,23 @@ void main() {
       );
     });
 
-    testWidgets('nessun risultato: lo dice, con il testo cercato', (
-      tester,
-    ) async {
+    testWidgets('nessun risultato: lo dice e si può azzerare', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, 'zzzz');
 
       expect(find.text('Nessuno spot per «zzzz»'), findsOneWidget);
       expect(find.byType(SpotCard), findsNothing);
+
+      await tester.tap(find.text('Azzera i filtri'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(searchField).controller!.text, isEmpty);
+      expect(shownSpots(tester), hasLength(4));
     });
 
     testWidgets('i simboli speciali valgono come lettere', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, '100%');
 
@@ -280,7 +219,6 @@ void main() {
 
     testWidgets('gli spazi ai bordi non contano', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       await searchFor(tester, '  ombrello  ');
 
@@ -292,7 +230,6 @@ void main() {
       tester,
     ) async {
       await openChannel(tester);
-      await openSearch(tester);
       final before = spots.queries.length;
 
       await tester.enterText(searchField, 'om');
@@ -309,7 +246,6 @@ void main() {
 
     testWidgets('cambiando il testo cambiano i risultati', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
       await searchFor(tester, 'ombrello');
       expect(shownSpots(tester), hasLength(2));
 
@@ -320,7 +256,6 @@ void main() {
 
     testWidgets('toccando un risultato si apre lo spot', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
       await searchFor(tester, 'sconto');
 
       await tester.tap(find.byType(SpotCard));
@@ -331,7 +266,6 @@ void main() {
 
     testWidgets('errore nella ricerca: messaggio e Riprova', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
       spots.listError = const NetworkFailure();
 
       await searchFor(tester, 'ombrello');
@@ -344,12 +278,21 @@ void main() {
 
       expect(shownSpots(tester), hasLength(2));
     });
+
+    testWidgets('il pulsante Pubblica resta con la ricerca attiva', (
+      tester,
+    ) async {
+      await openChannel(tester);
+
+      await searchFor(tester, 'ombrello');
+
+      expect(find.text('Pubblica uno spot'), findsOneWidget);
+    });
   });
 
   group('cancellare', () {
     testWidgets('la x non c è a campo vuoto', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
 
       expect(find.byTooltip('Cancella'), findsNothing);
 
@@ -361,36 +304,32 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('la x svuota il campo e toglie i risultati', (tester) async {
+    testWidgets('la x svuota il campo e tornano tutti gli spot', (
+      tester,
+    ) async {
       await openChannel(tester);
-      await openSearch(tester);
       await searchFor(tester, 'ombrello');
-      expect(shownSpots(tester), isNotEmpty);
+      expect(shownSpots(tester), hasLength(2));
 
       await tester.tap(find.byTooltip('Cancella'));
       await tester.pumpAndSettle();
 
       expect(tester.widget<TextField>(searchField).controller!.text, isEmpty);
-      expect(find.byType(SpotCard), findsNothing);
-      expect(
-        find.text('Scrivi almeno 2 lettere per cercare'),
-        findsOneWidget,
-      );
+      expect(shownSpots(tester), hasLength(4));
       expect(find.byTooltip('Cancella'), findsNothing);
     });
 
-    testWidgets('svuotando a mano i risultati spariscono subito', (
-      tester,
-    ) async {
+    testWidgets('svuotando a mano gli spot tornano subito', (tester) async {
       await openChannel(tester);
-      await openSearch(tester);
       await searchFor(tester, 'ombrello');
 
       await tester.enterText(searchField, '');
+      // Nessuna attesa di 300 ms: la richiesta senza testo parte subito.
       await tester.pump();
+      expect(spots.queries.last, isNull);
+      await tester.pumpAndSettle();
 
-      // Senza aspettare: non c'è attesa per togliere i risultati.
-      expect(find.byType(SpotCard), findsNothing);
+      expect(shownSpots(tester), hasLength(4));
     });
   });
 }

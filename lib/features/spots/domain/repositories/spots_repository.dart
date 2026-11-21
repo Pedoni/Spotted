@@ -5,12 +5,14 @@ import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 abstract interface class SpotsRepository {
   /// Pagina di spot di un canale, dal più recente. Con [query] restano solo
   /// gli spot il cui titolo o testo contiene quel testo (ovunque, senza
-  /// distinguere maiuscole e accenti).
+  /// distinguere maiuscole e accenti). Con [tags] restano solo gli spot che
+  /// hanno almeno uno di quei tag; i due criteri si sommano.
   Future<List<Spot>> getChannelSpots({
     required String channelId,
     required int offset,
     required int limit,
     String? query,
+    List<String> tags = const [],
   });
 
   /// Un singolo spot. Lancia `NotFoundFailure` se non esiste.

@@ -28,7 +28,9 @@ import 'package:spotted/features/spots/domain/spot_validators.dart';
 import 'package:spotted/features/spots/presentation/providers/channel_spots_feed.dart';
 import 'package:spotted/features/spots/presentation/widgets/channel_spots_sliver.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_skeletons.dart';
+import 'package:spotted/features/spots/presentation/widgets/spots_filter_bar.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
+import 'package:spotted/features/tags/presentation/widgets/tag_filter_sheet.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
@@ -59,7 +61,9 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
   /// Le immagini che si stanno caricando o togliendo in questo momento.
   final _busyImages = <ChannelImageKind>{};
   Timer? _debounce;
-  bool _searching = false;
+
+  /// I tag scelti per filtrare gli spot (nomi tecnici).
+  List<String> _tags = const [];
 
   /// Il testo cercato, già senza spazi ai bordi e dopo l'attesa: è quello che
   /// guida la lista.
@@ -155,20 +159,9 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     }
   }
 
-  void _openSearch() {
-    // Si cerca tra gli spot.
-    _tabs.index = ChannelTab.spots.index;
-    setState(() => _searching = true);
-  }
-
-  void _closeSearch() {
-    _debounce?.cancel();
-    _search.clear();
-    setState(() {
-      _searching = false;
-      _query = '';
-    });
-  }
+  /// Il testo cercato, che guida la lista solo da due lettere in su.
+  String get _effectiveQuery =>
+      SpotValidators.isSearchLongEnough(_query) ? _query : '';
 
   void _onSearchChanged(String text) {
     _debounce?.cancel();
@@ -191,72 +184,30 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     setState(() => _query = '');
   }
 
-  PreferredSizeWidget _searchBar(AppLocalizations l10n) {
-    return AppBar(
-      leading: IconButton(
-        tooltip: l10n.closeSearch,
-        icon: const Icon(Icons.arrow_back_rounded),
-        onPressed: _closeSearch,
-      ),
-      title: TextField(
-        controller: _search,
-        autofocus: true,
-        textInputAction: TextInputAction.search,
-        style: Theme.of(context).textTheme.titleMedium,
-        // Come gli altri campi, ma più basso per stare nella barra.
-        decoration: InputDecoration(
-          hintText: l10n.searchSpotsHint,
-          isDense: true,
-        ),
-        onChanged: _onSearchChanged,
-      ),
-      actions: [
-        if (_search.text.isNotEmpty)
-          IconButton(
-            tooltip: l10n.clearSearch,
-            icon: const Icon(Icons.close_rounded),
-            onPressed: _clearSearch,
-          ),
-      ],
-    );
+  /// Toglie il testo e i tag: tutti gli spot del canale.
+  void _clearFilters() {
+    _debounce?.cancel();
+    _search.clear();
+    setState(() {
+      _query = '';
+      _tags = const [];
+    });
   }
 
-  /// Gli spot trovati, o il suggerimento di scrivere di più.
-  Widget _searchResults(AppLocalizations l10n, Channel channel) {
-    if (!SpotValidators.isSearchLongEnough(_query)) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            l10n.searchSpotsMinChars(SpotValidators.minSearchLength),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-    return RefreshIndicator(
-      onRefresh: () => ref.refresh(
-        channelSpotsFeedProvider(channel.id, query: _query).future,
-      ),
-      child: CustomScrollView(
-        // Anche con pochi contenuti si può tirare giù per ricaricare.
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          ChannelSpotsSliver(channelId: channel.id, query: _query),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
-      ),
+  Future<void> _openTagFilter(Channel channel) async {
+    final chosen = await showTagFilterSheet(
+      context,
+      channelId: channel.id,
+      selected: _tags,
     );
+    if (chosen == null || !mounted) return;
+    setState(() => _tags = chosen);
   }
 
   /// Il pulsante della scheda: "Pubblica uno spot" (di tutti), "Pubblica una
   /// news" e "Pubblica un evento" (solo del proprietario).
-  Widget? _floatingButton(
-    AppLocalizations l10n,
-    Channel? channel,
-    bool searching,
-  ) {
-    if (channel == null || searching) return null;
+  Widget? _floatingButton(AppLocalizations l10n, Channel? channel) {
+    if (channel == null) return null;
     switch (_tab) {
       case ChannelTab.spots:
         return FloatingActionButton.extended(
@@ -293,111 +244,116 @@ class _ChannelDetailPageState extends ConsumerState<ChannelDetailPage>
     final l10n = AppLocalizations.of(context);
     final channel = ref.watch(channelDetailProvider(widget.slug));
     final topics = ref.watch(topicsProvider).value ?? const [];
-    final searching = _searching && channel.hasValue;
 
-    return PopScope(
-      // Con la ricerca aperta, "indietro" la chiude invece di lasciare il
-      // canale.
-      canPop: !searching,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && searching) _closeSearch();
-      },
-      child: Scaffold(
-        appBar: searching
-            ? _searchBar(l10n)
-            : AppBar(
-                title: Text(channel.value?.name ?? ''),
-                actions: [
-                  if (channel.value case final loaded?) ...[
-                    IconButton(
-                      tooltip: l10n.searchSpotsTooltip,
-                      icon: const Icon(Icons.search_rounded),
-                      onPressed: _openSearch,
-                    ),
-                    _OwnerActions(channel: loaded),
-                  ],
-                ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(channel.value?.name ?? ''),
+        actions: [
+          if (channel.value case final loaded?) _OwnerActions(channel: loaded),
+        ],
+      ),
+      floatingActionButton: _floatingButton(l10n, channel.value),
+      body: channel.when(
+        loading: () => const SkeletonScroll(
+          child: Column(
+            children: [ChannelHeaderSkeleton(), SpotCardsSkeleton(count: 2)],
+          ),
+        ),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () => ref.invalidate(channelDetailProvider(widget.slug)),
+        ),
+        data: (channel) {
+          final topicName = topics
+              .where((t) => t.id == channel.topicId)
+              .map((t) => t.name)
+              .firstOrNull;
+          return RefreshIndicator(
+            onRefresh: () => switch (_tab) {
+              ChannelTab.news => ref.refresh(
+                channelNewsFeedProvider(channel.id).future,
               ),
-        floatingActionButton: _floatingButton(l10n, channel.value, searching),
-        body: channel.when(
-          loading: () => const SkeletonScroll(
-            child: Column(
-              children: [ChannelHeaderSkeleton(), SpotCardsSkeleton(count: 2)],
-            ),
-          ),
-          error: (error, _) => ErrorView(
-            error: error,
-            onRetry: () => ref.invalidate(channelDetailProvider(widget.slug)),
-          ),
-          data: (channel) {
-            if (searching) return _searchResults(l10n, channel);
-
-            final topicName = topics
-                .where((t) => t.id == channel.topicId)
-                .map((t) => t.name)
-                .firstOrNull;
-            return RefreshIndicator(
-              onRefresh: () => switch (_tab) {
-                ChannelTab.news => ref.refresh(
-                  channelNewsFeedProvider(channel.id).future,
-                ),
-                ChannelTab.events => ref.refresh(
-                  channelEventsFeedProvider(channel.id, _eventsWhen).future,
-                ),
-                ChannelTab.spots => ref.refresh(
-                  channelSpotsFeedProvider(channel.id).future,
-                ),
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: ChannelHeader(
-                      channel: channel,
-                      topicName: topicName,
-                      // Le matite sulle immagini sono solo del proprietario.
-                      onEditImage:
-                          ref.watch(isChannelOwnerProvider(channel.id)).value ==
-                              true
-                          ? (kind) => unawaited(_editImage(channel, kind))
-                          : null,
-                      busy: _busyImages,
-                      follow: _FollowButton(channelId: channel.id),
-                      subscriberCount: ref
-                          .watch(channelSubscriptionProvider(channel.id))
-                          .value
-                          ?.subscriberCount,
-                    ),
+              ChannelTab.events => ref.refresh(
+                channelEventsFeedProvider(channel.id, _eventsWhen).future,
+              ),
+              ChannelTab.spots => ref.refresh(
+                channelSpotsFeedProvider(
+                  channel.id,
+                  query: _effectiveQuery,
+                  tags: spotTagsKey(_tags),
+                ).future,
+              ),
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: ChannelHeader(
+                    channel: channel,
+                    topicName: topicName,
+                    // Le matite sulle immagini sono solo del proprietario.
+                    onEditImage:
+                        ref.watch(isChannelOwnerProvider(channel.id)).value ==
+                            true
+                        ? (kind) => unawaited(_editImage(channel, kind))
+                        : null,
+                    busy: _busyImages,
+                    follow: _FollowButton(channelId: channel.id),
+                    subscriberCount: ref
+                        .watch(channelSubscriptionProvider(channel.id))
+                        .value
+                        ?.subscriberCount,
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 4)),
-                  ChannelTabsBar(controller: _tabs),
-                  if (_tab == ChannelTab.spots) ...[
-                    ChannelSpotsSliver(channelId: channel.id),
-                    // Spazio per non coprire l'ultimo spot con il pulsante.
-                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
-                  ] else if (_tab == ChannelTab.news) ...[
-                    ChannelNewsSliver(channelId: channel.id),
-                    // Spazio per non coprire l'ultima news con il pulsante.
-                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
-                  ] else ...[
-                    SliverToBoxAdapter(
-                      child: _EventsWhenToggle(
-                        value: _eventsWhen,
-                        onChanged: (v) => setState(() => _eventsWhen = v),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 4)),
+                ChannelTabsBar(controller: _tabs),
+                if (_tab == ChannelTab.spots) ...[
+                  // La ricerca e il filtro per tag, sempre visibili.
+                  SliverToBoxAdapter(
+                    child: SpotsFilterBar(
+                      controller: _search,
+                      tags: _tags,
+                      onSearchChanged: _onSearchChanged,
+                      onClearSearch: _clearSearch,
+                      onOpenTagFilter: () => unawaited(_openTagFilter(channel)),
+                      onRemoveTag: (tag) => setState(
+                        () => _tags = [
+                          for (final t in _tags)
+                            if (t != tag) t,
+                        ],
                       ),
                     ),
-                    ChannelEventsSliver(
-                      channelId: channel.id,
-                      when: _eventsWhen,
+                  ),
+                  ChannelSpotsSliver(
+                    channelId: channel.id,
+                    query: _effectiveQuery,
+                    tags: spotTagsKey(_tags),
+                    onClearFilters: _clearFilters,
+                  ),
+                  // Spazio per non coprire l'ultimo spot con il pulsante.
+                  const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                ] else if (_tab == ChannelTab.news) ...[
+                  ChannelNewsSliver(channelId: channel.id),
+                  // Spazio per non coprire l'ultima news con il pulsante.
+                  const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                ] else ...[
+                  SliverToBoxAdapter(
+                    child: _EventsWhenToggle(
+                      value: _eventsWhen,
+                      onChanged: (v) => setState(() => _eventsWhen = v),
                     ),
-                    // Spazio per non coprire l'ultimo evento con il pulsante.
-                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
-                  ],
+                  ),
+                  ChannelEventsSliver(
+                    channelId: channel.id,
+                    when: _eventsWhen,
+                  ),
+                  // Spazio per non coprire l'ultimo evento con il pulsante.
+                  const SliverToBoxAdapter(child: SizedBox(height: 88)),
                 ],
-              ),
-            );
-          },
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

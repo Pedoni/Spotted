@@ -441,6 +441,52 @@ void main() {
     });
   });
 
+  group('getChannelSpots: tag', () {
+    Map<String, dynamic> sentBody() =>
+        jsonDecode(supabase.lastRequest.body) as Map<String, dynamic>;
+
+    test('senza tag la richiesta è quella di sempre (niente p_tags)', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(channelId: 'c1', offset: 0, limit: 20);
+
+      expect(sentBody().containsKey('p_tags'), isFalse);
+    });
+
+    test('con i tag manda p_tags', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        tags: ['crush', 'esami'],
+      );
+
+      expect(
+        supabase.lastRequest.url.path,
+        '/rest/v1/rpc/channel_spots_page',
+      );
+      expect(sentBody()['p_tags'], ['crush', 'esami']);
+      expect(sentBody().containsKey('p_query'), isFalse);
+    });
+
+    test('tag e testo insieme: si sommano', () async {
+      respondWith(<Object>[]);
+
+      await dataSource.getChannelSpots(
+        channelId: 'c1',
+        offset: 0,
+        limit: 20,
+        query: 'ombrello',
+        tags: ['perso'],
+      );
+
+      expect(sentBody()['p_query'], 'ombrello');
+      expect(sentBody()['p_tags'], ['perso']);
+    });
+  });
+
   group('getChannelSpots: ricerca', () {
     Map<String, dynamic> sentBody() =>
         jsonDecode(supabase.lastRequest.body) as Map<String, dynamic>;
