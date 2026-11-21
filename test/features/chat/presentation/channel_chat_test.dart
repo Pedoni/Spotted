@@ -356,4 +356,50 @@ void main() {
       expect(find.byTooltip('Scrivi al canale'), findsOneWidget);
     });
   });
+
+  group('limiti e blocco di chi scrive al canale', () {
+    Future<void> sendFromChat(
+      WidgetTester tester,
+      Failure error,
+    ) async {
+      await openChat(
+        tester,
+        FakeChatRepository(chats: [makeChannelChat(1)])..sendError = error,
+      );
+      await tester.enterText(find.byType(TextField), 'Ancora io');
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('troppi messaggi senza risposta: spiega di aspettare', (
+      tester,
+    ) async {
+      await sendFromChat(
+        tester,
+        const LimitFailure(LimitReason.unansweredMessages),
+      );
+
+      expect(
+        find.text(
+          'Hai già scritto diversi messaggi senza risposta: aspetta che il '
+          'canale risponda.',
+        ),
+        findsOneWidget,
+      );
+      // Il testo resta nel campo: si potrà rinviare più tardi.
+      expect(find.text('Ancora io'), findsOneWidget);
+    });
+
+    testWidgets('utente bloccato: messaggio generico, senza dire chi', (
+      tester,
+    ) async {
+      await sendFromChat(tester, const PermissionFailure());
+
+      expect(
+        find.text('Non hai i permessi per eseguire questa azione'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('blocc'), findsNothing);
+    });
+  });
 }

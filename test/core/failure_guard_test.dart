@@ -43,6 +43,36 @@ void main() {
     );
   });
 
+  test('troppi messaggi senza risposta (SP001) diventa LimitFailure', () {
+    expect(
+      guardFailures<void>(
+        () => throw const PostgrestException(message: 'limit', code: 'SP001'),
+      ),
+      throwsA(
+        isA<LimitFailure>().having(
+          (f) => f.reason,
+          'reason',
+          LimitReason.unansweredMessages,
+        ),
+      ),
+    );
+  });
+
+  test('troppi spot in attesa (SP002) diventa LimitFailure', () {
+    expect(
+      guardFailures<void>(
+        () => throw const PostgrestException(message: 'limit', code: 'SP002'),
+      ),
+      throwsA(
+        isA<LimitFailure>().having(
+          (f) => f.reason,
+          'reason',
+          LimitReason.pendingSpots,
+        ),
+      ),
+    );
+  });
+
   test('JWT scaduto diventa SessionExpiredFailure', () {
     expect(
       guardFailures<void>(
