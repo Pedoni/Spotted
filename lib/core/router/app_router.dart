@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spotted/core/router/app_routes.dart';
 import 'package:spotted/core/router/app_shell.dart';
+import 'package:spotted/features/admin/presentation/pages/admin_reports_page.dart';
 import 'package:spotted/features/auth/presentation/pages/login_page.dart';
 import 'package:spotted/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
@@ -168,6 +169,10 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotDetail,
         builder: (context, state) =>
             SpotDetailPage(spotId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.adminReports,
+        builder: (context, state) => const AdminReportsPage(),
       ),
       GoRoute(
         path: AppRoutes.editProfile,

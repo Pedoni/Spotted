@@ -554,5 +554,25 @@
   "clearBirthDate": "Togli la data",
   "usernameReadOnlyLabel": "Username",
   "saveProfile": "Salva",
-  "profileSaved": "Dati aggiornati"
+  "profileSaved": "Dati aggiornati",
+  "settingsAdminSection": "Amministrazione",
+  "adminPanelTitle": "Pannello admin",
+  "adminNoReports": "Nessuna segnalazione aperta",
+  "adminNoReportsHint": "Le segnalazioni di tutti i canali compaiono qui.",
+  "adminHide": "Nascondi",
+  "adminRemove": "Rimuovi",
+  "adminAlreadyHidden": "Già nascosto",
+  "reportCount": "{count, plural, =1{1 segnalazione} other{{count} segnalazioni}}",
+  "@reportCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminRemoveTitle": "Rimuovere lo spot?",
+  "adminRemoveBody": "Lo spot sparisce per tutti e non si può ripristinare, nemmeno dal proprietario del canale.",
+  "spotHiddenDone": "Spot nascosto",
+  "commentHiddenDone": "Commento nascosto",
+  "spotRemovedDone": "Spot rimosso"
 }
