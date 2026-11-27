@@ -21,6 +21,12 @@ enum AuthFailureReason {
   usernameTaken,
   invalidInput,
   weakPassword,
+
+  /// La password attuale (chiesta per cambiare password o email) è sbagliata.
+  wrongPassword,
+
+  /// La nuova password è uguale a quella attuale.
+  samePassword,
   unknown,
 }
 

@@ -64,3 +64,55 @@ class SignOutController extends _$SignOutController {
     return result.error;
   }
 }
+
+/// Cambia la password: `AsyncLoading` mentre è in corso, `AsyncError` (con un
+/// `Failure`) se fallisce.
+@riverpod
+class ChangePasswordController extends _$ChangePasswordController {
+  @override
+  FutureOr<void> build() {}
+
+  /// `true` se la password è cambiata, `false` se fallisce (l'errore è in
+  /// `state`).
+  Future<bool> submit({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = const AsyncLoading();
+    final result = await AsyncValue.guard(
+      () => ref.read(changePasswordUseCaseProvider)(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ),
+    );
+    if (!ref.mounted) return !result.hasError;
+    state = result;
+    return !result.hasError;
+  }
+}
+
+/// Chiede di cambiare l'email: `AsyncLoading` mentre è in corso, `AsyncError`
+/// (con un `Failure`) se fallisce.
+@riverpod
+class ChangeEmailController extends _$ChangeEmailController {
+  @override
+  FutureOr<void> build() {}
+
+  /// `true` se la richiesta è partita (resta da confermare nell'email),
+  /// `false` se fallisce (l'errore è in `state`).
+  Future<bool> submit({
+    required String currentPassword,
+    required String newEmail,
+  }) async {
+    state = const AsyncLoading();
+    final result = await AsyncValue.guard(
+      () => ref.read(changeEmailUseCaseProvider)(
+        currentPassword: currentPassword,
+        newEmail: newEmail,
+      ),
+    );
+    if (!ref.mounted) return !result.hasError;
+    state = result;
+    return !result.hasError;
+  }
+}

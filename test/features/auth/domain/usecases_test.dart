@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/auth/domain/repositories/auth_repository.dart';
+import 'package:spotted/features/auth/domain/usecases/change_email.dart';
+import 'package:spotted/features/auth/domain/usecases/change_password.dart';
 import 'package:spotted/features/auth/domain/usecases/check_username_available.dart';
 import 'package:spotted/features/auth/domain/usecases/sign_in.dart';
 import 'package:spotted/features/auth/domain/usecases/sign_up.dart';
@@ -141,6 +143,109 @@ void main() {
         CheckUsernameAvailable(repository)('mario_88'),
         throwsA(isA<NetworkFailure>()),
       );
+    });
+  });
+
+  group('ChangePassword', () {
+    void stub() => when(
+      () => repository.changePassword(
+        currentPassword: any(named: 'currentPassword'),
+        newPassword: any(named: 'newPassword'),
+      ),
+    ).thenAnswer((_) async {});
+
+    test('passa le due password al repository', () async {
+      stub();
+
+      await ChangePassword(repository)(
+        currentPassword: 'vecchia123',
+        newPassword: 'nuova12345',
+      );
+
+      verify(
+        () => repository.changePassword(
+          currentPassword: 'vecchia123',
+          newPassword: 'nuova12345',
+        ),
+      ).called(1);
+    });
+
+    test('la password attuale vuota non arriva al repository', () {
+      expect(
+        () => ChangePassword(repository)(
+          currentPassword: '',
+          newPassword: 'nuova12345',
+        ),
+        throwsA(const AuthFailure(AuthFailureReason.invalidInput)),
+      );
+      verifyZeroInteractions(repository);
+    });
+
+    test('la nuova password troppo corta non arriva al repository', () {
+      expect(
+        () => ChangePassword(repository)(
+          currentPassword: 'vecchia123',
+          newPassword: 'corta',
+        ),
+        throwsA(const AuthFailure(AuthFailureReason.invalidInput)),
+      );
+      verifyZeroInteractions(repository);
+    });
+
+    test('la nuova password uguale all attuale non arriva al repository', () {
+      expect(
+        () => ChangePassword(repository)(
+          currentPassword: 'stessa12345',
+          newPassword: 'stessa12345',
+        ),
+        throwsA(const AuthFailure(AuthFailureReason.samePassword)),
+      );
+      verifyZeroInteractions(repository);
+    });
+  });
+
+  group('ChangeEmail', () {
+    test('toglie gli spazi dal nuovo indirizzo', () async {
+      when(
+        () => repository.changeEmail(
+          currentPassword: any(named: 'currentPassword'),
+          newEmail: any(named: 'newEmail'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await ChangeEmail(repository)(
+        currentPassword: 'vecchia123',
+        newEmail: ' nuova@b.it ',
+      );
+
+      verify(
+        () => repository.changeEmail(
+          currentPassword: 'vecchia123',
+          newEmail: 'nuova@b.it',
+        ),
+      ).called(1);
+    });
+
+    test('un indirizzo non valido non arriva al repository', () {
+      expect(
+        () => ChangeEmail(repository)(
+          currentPassword: 'vecchia123',
+          newEmail: 'non-una-email',
+        ),
+        throwsA(const AuthFailure(AuthFailureReason.invalidInput)),
+      );
+      verifyZeroInteractions(repository);
+    });
+
+    test('la password attuale vuota non arriva al repository', () {
+      expect(
+        () => ChangeEmail(repository)(
+          currentPassword: '',
+          newEmail: 'nuova@b.it',
+        ),
+        throwsA(const AuthFailure(AuthFailureReason.invalidInput)),
+      );
+      verifyZeroInteractions(repository);
     });
   });
 }
