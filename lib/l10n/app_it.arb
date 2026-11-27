@@ -547,5 +547,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "editMyDataHint": "Nome, cognome e data di nascita li vedi solo tu. Lo username si vede in tutta l'app e non si può cambiare.",
+  "birthDateLabel": "Data di nascita (facoltativa)",
+  "birthDateHint": "Scegli una data",
+  "clearBirthDate": "Togli la data",
+  "usernameReadOnlyLabel": "Username",
+  "saveProfile": "Salva",
+  "profileSaved": "Dati aggiornati"
 }
