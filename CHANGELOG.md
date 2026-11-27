@@ -3,6 +3,49 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 Versionamento `0.minor.patch` fino alla `1.0.0`.
 
+## [0.10.0] - 2026-11-27
+
+### Aggiunto
+- **Approvazione degli spot e tag**: uno spot non esce subito. Chi lo scrive lo invia e il proprietario del canale lo pubblica scegliendo da 1 a 3 tag oppure lo rifiuta, dalla nuova scheda "Da approvare" della Moderazione (con il numero accanto al nome) o direttamente aprendo lo spot. Gli spot del proprietario si pubblicano subito, con i tag scelti nel modulo. L'autore vede lo spot in "I miei spot" con l'etichetta "In attesa di approvazione" o "Rifiutato"; gli spot già pubblicati restano pubblicati, senza tag. I tag sono un elenco fisso: 15 generici per tutti i canali e 62 in più per l'argomento Università. Le card mostrano i tag.
+- **Chat tra utente e canale**: chiunque può scrivere a un canale dal pulsante "Scrivi al canale"; il proprietario risponde a nome del canale e resta anonimo, mentre vede lo username di chi scrive. Quando invii uno spot, in chat compare "Hai inviato uno spot", e poi "<canale> ha pubblicato il tuo spot" o "ha rifiutato il tuo spot". Toccando il messaggio si apre lo spot.
+- **Messaggi non letti**: l'icona Chat nella barra in basso mostra quante chat hanno messaggi non letti (si ricontrolla ogni 30 secondi) e nell'elenco le chat non lette sono in grassetto con un puntino.
+- **Limiti e blocco**: al massimo 5 messaggi senza risposta per chat con un canale e 5 spot in attesa per canale, con messaggi che dicono di aspettare. Il proprietario può bloccare un utente dalla chat (con conferma) e vedere e sbloccare i bloccati nella nuova scheda "Bloccati" della Moderazione. Un utente bloccato non può né scrivere al canale né inviargli spot, e riceve un messaggio generico che non dice chi l'ha bloccato.
+- **Ricerca e filtro nella scheda Spots**: la barra di ricerca è sempre visibile in cima, al posto della lente, e un pulsante apre il filtro per tag (con il numero di tag scelti, chip che si tolgono con la "x" e "Azzera"). Con più tag restano gli spot che ne hanno almeno uno; il filtro si somma al testo cercato.
+- **Mappa dei canali**: in Canali → Esplora un interruttore Lista / Mappa. Un pin per ogni comune che ha canali (la foto del canale se è uno solo, il numero se sono di più; un tocco apre il canale o l'elenco di quel comune), con gli stessi filtri della lista. Mappa di OpenStreetMap con l'attribuzione sempre visibile.
+- **Profilo**: "Cambia password" e "Cambia email" (chiedono la password attuale; la nuova email resta in attesa di conferma e il Profilo la mostra, mentre quella di adesso resta valida) e "Modifica i miei dati" (nome, cognome e data di nascita facoltativa; lo username non si cambia).
+
+### Modificato
+- **La città è obbligatoria** per i canali nuovi e per quelli modificati (anche un canale solo online indica una città, per esempio la sede). I canali nati senza città restano come sono: il proprietario vede un invito ad aggiungerla.
+- La pubblicazione di uno spot da parte di un utente non è più immediata: vedi "Approvazione degli spot".
+- Le schede della Moderazione scorrono di lato (sono quattro).
+
+### Corretto
+- Dopo ogni modifica dei dati dell'utente (come il cambio di email) l'app tornava alla Home invece che alla schermata da cui si era partiti: ora il percorso si rifà solo quando si entra o si esce.
+- Android: il permesso INTERNET mancava nelle versioni di rilascio (c'era solo in debug e profile), quindi un'app di rilascio non avrebbe raggiunto né Supabase né le mappe.
+
+### Database
+Migrazioni da applicare **in ordine** (quelle già applicate in prova si saltano). L'app nuova non funziona senza; quella vecchia continua a funzionare tranne dove indicato:
+- `20261126100000`: stati `pending` e `rejected` degli spot (**da qui in poi uno spot nuovo nasce in attesa**), tabella `tags` con i dati, `spots.tags` e le funzioni di approvazione.
+- `20261127100000`: chat tra utente e canale (`channel_chats`, `channel_chat_messages`, `start_channel_chat`) e messaggi di sistema scritti dal database.
+- `20261128100000`: messaggi non letti (`mark_chat_read`, `unread_chats_count`, `unread` nelle chat).
+- `20261129100000`: limiti e blocco (`channel_blocks`, trigger sugli spot, `send_message` con i limiti).
+- `20261130100000`: filtro per tag in `channel_spots_page` (cambia la firma: la versione vecchia viene eliminata).
+- `20261201100000`: città obbligatoria (**un canale non si crea più senza comune**).
+- `20261202100000`..`20261202100400`: coordinate dei comuni, in quattro parti; l'ultima controlla che nessun comune resti senza coordinate.
+- `20261203100000`: `channels_map`, per la mappa.
+- `20261204100000`: `update_my_profile` e chiusura dell'`update` diretto su `profiles`.
+
+### Sicurezza
+- **Chiuso un buco della baseline**: ogni utente poteva fare un `update` diretto sulla propria riga di `profiles`, quindi anche cambiare lo username senza controlli. Ora nome, cognome e data di nascita si cambiano solo con `update_my_profile`.
+- Chat con i canali, blocchi e messaggi di sistema hanno le tabelle chiuse ai client: nessuna funzione restituisce id di utenti. Chi scrive non può scoprire di essere stato bloccato, e il proprietario del canale non compare mai.
+- Il controllo della password attuale per cambiare password o email avviene riaccedendo con l'email dell'utente.
+
+### Da sapere
+- **Coordinate dei comuni**: la fonte (`coordinate.csv` di Open Data Sicilia) non ha una licenza esplicita: da verificare prima di aprire a utenti reali. Sono state corrette 11 righe senza punto decimale, 6 comuni nati da fusioni e Sassofeltrio.
+- **Riquadri della mappa**: i server pubblici di OpenStreetMap vanno bene per sviluppo e prove, non per un uso intenso: prima del lancio serve un fornitore adatto.
+- **Cambio email**: dipende dalle impostazioni di Supabase Auth ("Secure email change", modelli email in italiano, indirizzo a cui porta il link di conferma).
+- Foto del profilo, notifiche, eliminazione dell'account e pagine di privacy e condizioni d'uso arrivano dopo.
+
 ## [0.9.0] - 2026-11-17
 
 ### Aggiunto

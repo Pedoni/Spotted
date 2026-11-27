@@ -155,11 +155,11 @@ Versionamento `0.minor.patch` fino a `1.0.0`; le patch sono per i bugfix. Le rel
 | 0.5.0 | Strumenti del proprietario: vede gli autori, nasconde/rimuove spot, nasconde commenti e segnalazioni (fatto) |
 | 0.6.0 | Chat con rivelazione dell'identità: migrazione di sicurezza su `chats`/`messages` e app (fatto) |
 | 0.7.0 | UI: palette, font, tema chiaro/scuro, widget condivisi, scheletri di caricamento, icona e splash, accesso e registrazione (fatto) |
-| 0.8.0 | Rifiniture e ricerca: comune dei canali da elenco ISTAT, ricerca di testo negli spot di un canale (con evidenziazione), filtri dei canali in un foglio dal basso, ora oltre alla data, conferma del logout, modifica ed eliminazione dei canali, controllo dello username prima della registrazione, scelta del tema (chiaro, scuro o sistema), icone arrotondate e stati vuoti, copertina e foto nella pagina del canale con le schede Spots, Eventi e News (ancora vuote) (fatto) |
-| 0.9.0 | News ed eventi dei canali (scritti solo dal proprietario) con i caroselli "Prossimi eventi" e "Ultime news" in Home, foto e copertina dei canali (storage di Supabase), pagina "Informazioni sull'app" con le licenze open source (fatto) |
-| dopo | Approvazione degli spot da parte del proprietario con i tag, chat tra utente e canale, limiti e blocco, ricerca visibile e filtro per tag (fatto, da rilasciare) |
-| dopo | Città obbligatoria per i canali (fatto) e mappa dei canali in Esplora con l'interruttore Lista / Mappa (fatto, da rilasciare) |
-| dopo | Profilo: cambio email e password e modifica dei dati personali (fatto, da rilasciare); immagine, notifiche, cancellazione account; pagine di privacy e condizioni d'uso (le voci ci sono già, inattive) |
-| dopo | Moderazione AI (Edge Function) e pannello admin per le segnalazioni |
-| dopo | Rifinitura: accessibilità, notifiche, release candidate |
+| 0.8.0 | Rifiniture e ricerca: comune dei canali da elenco ISTAT, ricerca negli spot di un canale, filtri dei canali, modifica ed eliminazione dei canali, controllo dello username, tema chiaro/scuro/sistema, icone arrotondate e stati vuoti, copertina e foto nella pagina del canale con le schede (fatto) |
+| 0.9.0 | News ed eventi dei canali (scritti solo dal proprietario) con i caroselli in Home, foto e copertina dei canali (storage di Supabase), pagina "Informazioni sull'app" con le licenze open source (fatto) |
+| 0.10.0 | Approvazione degli spot con i tag, chat tra utente e canale con messaggi non letti, limiti e blocco, ricerca visibile e filtro per tag, città obbligatoria e mappa dei canali (interruttore Lista / Mappa), cambio password e email, modifica dei dati personali (fatto) |
+| dopo | Profilo: foto del profilo (da decidere la visibilità), notifiche, cancellazione account (da decidere cosa succede ai contenuti); pagine di privacy e condizioni d'uso con l'età minima (le voci ci sono già, inattive) |
+| dopo | Moderazione: segnalare news, eventi e messaggi, pannello admin per le segnalazioni, moderazione AI (Edge Function) |
+| dopo | Debito di sicurezza: trigger `updated_at`, username duplicato nello stesso istante, segreti e impostazioni del repo pubblico |
+| dopo | Rifinitura: accessibilità, verifica su dispositivi reali, piano Supabase a pagamento, fornitore dei riquadri della mappa, licenza delle coordinate, release candidate |
 | 1.0.0 | Prima release completa |
