@@ -140,7 +140,7 @@ Tabelle in `public`: profiles, channels, topics, municipalities, spots, comments
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
-- Mancano i trigger `updated_at`.
+- I trigger `updated_at` ci sono (migrazione `20261205100000`, da applicare): `spots` e `comments` sono le uniche tabelle con `updated_at` e usano `set_updated_at()`; una tabella nuova con `updated_at` deve usare lo stesso trigger.
 - `handle_new_user` fallisce se lo username è duplicato o non valido: l'app lo valida prima (formato e disponibilità). Resta il caso raro di due registrazioni con lo stesso username nello stesso istante: il database rifiuta la seconda e l'app la mostra come "username già in uso" (`_mapAuthException`).
 
 ## Roadmap
