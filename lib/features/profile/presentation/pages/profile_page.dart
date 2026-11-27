@@ -9,6 +9,7 @@ import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/core/widgets/inline_progress.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/core/widgets/user_avatar.dart';
+import 'package:spotted/features/admin/presentation/providers/admin_providers.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_controllers.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/profile/domain/entities/profile.dart';
@@ -189,6 +190,18 @@ class ProfilePage extends ConsumerWidget {
             title: l10n.notificationsSettings,
           ),
           const SizedBox(height: 24),
+          // Solo per gli admin (lo decide il database): se non lo si sa o la
+          // richiesta fallisce non si mostra niente.
+          if (ref.watch(isAdminProvider).value ?? false) ...[
+            Text(l10n.settingsAdminSection, style: theme.textTheme.titleMedium),
+            ListTile(
+              leading: const Icon(Icons.shield_rounded),
+              title: Text(l10n.adminPanelTitle),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => unawaited(context.push(AppRoutes.adminReports)),
+            ),
+            const SizedBox(height: 24),
+          ],
           Text(l10n.settingsInfoSection, style: theme.textTheme.titleMedium),
           ListTile(
             leading: const Icon(Icons.info_outline_rounded),
