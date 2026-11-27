@@ -26,6 +26,7 @@ Esempio: `feat(auth): add sign up with username`
 - Prima della PR, in locale: `dart run build_runner build --delete-conflicting-outputs`, `dart format .`, `flutter analyze`, `flutter test`.
 - La CI (`.github/workflows/ci.yml`) gira su ogni PR verso `develop` e `master`: build_runner, format check, analyze, test. Il check `Analyze & test` va richiesto per il merge.
 - Il repo è pubblico: i ruleset GitHub si applicano anche sul piano gratuito. Su `develop` e `master` vanno impostati (Settings → Rules): PR obbligatoria, check `Analyze & test` richiesto, niente push diretto. Va controllato che siano attivi, perché non si configurano dal codice.
+- Sicurezza del repo (controllata il 2026-11-27): il ruleset `protect-develop-master` è attivo (PR obbligatoria, check `Analyze & test` richiesto, niente cancellazione né push forzato, nessuna eccezione). Sono attivi la **scansione dei segreti con blocco dei push** (push protection), le segnalazioni private di vulnerabilità (vedi `SECURITY.md`) e gli avvisi e aggiornamenti di sicurezza di Dependabot. La cronologia è stata controllata: nessun `.env`, nessuna chiave `service_role`, nessun JWT e nessun indirizzo di progetto Supabase sono mai stati committati (c'è solo `.env.example` con segnaposto). Resta una cosa personale: nelle commit ci sono gli indirizzi email degli autori (anche uno di lavoro), visibili a chiunque perché il repo è pubblico; per le commit nuove si può usare l'indirizzo `noreply` di GitHub (Settings → Emails → «Keep my email addresses private»).
 
 ## Stack e architettura
 
@@ -139,8 +140,8 @@ Tabelle in `public`: profiles, channels, topics, municipalities, spots, comments
 
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
-- Mancano i trigger `updated_at`.
-- `handle_new_user` fallisce se lo username è duplicato o non valido: l'app lo valida prima (formato e disponibilità). Resta il caso raro di due registrazioni con lo stesso username nello stesso istante: il database rifiuta la seconda e l'app la mostra come "username già in uso" (`_mapAuthException`).
+- I trigger `updated_at` ci sono (migrazione `20261205100000`, da applicare): `spots` e `comments` sono le uniche tabelle con `updated_at` e usano `set_updated_at()`; una tabella nuova con `updated_at` deve usare lo stesso trigger.
+- `handle_new_user` fallisce se lo username è duplicato o non valido: l'app lo valida prima (formato e disponibilità). Resta il caso raro di due registrazioni con lo stesso username nello stesso istante (la lettura di disponibilità non vede ancora la prima): il database rifiuta la seconda e l'app la mostra come "username già in uso" (`_mapAuthException`, che riconosce l'errore generico "Database error saving new user" di Supabase). **Non resta mai un account a metà**: il trigger `on_auth_user_created` gira nella stessa transazione dell'inserimento in `auth.users`, quindi se il profilo non si crea (username duplicato) si annulla anche l'utente. Lo username si controlla e si salva sempre in minuscolo (il trigger usa `lower`, l'app controlla `toLowerCase`). Per verificarlo su prod: dopo aver provato una registrazione con uno username già preso, `select count(*) from auth.users u left join public.profiles p on p.id = u.id where p.id is null;` deve dare 0.
 
 ## Roadmap
 
