@@ -141,7 +141,7 @@ Tabelle in `public`: profiles, channels, topics, municipalities, spots, comments
 ### Debito di sicurezza noto (chiudere prima di aprire a utenti reali)
 
 - I trigger `updated_at` ci sono (migrazione `20261205100000`, da applicare): `spots` e `comments` sono le uniche tabelle con `updated_at` e usano `set_updated_at()`; una tabella nuova con `updated_at` deve usare lo stesso trigger.
-- `handle_new_user` fallisce se lo username è duplicato o non valido: l'app lo valida prima (formato e disponibilità). Resta il caso raro di due registrazioni con lo stesso username nello stesso istante: il database rifiuta la seconda e l'app la mostra come "username già in uso" (`_mapAuthException`).
+- `handle_new_user` fallisce se lo username è duplicato o non valido: l'app lo valida prima (formato e disponibilità). Resta il caso raro di due registrazioni con lo stesso username nello stesso istante (la lettura di disponibilità non vede ancora la prima): il database rifiuta la seconda e l'app la mostra come "username già in uso" (`_mapAuthException`, che riconosce l'errore generico "Database error saving new user" di Supabase). **Non resta mai un account a metà**: il trigger `on_auth_user_created` gira nella stessa transazione dell'inserimento in `auth.users`, quindi se il profilo non si crea (username duplicato) si annulla anche l'utente. Lo username si controlla e si salva sempre in minuscolo (il trigger usa `lower`, l'app controlla `toLowerCase`). Per verificarlo su prod: dopo aver provato una registrazione con uno username già preso, `select count(*) from auth.users u left join public.profiles p on p.id = u.id where p.id is null;` deve dare 0.
 
 ## Roadmap
 
