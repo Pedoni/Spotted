@@ -6,12 +6,16 @@ class Profile extends Equatable {
     required this.username,
     this.firstName,
     this.lastName,
+    this.birthDate,
   });
 
   final String id;
   final String username;
   final String? firstName;
   final String? lastName;
+
+  /// La data di nascita (solo il giorno), se l'utente l'ha indicata.
+  final DateTime? birthDate;
 
   /// "Nome Cognome", oppure null se mancano entrambi.
   String? get fullName {
@@ -23,5 +27,5 @@ class Profile extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, username, firstName, lastName];
+  List<Object?> get props => [id, username, firstName, lastName, birthDate];
 }

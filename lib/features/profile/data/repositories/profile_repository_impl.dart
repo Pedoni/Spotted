@@ -10,4 +10,19 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<Profile> getMyProfile() => guardFailures(_dataSource.getMyProfile);
+
+  @override
+  Future<Profile> updateMyProfile({
+    required String firstName,
+    required String lastName,
+    DateTime? birthDate,
+  }) {
+    return guardFailures(
+      () => _dataSource.updateMyProfile(
+        firstName: firstName,
+        lastName: lastName,
+        birthDate: birthDate,
+      ),
+    );
+  }
 }

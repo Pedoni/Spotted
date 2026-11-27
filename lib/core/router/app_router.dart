@@ -25,6 +25,7 @@ import 'package:spotted/features/news/presentation/pages/news_detail_page.dart';
 import 'package:spotted/features/profile/presentation/pages/about_page.dart';
 import 'package:spotted/features/profile/presentation/pages/change_email_page.dart';
 import 'package:spotted/features/profile/presentation/pages/change_password_page.dart';
+import 'package:spotted/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
 import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
@@ -167,6 +168,10 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotDetail,
         builder: (context, state) =>
             SpotDetailPage(spotId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (context, state) => const EditProfilePage(),
       ),
       GoRoute(
         path: AppRoutes.changePassword,

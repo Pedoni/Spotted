@@ -166,9 +166,11 @@ class ProfilePage extends ConsumerWidget {
           Text(l10n.settingsAccount, style: theme.textTheme.titleMedium),
           // Queste voci ci sono ma per ora non fanno nulla: arrivano più
           // avanti.
-          _SoonTile(
-            icon: Icons.manage_accounts_rounded,
-            title: l10n.editMyData,
+          ListTile(
+            leading: const Icon(Icons.manage_accounts_rounded),
+            title: Text(l10n.editMyData),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => unawaited(context.push(AppRoutes.editProfile)),
           ),
           ListTile(
             leading: const Icon(Icons.mail_outline_rounded),

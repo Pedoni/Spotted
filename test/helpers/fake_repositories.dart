@@ -319,11 +319,41 @@ class FakeProfileRepository implements ProfileRepository {
 
   Profile profile;
   Failure? error;
+  Failure? updateError;
+
+  /// Se è impostato, il salvataggio aspetta che si completi.
+  Completer<void>? updateGate;
+
+  final updateCalls =
+      <({String firstName, String lastName, DateTime? birthDate})>[];
 
   @override
   Future<Profile> getMyProfile() async {
     if (error != null) throw error!;
     return profile;
+  }
+
+  @override
+  Future<Profile> updateMyProfile({
+    required String firstName,
+    required String lastName,
+    DateTime? birthDate,
+  }) async {
+    updateCalls.add((
+      firstName: firstName,
+      lastName: lastName,
+      birthDate: birthDate,
+    ));
+    if (updateGate != null) await updateGate!.future;
+    if (updateError != null) throw updateError!;
+    // Lo username non cambia mai.
+    return profile = Profile(
+      id: profile.id,
+      username: profile.username,
+      firstName: firstName,
+      lastName: lastName,
+      birthDate: birthDate,
+    );
   }
 }
 
