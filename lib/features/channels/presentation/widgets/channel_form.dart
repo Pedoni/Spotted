@@ -117,6 +117,7 @@ class _ChannelFormState extends ConsumerState<ChannelForm> {
           ),
           const SizedBox(height: 16),
           MunicipalityField(
+            required: true,
             initialValue: _municipality,
             onChanged: (choice) => _municipality = choice,
           ),

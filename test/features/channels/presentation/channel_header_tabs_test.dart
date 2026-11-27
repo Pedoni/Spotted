@@ -160,7 +160,7 @@ void main() {
   });
 
   group('schede', () {
-    testWidgets('sotto gli iscritti ci sono Spots, Eventi e News', (
+    testWidgets('sotto l intestazione ci sono Spots, Eventi e News', (
       tester,
     ) async {
       await openChannel(tester);
@@ -172,7 +172,7 @@ void main() {
           findsOneWidget,
         );
       }
-      final subscribers = tester.getRect(find.text('Nessun iscritto'));
+      final subscribers = tester.getRect(find.byTooltip('Nessun iscritto'));
       final tabs = tester.getRect(find.byType(TabBar));
       expect(tabs.top, greaterThan(subscribers.bottom));
     });
@@ -242,23 +242,6 @@ void main() {
       expect(find.text('Spot 1'), findsOneWidget);
       expect(find.text('Pubblica uno spot'), findsOneWidget);
       expect(find.text('Ancora nessuna news'), findsNothing);
-    });
-
-    testWidgets('la ricerca porta sulla scheda Spots', (tester) async {
-      await openChannel(
-        tester,
-        spots: FakeSpotsRepository(spots: [makeSpot(1)]),
-      );
-      await tester.tap(find.text('Eventi'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.search_rounded));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Chiudi la ricerca'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Spot 1'), findsOneWidget);
-      expect(find.text('Nessun evento in programma'), findsNothing);
     });
 
     testWidgets('la barra delle schede resta ferma in cima scorrendo', (

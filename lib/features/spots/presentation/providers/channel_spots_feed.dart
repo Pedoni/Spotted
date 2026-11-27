@@ -7,9 +7,23 @@ part 'channel_spots_feed.g.dart';
 
 const spotsPageSize = 20;
 
+/// La chiave di un insieme di tag: i nomi tecnici in ordine alfabetico,
+/// separati da virgola (non contengono mai virgole).
+String spotTagsKey(Iterable<String> tags) => ([...tags]..sort()).join(',');
+
+/// L'inverso di [spotTagsKey].
+List<String> spotTagsFromKey(String key) =>
+    key.isEmpty ? const [] : key.split(',');
+
 /// Spot di un canale, dal più recente (infinite scroll, [spotsPageSize] per
-/// pagina). Un'istanza per canale e per testo cercato: senza [query] sono tutti
-/// gli spot, con [query] solo quelli che lo contengono.
+/// pagina). Un'istanza per canale, per testo cercato e per tag scelti: senza
+/// [query] né [tags] sono tutti gli spot, con [query] solo quelli che lo
+/// contengono, con [tags] solo quelli che hanno almeno uno di quei tag.
+///
+/// [tags] è una stringa (i nomi tecnici separati da virgola, in ordine
+/// alfabetico, vedi [spotTagsKey]) e non una lista, perché la chiave di un
+/// provider deve potersi confrontare: due liste uguali non sarebbero la stessa
+/// chiave.
 @riverpod
 class ChannelSpotsFeed extends _$ChannelSpotsFeed {
   /// Cresce a ogni ricarica da capo: una `loadMore` partita prima di una
@@ -17,13 +31,18 @@ class ChannelSpotsFeed extends _$ChannelSpotsFeed {
   int _generation = 0;
 
   @override
-  Future<PagedList<Spot>> build(String channelId, {String query = ''}) async {
+  Future<PagedList<Spot>> build(
+    String channelId, {
+    String query = '',
+    String tags = '',
+  }) async {
     _generation++;
     final items = await ref.read(getChannelSpotsUseCaseProvider)(
       channelId: channelId,
       offset: 0,
       limit: spotsPageSize,
       query: query,
+      tags: spotTagsFromKey(tags),
     );
     return PagedList(items: items, hasMore: items.length == spotsPageSize);
   }
@@ -42,6 +61,7 @@ class ChannelSpotsFeed extends _$ChannelSpotsFeed {
         offset: current.items.length,
         limit: spotsPageSize,
         query: query,
+        tags: spotTagsFromKey(tags),
       );
       if (!ref.mounted || generation != _generation) return;
       state = AsyncData(

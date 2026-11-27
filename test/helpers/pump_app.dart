@@ -8,6 +8,7 @@ import 'package:spotted/core/riverpod/no_retry.dart';
 import 'package:spotted/core/theme/theme_mode_provider.dart';
 import 'package:spotted/features/auth/domain/entities/app_user.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
+import 'package:spotted/features/channels/presentation/providers/channels_map_providers.dart';
 import 'package:spotted/features/channels/presentation/providers/channels_providers.dart';
 import 'package:spotted/features/chat/presentation/providers/chat_providers.dart';
 import 'package:spotted/features/comments/presentation/providers/comments_providers.dart';
@@ -19,13 +20,16 @@ import 'package:spotted/features/profile/presentation/providers/profile_provider
 import 'package:spotted/features/reports/presentation/providers/reports_providers.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
 import 'package:spotted/features/subscriptions/presentation/providers/subscriptions_providers.dart';
+import 'package:spotted/features/tags/presentation/providers/tags_providers.dart';
 import 'package:spotted/features/topics/presentation/providers/topics_providers.dart';
 
+import 'empty_tile_provider.dart';
 import 'fake_auth_repository.dart';
 import 'fake_channel_images.dart';
 import 'fake_events.dart';
 import 'fake_news.dart';
 import 'fake_repositories.dart';
+import 'fake_tags.dart';
 
 /// Avvia l'app con repository finti. Per default l'utente è già loggato.
 Future<void> pumpApp(
@@ -43,7 +47,12 @@ Future<void> pumpApp(
   FakeMunicipalitiesRepository? municipalities,
   FakeNewsRepository? news,
   FakeEventsRepository? events,
+  FakeTagsRepository? tags,
   Duration? chatPollInterval,
+
+  /// Ogni quanto si ricontrolla il numero di chat non lette (spento di
+  /// default: i timer periodici lascerebbero il test in attesa).
+  Duration? unreadPollInterval,
   FakeChannelImagesRepository? channelImages,
   FakeChannelImagePicker? imagePicker,
   FakeChannelImageCropper? imageCropper,
@@ -106,9 +115,13 @@ Future<void> pumpApp(
         eventsRepositoryProvider.overrideWithValue(
           events ?? FakeEventsRepository(),
         ),
+        tagsRepositoryProvider.overrideWithValue(tags ?? FakeTagsRepository()),
+        // La mappa non scarica i riquadri.
+        mapTileProviderProvider.overrideWithValue(EmptyTileProvider()),
         // Senza polling di default: i timer periodici lascerebbero il test in
         // attesa.
         chatPollIntervalProvider.overrideWithValue(chatPollInterval),
+        unreadPollIntervalProvider.overrideWithValue(unreadPollInterval),
         // La versione dell'app: nei test non c'è il sistema da cui leggerla.
         appInfoProvider.overrideWith(
           (ref) => appInfo?.call() ?? Future.value(testAppInfo),

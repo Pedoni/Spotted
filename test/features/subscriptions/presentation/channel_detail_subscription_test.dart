@@ -32,39 +32,64 @@ void main() {
   testWidgets('mostra gli iscritti e il pulsante Segui', (tester) async {
     await openDetail(tester);
 
-    expect(find.text('3 iscritti'), findsOneWidget);
+    expect(find.byTooltip('3 iscritti'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    // Non segui ancora: pulsante pieno con la persona e il più.
     expect(find.text('Segui'), findsOneWidget);
-    expect(find.text('Smetti di seguire'), findsNothing);
+    expect(
+      find.widgetWithIcon(FilledButton, Icons.person_add_rounded),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.person_remove_rounded), findsNothing);
+  });
+
+  testWidgets('già iscritto: pulsante con il bordo, la persona e il meno', (
+    tester,
+  ) async {
+    await openDetail(tester, subscribed: {'c1'});
+
+    expect(
+      find.widgetWithIcon(OutlinedButton, Icons.person_remove_rounded),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.person_add_rounded), findsNothing);
+    expect(find.byType(FilledButton), findsNothing);
+    // Il testo è sempre "Segui"; per esteso si legge nel suggerimento.
+    expect(find.text('Segui'), findsOneWidget);
+    expect(find.byTooltip('Smetti di seguire'), findsOneWidget);
   });
 
   testWidgets('plurale: nessun iscritto e un iscritto', (tester) async {
     await openDetail(tester, counts: {'c1': 0});
-    expect(find.text('Nessun iscritto'), findsOneWidget);
+    expect(find.byTooltip('Nessun iscritto'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
   });
 
   testWidgets('seguendo, il pulsante cambia e il conteggio sale', (
     tester,
   ) async {
     final subscriptions = await openDetail(tester, counts: {'c1': 1});
-    expect(find.text('1 iscritto'), findsOneWidget);
+    expect(find.byTooltip('1 iscritto'), findsOneWidget);
 
     await tester.tap(find.text('Segui'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Smetti di seguire'), findsOneWidget);
-    expect(find.text('2 iscritti'), findsOneWidget);
+    expect(find.byIcon(Icons.person_remove_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.person_add_rounded), findsNothing);
+    expect(find.byTooltip('2 iscritti'), findsOneWidget);
     expect(subscriptions.calls, ['subscribe:c1']);
   });
 
   testWidgets('già iscritto: Smetti di seguire', (tester) async {
     final subscriptions = await openDetail(tester, subscribed: {'c1'});
-    expect(find.text('Smetti di seguire'), findsOneWidget);
+    expect(find.byIcon(Icons.person_remove_rounded), findsOneWidget);
 
-    await tester.tap(find.text('Smetti di seguire'));
+    await tester.tap(find.byIcon(Icons.person_remove_rounded));
     await tester.pumpAndSettle();
 
-    expect(find.text('Segui'), findsOneWidget);
-    expect(find.text('2 iscritti'), findsOneWidget);
+    expect(find.byIcon(Icons.person_add_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.person_remove_rounded), findsNothing);
+    expect(find.byTooltip('2 iscritti'), findsOneWidget);
     expect(subscriptions.calls, ['unsubscribe:c1']);
   });
 
@@ -76,7 +101,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Problema di connessione. Riprova.'), findsOneWidget);
-    expect(find.text('Segui'), findsOneWidget);
-    expect(find.text('3 iscritti'), findsOneWidget);
+    expect(find.byIcon(Icons.person_add_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.person_remove_rounded), findsNothing);
+    expect(find.byTooltip('3 iscritti'), findsOneWidget);
   });
 }

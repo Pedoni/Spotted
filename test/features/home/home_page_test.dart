@@ -272,7 +272,7 @@ void main() {
       );
 
       await openChannel(tester);
-      await tester.tap(find.text('Smetti di seguire'));
+      await tester.tap(find.byIcon(Icons.person_remove_rounded));
       await tester.pumpAndSettle();
       await backToHome(tester);
 
@@ -581,7 +581,7 @@ void main() {
         );
 
         await openChannel(tester);
-        await tester.tap(find.text('Smetti di seguire'));
+        await tester.tap(find.byIcon(Icons.person_remove_rounded));
         await tester.pumpAndSettle();
         await backToHome(tester);
 

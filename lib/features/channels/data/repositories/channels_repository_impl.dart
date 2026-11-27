@@ -1,6 +1,7 @@
 import 'package:spotted/core/error/failure_guard.dart';
 import 'package:spotted/features/channels/data/datasources/channels_remote_data_source.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
 
 class ChannelsRepositoryImpl implements ChannelsRepository {
@@ -22,6 +23,25 @@ class ChannelsRepositoryImpl implements ChannelsRepository {
       () => _dataSource.getChannels(
         offset: offset,
         limit: limit,
+        query: query,
+        topicId: topicId,
+        regionName: regionName,
+        provinceCode: provinceCode,
+        municipalityId: municipalityId,
+      ),
+    );
+  }
+
+  @override
+  Future<List<ChannelMapPin>> getChannelsMap({
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  }) {
+    return guardFailures(
+      () => _dataSource.getChannelsMap(
         query: query,
         topicId: topicId,
         regionName: regionName,

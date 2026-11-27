@@ -33,6 +33,22 @@ void main() {
     );
   });
 
+  test('i limiti hanno un messaggio per ogni motivo', () {
+    expect(
+      failureMessage(
+        l10n,
+        const LimitFailure(LimitReason.unansweredMessages),
+      ),
+      l10n.errorLimitMessages,
+    );
+    expect(
+      failureMessage(l10n, const LimitFailure(LimitReason.pendingSpots)),
+      l10n.errorLimitSpots,
+    );
+    expect(l10n.errorLimitMessages, contains('senza risposta'));
+    expect(l10n.errorLimitSpots, contains('in attesa'));
+  });
+
   test('le immagini non valide hanno un messaggio per ogni motivo', () {
     expect(
       failureMessage(l10n, const ImageFailure(ImageFailureReason.tooLarge)),

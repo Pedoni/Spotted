@@ -80,7 +80,13 @@ class ChatMessagesFeed extends _$ChatMessagesFeed {
       );
       final latest = state.value;
       if (!ref.mounted || generation != _generation || latest == null) return;
+      final known = {for (final message in latest.items) message.id};
       state = AsyncData(latest.copyWith(items: _merge(newest, latest.items)));
+      // Un messaggio dell'altra parte, arrivato mentre la chat è aperta, è già
+      // letto.
+      if (newest.any((m) => !m.isMine && !known.contains(m.id))) {
+        unawaited(ref.read(chatActionsProvider.notifier).markRead(chatId));
+      }
     } on Exception {
       // Ignorato di proposito.
     }

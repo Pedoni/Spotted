@@ -21,6 +21,12 @@ enum AuthFailureReason {
   usernameTaken,
   invalidInput,
   weakPassword,
+
+  /// La password attuale (chiesta per cambiare password o email) è sbagliata.
+  wrongPassword,
+
+  /// La nuova password è uguale a quella attuale.
+  samePassword,
   unknown,
 }
 
@@ -56,6 +62,24 @@ final class ImageFailure extends Failure {
   const ImageFailure(this.reason, [super.message]);
 
   final ImageFailureReason reason;
+
+  @override
+  List<Object?> get props => [reason, message];
+}
+
+enum LimitReason {
+  /// Troppi messaggi all'utente senza risposta del canale.
+  unansweredMessages,
+
+  /// Troppi spot in attesa nello stesso canale.
+  pendingSpots,
+}
+
+/// L'utente ha raggiunto un limite (messaggi senza risposta, spot in attesa).
+final class LimitFailure extends Failure {
+  const LimitFailure(this.reason, [super.message]);
+
+  final LimitReason reason;
 
   @override
   List<Object?> get props => [reason, message];

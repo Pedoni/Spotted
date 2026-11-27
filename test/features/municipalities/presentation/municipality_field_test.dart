@@ -58,6 +58,7 @@ void main() {
     WidgetTester tester, {
     MunicipalityChoice? initialValue,
     String? labelText,
+    bool required = false,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -77,6 +78,7 @@ void main() {
                 child: MunicipalityField(
                   initialValue: initialValue,
                   labelText: labelText,
+                  required: required,
                   onChanged: (choice) {
                     changed = choice;
                     changes++;
@@ -409,6 +411,70 @@ void main() {
 
       expect(fieldText(tester), 'Pistoia (PT)');
       expect(changed!.istatCode, '050027');
+    });
+  });
+
+  group('obbligatorio', () {
+    testWidgets('l etichetta è "Comune", senza "facoltativo"', (tester) async {
+      await pumpField(tester, required: true);
+
+      expect(find.text('Comune'), findsOneWidget);
+      expect(find.text('Comune (facoltativo)'), findsNothing);
+    });
+
+    testWidgets('di default resta facoltativo', (tester) async {
+      await pumpField(tester);
+
+      expect(find.text('Comune (facoltativo)'), findsOneWidget);
+      expect(formKey.currentState!.validate(), isTrue);
+    });
+
+    testWidgets('vuoto non è valido', (tester) async {
+      await pumpField(tester, required: true);
+
+      expect(formKey.currentState!.validate(), isFalse);
+      await tester.pump();
+      expect(find.text("Scegli un comune dall'elenco"), findsOneWidget);
+    });
+
+    testWidgets('scritto ma non scelto non è valido', (tester) async {
+      await pumpField(tester, required: true);
+
+      await tester.enterText(find.byType(TextFormField), 'Cittàinventata');
+      // Lascia finire l'attesa prima della ricerca dei suggerimenti.
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(formKey.currentState!.validate(), isFalse);
+    });
+
+    testWidgets('con un comune scelto è valido', (tester) async {
+      await pumpField(
+        tester,
+        required: true,
+        initialValue: const MunicipalityChoice(
+          istatCode: '050026',
+          label: 'Pisa (PI)',
+        ),
+      );
+
+      expect(formKey.currentState!.validate(), isTrue);
+    });
+
+    testWidgets('togliendo il comune scelto torna non valido', (tester) async {
+      await pumpField(
+        tester,
+        required: true,
+        initialValue: const MunicipalityChoice(
+          istatCode: '050026',
+          label: 'Pisa (PI)',
+        ),
+      );
+
+      await tester.tap(find.byTooltip('Togli il comune'));
+      await tester.pump();
+
+      expect(formKey.currentState!.validate(), isFalse);
     });
   });
 }

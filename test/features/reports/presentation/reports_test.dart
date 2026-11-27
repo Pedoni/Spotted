@@ -190,6 +190,9 @@ void main() {
     Future<void> openReports(WidgetTester tester) async {
       await tester.tap(find.byIcon(Icons.shield_rounded));
       await tester.pumpAndSettle();
+      // La prima scheda è "Da approvare": le segnalazioni sono la seconda.
+      await tester.tap(find.text('Segnalazioni'));
+      await tester.pumpAndSettle();
     }
 
     testWidgets('mostra le segnalazioni aperte con motivo e dettagli', (

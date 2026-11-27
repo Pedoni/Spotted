@@ -9,12 +9,18 @@ String failureMessage(AppLocalizations l10n, Object error) {
       AuthFailureReason.emailTaken => l10n.errorEmailTaken,
       AuthFailureReason.usernameTaken => l10n.errorUsernameTaken,
       AuthFailureReason.weakPassword => l10n.errorWeakPassword,
+      AuthFailureReason.wrongPassword => l10n.errorWrongPassword,
+      AuthFailureReason.samePassword => l10n.errorSamePassword,
       AuthFailureReason.invalidInput => l10n.errorInvalidInput,
       AuthFailureReason.unknown => l10n.errorGeneric,
     },
     ImageFailure(:final reason) => switch (reason) {
       ImageFailureReason.tooLarge => l10n.errorImageTooLarge,
       ImageFailureReason.invalid => l10n.errorImageInvalid,
+    },
+    LimitFailure(:final reason) => switch (reason) {
+      LimitReason.unansweredMessages => l10n.errorLimitMessages,
+      LimitReason.pendingSpots => l10n.errorLimitSpots,
     },
     ValidationFailure() => l10n.errorInvalidInput,
     ConflictFailure() => l10n.errorConflict,

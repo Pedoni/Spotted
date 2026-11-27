@@ -12,6 +12,8 @@ import 'package:spotted/features/channels/presentation/providers/channels_provid
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/presentation/providers/hidden_spots_feed.dart';
 import 'package:spotted/features/moderation/presentation/providers/moderation_providers.dart';
+import 'package:spotted/features/moderation/presentation/widgets/blocked_users_list.dart';
+import 'package:spotted/features/moderation/presentation/widgets/pending_spots_list.dart';
 import 'package:spotted/features/reports/presentation/widgets/channel_reports_list.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
 import 'package:spotted/features/spots/presentation/widgets/spot_card.dart';
@@ -44,16 +46,34 @@ class ModerationPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final channel = ref.watch(channelDetailProvider(slug));
+    // Il numero accanto alla scheda: se non arriva si mostra solo il nome.
+    final pendingCount = switch (channel.value) {
+      final loaded? => ref.watch(pendingSpotsCountProvider(loaded.id)).value,
+      null => null,
+    };
 
     return DefaultTabController(
-      length: 2,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.moderationTitle),
           bottom: TabBar(
+            // Quattro schede con nomi lunghi non starebbero in uno schermo
+            // stretto.
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             tabs: [
+              Tab(
+                text: switch (pendingCount) {
+                  final count? when count > 0 => l10n.pendingSpotsTabCount(
+                    count,
+                  ),
+                  _ => l10n.pendingSpotsTab,
+                },
+              ),
               Tab(text: l10n.reportsTab),
               Tab(text: l10n.moderationHiddenSpots),
+              Tab(text: l10n.moderationBlockedUsers),
             ],
           ),
         ),
@@ -66,11 +86,13 @@ class ModerationPage extends ConsumerWidget {
           ),
           data: (channel) => TabBarView(
             children: [
+              PendingSpotsList(channelId: channel.id),
               ChannelReportsList(channelId: channel.id),
               _HiddenSpotsList(
                 channelId: channel.id,
                 onRestore: (spot) => unawaited(_restore(context, ref, spot)),
               ),
+              BlockedUsersList(channelId: channel.id),
             ],
           ),
         ),

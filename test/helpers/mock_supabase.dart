@@ -81,6 +81,7 @@ Map<String, dynamic> spotRow(
   int? commentCount,
   bool? likedByMe,
   String? status,
+  List<String>? tags,
 }) {
   return {
     'id': id,
@@ -92,6 +93,7 @@ Map<String, dynamic> spotRow(
     'comment_count': ?commentCount,
     'liked_by_me': ?likedByMe,
     'status': ?status,
+    'tags': ?tags,
   };
 }
 
@@ -147,8 +149,10 @@ Map<String, dynamic> chatRow(
   bool identityRevealed = false,
   String? lastMessage,
   bool? lastMessageIsMine,
+  bool? unread,
 }) {
   return {
+    'unread': ?unread,
     'id': id,
     'spot_id': 's1',
     'spot_title': 'Ombrello perso',
@@ -164,13 +168,48 @@ Map<String, dynamic> chatRow(
   };
 }
 
-/// Riga di `chat_messages` / `send_message`.
+/// Riga di `my_chats_page` / `chat_detail` per una chat con un canale: niente
+/// spot, `i_am_author` è vero per il proprietario (che vede lo username
+/// dell'utente) e `kind` è `channel`.
+Map<String, dynamic> channelChatRow(
+  String id, {
+  bool owner = false,
+  String? lastMessage,
+  bool? lastMessageIsMine,
+  String? lastMessageKind,
+  bool? unread,
+}) {
+  return {
+    'unread': ?unread,
+    'id': id,
+    'spot_id': null,
+    'spot_title': null,
+    'channel_name': 'Spotted Pisa',
+    'channel_slug': 'spotted-pisa',
+    'i_am_author': owner,
+    'other_username': owner ? 'giulia_77' : null,
+    'identity_revealed': true,
+    'created_at': '2026-01-01T10:00:00+00:00',
+    'last_message': lastMessage,
+    'last_message_at': lastMessage == null ? null : '2026-01-01T11:00:00+00:00',
+    'last_message_is_mine': lastMessageIsMine,
+    'kind': 'channel',
+    'last_message_kind': lastMessageKind,
+  };
+}
+
+/// Riga di `chat_messages` / `send_message`. Nelle chat con un canale c'è
+/// anche `kind` (messaggi di sistema) e, per questi, `spot_id`.
 Map<String, dynamic> messageRow(
   String id, {
   String? content,
   bool isMine = false,
+  String? kind,
+  String? spotId,
 }) {
   return {
+    'kind': ?kind,
+    'spot_id': ?spotId,
     'id': id,
     'content': content ?? 'Messaggio $id',
     'created_at': '2026-01-01T10:00:00+00:00',

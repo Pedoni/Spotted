@@ -17,6 +17,8 @@ class ChannelSpotsSliver extends ConsumerWidget {
   const ChannelSpotsSliver({
     required this.channelId,
     this.query = '',
+    this.tags = '',
+    this.onClearFilters,
     super.key,
   });
 
@@ -26,10 +28,22 @@ class ChannelSpotsSliver extends ConsumerWidget {
   /// contengono, con il testo evidenziato.
   final String query;
 
+  /// I tag scelti (vedi `spotTagsKey`): se non è vuoto si vedono solo gli spot
+  /// che hanno almeno uno di quei tag.
+  final String tags;
+
+  /// Toglie testo e tag: compare come pulsante quando i filtri non trovano
+  /// niente.
+  final VoidCallback? onClearFilters;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final provider = channelSpotsFeedProvider(channelId, query: query);
+    final provider = channelSpotsFeedProvider(
+      channelId,
+      query: query,
+      tags: tags,
+    );
     final feed = ref.watch(provider);
 
     return feed.when(
@@ -44,17 +58,26 @@ class ChannelSpotsSliver extends ConsumerWidget {
       data: (paged) {
         if (paged.items.isEmpty) {
           // Occupa lo spazio rimasto sotto l'intestazione e si mette al centro.
+          final filtered = query.isNotEmpty || tags.isNotEmpty;
           return SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
               child: EmptyState(
-                icon: query.isEmpty
-                    ? Icons.article_rounded
-                    : Icons.search_rounded,
-                title: query.isEmpty
+                icon: filtered ? Icons.search_rounded : Icons.article_rounded,
+                title: !filtered
                     ? l10n.noSpotsInChannel
-                    : l10n.noSpotResults(query),
-                message: query.isEmpty ? l10n.noSpotsInChannelHint : null,
+                    : query.isNotEmpty
+                    ? l10n.noSpotResults(query)
+                    : l10n.noSpotsWithTags,
+                message: !filtered
+                    ? l10n.noSpotsInChannelHint
+                    : l10n.noSpotsWithTagsHint,
+                action: filtered && onClearFilters != null
+                    ? OutlinedButton(
+                        onPressed: onClearFilters,
+                        child: Text(l10n.clearFiltersAction),
+                      )
+                    : null,
               ),
             ),
           );

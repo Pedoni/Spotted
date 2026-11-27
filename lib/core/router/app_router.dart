@@ -23,6 +23,9 @@ import 'package:spotted/features/news/presentation/pages/edit_news_page.dart';
 import 'package:spotted/features/news/presentation/pages/latest_news_page.dart';
 import 'package:spotted/features/news/presentation/pages/news_detail_page.dart';
 import 'package:spotted/features/profile/presentation/pages/about_page.dart';
+import 'package:spotted/features/profile/presentation/pages/change_email_page.dart';
+import 'package:spotted/features/profile/presentation/pages/change_password_page.dart';
+import 'package:spotted/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:spotted/features/profile/presentation/pages/profile_page.dart';
 import 'package:spotted/features/spots/presentation/pages/create_spot_page.dart';
 import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
@@ -32,10 +35,15 @@ part 'app_router.g.dart';
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
-  // Ri-valuta il redirect a ogni cambio di sessione.
+  // Ri-valuta il redirect quando si entra o si esce (cambia l'utente), non a
+  // ogni modifica dei suoi dati: cambiare email o password aggiorna l'utente,
+  // e un `refresh` rifà il percorso dall'indirizzo e perde le pagine aperte
+  // sotto (si tornerebbe alla Home invece che al Profilo).
   final refresh = ValueNotifier<int>(0);
   ref
-    ..listen(authStateProvider, (_, _) => refresh.value++)
+    ..listen(authStateProvider, (previous, next) {
+      if (previous?.value?.id != next.value?.id) refresh.value++;
+    })
     ..onDispose(refresh.dispose);
 
   return GoRouter(
@@ -160,6 +168,18 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.spotDetail,
         builder: (context, state) =>
             SpotDetailPage(spotId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (context, state) => const EditProfilePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        builder: (context, state) => const ChangePasswordPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.changeEmail,
+        builder: (context, state) => const ChangeEmailPage(),
       ),
       GoRoute(
         path: AppRoutes.about,

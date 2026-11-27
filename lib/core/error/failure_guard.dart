@@ -40,6 +40,10 @@ Failure _fromPostgrest(PostgrestException e) {
     '23514' => ValidationFailure(message),
     // insufficient_privilege (anche violazioni di RLS)
     '42501' => PermissionFailure(message),
+    // Limiti dell'app (codici nostri): troppi messaggi senza risposta e troppi
+    // spot in attesa.
+    'SP001' => LimitFailure(LimitReason.unansweredMessages, message),
+    'SP002' => LimitFailure(LimitReason.pendingSpots, message),
     // PostgREST: JWT scaduto o non valido
     'PGRST301' || 'PGRST303' => SessionExpiredFailure(message),
     _ when message.toLowerCase().contains('jwt') => SessionExpiredFailure(

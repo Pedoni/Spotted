@@ -7,7 +7,7 @@ part 'spot_dto.g.dart';
 
 /// Colonne di `spots` leggibili dai client (usate nel `returning` di un
 /// insert). `author_id` è escluso di proposito: gli spot sono anonimi.
-const spotColumns = 'id, channel_id, title, content, created_at';
+const spotColumns = 'id, channel_id, title, content, created_at, status';
 
 @JsonSerializable(createToJson: false, fieldRename: FieldRename.snake)
 class SpotDto {
@@ -21,6 +21,7 @@ class SpotDto {
     this.commentCount = 0,
     this.likedByMe = false,
     this.status = SpotStatus.published,
+    this.tags = const [],
   });
 
   factory SpotDto.fromJson(Map<String, dynamic> json) =>
@@ -41,12 +42,17 @@ class SpotDto {
   @JsonKey(defaultValue: false)
   final bool likedByMe;
 
-  /// Solo `spot_detail` lo restituisce; altrove lo spot è pubblicato.
+  /// Solo `spot_detail` e l'insert lo restituiscono; altrove lo spot è
+  /// pubblicato.
   @JsonKey(
     defaultValue: SpotStatus.published,
     unknownEnumValue: SpotStatus.published,
   )
   final SpotStatus status;
+
+  /// Nomi tecnici dei tag; assenti nella riga di un insert.
+  @JsonKey(defaultValue: <String>[])
+  final List<String> tags;
 
   Spot toEntity() => Spot(
     id: id,
@@ -60,5 +66,6 @@ class SpotDto {
       likedByMe: likedByMe,
     ),
     status: status,
+    tags: tags,
   );
 }

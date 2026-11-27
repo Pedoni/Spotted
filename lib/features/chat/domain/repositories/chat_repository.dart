@@ -13,6 +13,17 @@ abstract interface class ChatRepository {
   /// o non è visibile, `ValidationFailure` se è dell'utente stesso.
   Future<String> startChat(String commentId);
 
+  /// Apre la chat tra l'utente e un canale (la crea se non c'è) e restituisce
+  /// il suo id. Lancia `NotFoundFailure` se il canale non esiste,
+  /// `PermissionFailure` se l'utente è il proprietario del canale.
+  Future<String> startChannelChat(String channelId);
+
+  /// Segna la chat come letta (dal lato dell'utente loggato).
+  Future<void> markChatRead(String chatId);
+
+  /// Quante chat hanno messaggi non letti.
+  Future<int> getUnreadChatsCount();
+
   /// L'autore mostra il suo username. Non si può annullare. Lancia
   /// `NotFoundFailure` se la chat non esiste o l'identità è già rivelata.
   Future<void> revealIdentity(String chatId);

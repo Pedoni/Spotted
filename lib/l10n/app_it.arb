@@ -269,7 +269,7 @@
   "loadMoreReportsError": "Impossibile caricare altre segnalazioni",
   "myChatsTitle": "Le mie chat",
   "noChats": "Ancora nessuna chat",
-  "noChatsHint": "Le chat nascono dagli spot: l'autore può scrivere a chi ha commentato.",
+  "noChatsHint": "Le chat nascono dagli spot (l'autore scrive a chi ha commentato) e dai canali: puoi sempre scrivere a un canale.",
   "loadMoreChatsError": "Impossibile caricare altre chat",
   "noMessagesYet": "Nessun messaggio",
   "youPrefix": "Tu: {message}",
@@ -307,7 +307,6 @@
   "clearMunicipality": "Togli il comune",
   "logoutConfirmTitle": "Uscire dall'account?",
   "logoutConfirmBody": "Per usare Spotted dovrai accedere di nuovo.",
-  "searchSpotsTooltip": "Cerca negli spot",
   "searchSpotsHint": "Cerca negli spot",
   "searchSpotsMinChars": "Scrivi almeno {count} lettere per cercare",
   "@searchSpotsMinChars": {
@@ -325,7 +324,6 @@
       }
     }
   },
-  "closeSearch": "Chiudi la ricerca",
   "clearSearch": "Cancella",
   "newsTitle": "News",
   "upcomingEventsTitle": "Prossimi eventi",
@@ -378,5 +376,183 @@
   "eventsUpcoming": "Prossimi",
   "eventsPast": "Passati",
   "noPastEvents": "Nessun evento passato",
-  "noPastEventsHint": "Gli eventi già svolti compariranno qui."
+  "noPastEventsHint": "Gli eventi già svolti compariranno qui.",
+  "pendingSpotLabel": "In attesa di approvazione",
+  "rejectedSpotLabel": "Rifiutato dal proprietario del canale",
+  "spotSubmitted": "Spot inviato: comparirà quando il proprietario lo approva",
+  "spotApprovalNote": "Il proprietario del canale deve approvare lo spot prima che venga pubblicato. L'esito lo trovi in «I miei spot».",
+  "sendSpotButton": "Invia lo spot",
+  "spotTagsTitle": "Tag",
+  "tagsRequired": "Scegli almeno un tag",
+  "tagsChooseHint": "Scegli da {min} a {max} tag",
+  "@tagsChooseHint": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pendingSpotsTab": "Da approvare",
+  "pendingSpotsTabCount": "Da approvare ({count})",
+  "@pendingSpotsTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPendingSpots": "Nessuno spot da approvare",
+  "noPendingSpotsHint": "Gli spot che gli utenti inviano al canale compaiono qui: tu li pubblichi con i tag o li rifiuti.",
+  "approveSpotAction": "Pubblica",
+  "rejectSpotAction": "Rifiuta",
+  "approveSpotTitle": "Scegli i tag dello spot",
+  "spotApproved": "Spot pubblicato",
+  "spotRejected": "Spot rifiutato",
+  "rejectSpotTitle": "Rifiutare lo spot?",
+  "rejectSpotMessage": "L'autore vedrà che lo spot è stato rifiutato. Non si può annullare.",
+  "writeToChannel": "Scrivi al canale",
+  "chatChannelOwnerNote": "Rispondi a nome del canale: chi scrive non vede chi sei.",
+  "chatChannelUserNote": "Stai scrivendo al canale: chi lo gestisce ti risponde qui.",
+  "systemSpotSentMine": "Hai inviato uno spot",
+  "systemSpotSentTheirs": "{user} ha inviato uno spot",
+  "@systemSpotSentTheirs": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "systemSpotApprovedMine": "Hai pubblicato lo spot",
+  "systemSpotApprovedTheirs": "{channel} ha pubblicato il tuo spot",
+  "@systemSpotApprovedTheirs": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "systemSpotRejectedMine": "Hai rifiutato lo spot",
+  "systemSpotRejectedTheirs": "{channel} ha rifiutato il tuo spot",
+  "@systemSpotRejectedTheirs": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "unreadChat": "Messaggi non letti",
+  "errorLimitMessages": "Hai già scritto diversi messaggi senza risposta: aspetta che il canale risponda.",
+  "errorLimitSpots": "Hai già degli spot in attesa in questo canale: aspetta che il proprietario li guardi.",
+  "blockUser": "Blocca utente",
+  "unblockUser": "Sblocca utente",
+  "blockUserTitle": "Bloccare {user}?",
+  "@blockUserTitle": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "blockUserBody": "Non potrà più scriverti né inviare spot al canale. Gli spot già in attesa restano in coda. Puoi sbloccarlo quando vuoi.",
+  "blockAction": "Blocca",
+  "userBlocked": "Utente bloccato",
+  "userUnblocked": "Utente sbloccato",
+  "chatUserBlockedNote": "Hai bloccato {user}: non può più scrivere né inviare spot al canale.",
+  "@chatUserBlockedNote": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlockedUsers": "Bloccati",
+  "noBlockedUsers": "Nessun utente bloccato",
+  "noBlockedUsersHint": "Gli utenti che blocchi dalle chat compaiono qui e puoi sbloccarli.",
+  "unblockAction": "Sblocca",
+  "loadMoreBlockedError": "Impossibile caricare altri utenti",
+  "tagFilterTooltip": "Filtra per tag",
+  "tagFilterTitle": "Filtra per tag",
+  "tagFilterHint": "Mostra gli spot che hanno almeno uno di questi tag.",
+  "noSpotsWithTags": "Nessuno spot con questi tag",
+  "noSpotsWithTagsHint": "Prova a togliere qualche filtro.",
+  "clearFiltersAction": "Azzera i filtri",
+  "channelMunicipalityRequiredLabel": "Comune",
+  "missingMunicipalityTitle": "Aggiungi la città del canale",
+  "missingMunicipalityBody": "Questo canale non ha ancora una città, e ora è obbligatoria.",
+  "missingMunicipalityAction": "Aggiungi la città",
+  "viewList": "Lista",
+  "viewMap": "Mappa",
+  "mapNoChannels": "Nessun canale sulla mappa",
+  "mapNoChannelsHint": "Sulla mappa compaiono i canali che hanno una città, con i filtri che hai scelto.",
+  "channelsCount": "{count, plural, =1{1 canale} other{{count} canali}}",
+  "@channelsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPinSingle": "{channel}, {place}",
+  "@mapPinSingle": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPinMany": "{count, plural, =1{1 canale} other{{count} canali}} a {place}",
+  "@mapPinMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "errorWrongPassword": "La password attuale non è corretta",
+  "errorSamePassword": "La nuova password deve essere diversa da quella attuale",
+  "currentPasswordLabel": "Password attuale",
+  "newPasswordLabel": "Nuova password",
+  "confirmPasswordLabel": "Ripeti la nuova password",
+  "validationPasswordsDiffer": "Le due password non coincidono",
+  "validationSamePassword": "Deve essere diversa dalla password attuale",
+  "validationCurrentPassword": "Scrivi la password attuale",
+  "changePasswordSubmit": "Cambia password",
+  "passwordChanged": "Password cambiata",
+  "changePasswordHint": "Per sicurezza ti chiediamo la password attuale.",
+  "newEmailLabel": "Nuova email",
+  "validationSameEmail": "È già la tua email",
+  "changeEmailSubmit": "Invia la conferma",
+  "changeEmailHint": "Ti scriviamo per confermare il nuovo indirizzo: finché non lo confermi, resta valido quello di adesso. Per sicurezza ti chiediamo la password attuale.",
+  "emailConfirmationSent": "Ti abbiamo scritto a {email}: apri il messaggio per confermare il nuovo indirizzo.",
+  "@emailConfirmationSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingEmailNote": "In attesa di conferma: {email}",
+  "@pendingEmailNote": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "editMyDataHint": "Nome, cognome e data di nascita li vedi solo tu. Lo username si vede in tutta l'app e non si può cambiare.",
+  "birthDateLabel": "Data di nascita (facoltativa)",
+  "birthDateHint": "Scegli una data",
+  "clearBirthDate": "Togli la data",
+  "usernameReadOnlyLabel": "Username",
+  "saveProfile": "Salva",
+  "profileSaved": "Dati aggiornati"
 }

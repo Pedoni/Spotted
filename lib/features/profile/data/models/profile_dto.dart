@@ -10,6 +10,7 @@ class ProfileDto {
     required this.username,
     this.firstName,
     this.lastName,
+    this.birthDate,
   });
 
   factory ProfileDto.fromJson(Map<String, dynamic> json) =>
@@ -20,10 +21,14 @@ class ProfileDto {
   final String? firstName;
   final String? lastName;
 
+  /// Una data senza ora (`2000-01-31`).
+  final DateTime? birthDate;
+
   Profile toEntity() => Profile(
     id: id,
     username: username,
     firstName: firstName,
     lastName: lastName,
+    birthDate: birthDate,
   );
 }

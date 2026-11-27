@@ -22,6 +22,9 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const mySpots = '/profile/spots';
   static const about = '/profile/about';
+  static const editProfile = '/profile/edit';
+  static const changePassword = '/profile/password';
+  static const changeEmail = '/profile/email';
 
   static String channelPath(String slug) => '/c/$slug';
   static String spotNewPath(String slug) => '/c/$slug/spot/new';

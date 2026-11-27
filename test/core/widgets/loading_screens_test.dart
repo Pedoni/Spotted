@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spotted/core/riverpod/no_retry.dart';
@@ -8,6 +9,7 @@ import 'package:spotted/core/theme/app_theme.dart';
 import 'package:spotted/core/widgets/skeleton.dart';
 import 'package:spotted/features/auth/presentation/providers/auth_providers.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 import 'package:spotted/features/channels/presentation/widgets/channel_skeletons.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
@@ -25,6 +27,7 @@ import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/reports/domain/entities/channel_report.dart';
 import 'package:spotted/features/reports/presentation/widgets/report_skeletons.dart';
 import 'package:spotted/features/spots/domain/entities/spot.dart';
+import 'package:spotted/features/spots/domain/entities/spot_status.dart';
 import 'package:spotted/features/spots/domain/entities/spot_with_channel.dart';
 import 'package:spotted/features/spots/presentation/pages/my_spots_page.dart';
 import 'package:spotted/features/spots/presentation/providers/spots_providers.dart';
@@ -36,6 +39,7 @@ import '../../helpers/fake_auth_repository.dart';
 import '../../helpers/fake_events.dart';
 import '../../helpers/fake_news.dart';
 import '../../helpers/fake_repositories.dart';
+import '../../helpers/fake_tags.dart';
 import '../../helpers/pump_app.dart';
 
 // Repository che tengono ferma la lettura finché non si completa `hold`: la
@@ -140,6 +144,7 @@ class HeldChannels extends FakeChannelsRepository {
     this.hold, {
     super.channels,
     super.mine,
+    this.map = false,
     this.list = false,
     this.detail = false,
     this.mineList = false,
@@ -147,8 +152,27 @@ class HeldChannels extends FakeChannelsRepository {
 
   final Completer<void> hold;
   final bool list;
+  final bool map;
   final bool detail;
   final bool mineList;
+
+  @override
+  Future<List<ChannelMapPin>> getChannelsMap({
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  }) async {
+    if (map) await hold.future;
+    return super.getChannelsMap(
+      query: query,
+      topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
+    );
+  }
 
   @override
   Future<List<Channel>> getChannels({
@@ -321,6 +345,20 @@ class HeldModeration extends FakeModerationRepository {
   });
 
   final Completer<void> hold;
+
+  @override
+  Future<List<Spot>> getPendingSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    await hold.future;
+    return super.getPendingSpots(
+      channelId: channelId,
+      offset: offset,
+      limit: limit,
+    );
+  }
 
   @override
   Future<List<Spot>> getHiddenSpots({
@@ -710,11 +748,34 @@ void main() {
         moderation: FakeModerationRepository(ownedChannelIds: {'c1'}),
         reports: HeldReports(hold, reports: [makeReport(1)]),
       );
+      await tester.tap(find.text('Segnalazioni'));
+      await advance(tester);
 
       expectSkeleton(find.byType(ReportCardsSkeleton));
 
       await release(tester, hold);
       expect(find.text('Testo spot 1'), findsOneWidget);
+    });
+
+    testWidgets('Da approvare', (tester) async {
+      final hold = Completer<void>();
+      final spots = FakeSpotsRepository(
+        spots: [makeSpot(1, status: SpotStatus.pending)],
+      );
+      await openModeration(
+        tester,
+        moderation: HeldModeration(
+          hold,
+          ownedChannelIds: {'c1'},
+          spotsRepository: spots,
+        ),
+      );
+
+      expect(find.byType(SpotCardsSkeleton), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      await release(tester, hold);
+      expect(find.text('Spot 1'), findsOneWidget);
     });
 
     testWidgets('Spot nascosti', (tester) async {
@@ -764,5 +825,48 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ChannelTilesSkeleton), findsNothing);
     });
+  });
+
+  testWidgets('selettore dei tag: scheletro mentre arrivano', (tester) async {
+    final hold = Completer<void>();
+    final tags = FakeTagsRepository()..gate = hold;
+    await pumpApp(
+      tester,
+      channels: FakeChannelsRepository(
+        channels: [makeChannel(1, name: 'Spotted Pisa')],
+      ),
+      moderation: FakeModerationRepository(ownedChannelIds: {'c1'}),
+      tags: tags,
+      screenSize: const Size(800, 1400),
+    );
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Spotted Pisa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pubblica uno spot'));
+    await advance(tester);
+
+    expect(find.byType(Skeleton), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    hold.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(FilterChip), findsNWidgets(fakeTags.length));
+  });
+
+  testWidgets('mappa dei canali: scheletro mentre arrivano i pin', (
+    tester,
+  ) async {
+    final hold = Completer<void>();
+    final repo = HeldChannels(hold, map: true)..pins = [makePin('050026')];
+    await pumpApp(tester, channels: repo);
+    await openChannelsTab(tester);
+    await tester.tap(find.text('Mappa'));
+    await advance(tester);
+
+    expectSkeleton(find.byType(Skeleton));
+    expect(find.byType(FlutterMap), findsNothing);
+
+    await release(tester, hold);
+    expect(find.byType(FlutterMap), findsOneWidget);
   });
 }

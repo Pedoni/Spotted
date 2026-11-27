@@ -91,9 +91,6 @@ void main() {
 
   /// Le voci che ci sono ma ancora non fanno niente.
   const soon = [
-    'Modifica i miei dati',
-    'Cambia email',
-    'Cambia password',
     'Notifiche',
     'Privacy',
     "Condizioni d'uso",

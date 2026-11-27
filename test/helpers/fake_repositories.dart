@@ -2,13 +2,17 @@ import 'dart:async';
 
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 import 'package:spotted/features/channels/domain/repositories/channels_repository.dart';
+import 'package:spotted/features/chat/domain/entities/chat_kind.dart';
 import 'package:spotted/features/chat/domain/entities/chat_message.dart';
+import 'package:spotted/features/chat/domain/entities/chat_message_kind.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 import 'package:spotted/features/chat/domain/repositories/chat_repository.dart';
 import 'package:spotted/features/comments/domain/entities/comment.dart';
 import 'package:spotted/features/comments/domain/entities/comment_status.dart';
 import 'package:spotted/features/comments/domain/repositories/comments_repository.dart';
+import 'package:spotted/features/moderation/domain/entities/blocked_user.dart';
 import 'package:spotted/features/moderation/domain/entities/moderation_status.dart';
 import 'package:spotted/features/moderation/domain/entities/spot_author.dart';
 import 'package:spotted/features/moderation/domain/repositories/moderation_repository.dart';
@@ -77,6 +81,23 @@ class FakeChannelsRepository implements ChannelsRepository {
   Failure? createError;
   Failure? updateError;
   Failure? deleteError;
+  Failure? mapError;
+
+  /// I pin che restituisce la mappa (il test li sceglie: il database li
+  /// calcola dai canali e dalle coordinate dei comuni).
+  List<ChannelMapPin> pins = [];
+
+  /// Le chiamate alla mappa, con i filtri.
+  final mapCalls =
+      <
+        ({
+          String? query,
+          String? topicId,
+          String? regionName,
+          String? provinceCode,
+          String? municipalityId,
+        })
+      >[];
 
   final listCalls =
       <
@@ -130,6 +151,25 @@ class FakeChannelsRepository implements ChannelsRepository {
           matchesMunicipality;
     }).toList();
     return filtered.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<List<ChannelMapPin>> getChannelsMap({
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  }) async {
+    mapCalls.add((
+      query: query,
+      topicId: topicId,
+      regionName: regionName,
+      provinceCode: provinceCode,
+      municipalityId: municipalityId,
+    ));
+    if (mapError != null) throw mapError!;
+    return pins;
   }
 
   @override
@@ -279,11 +319,41 @@ class FakeProfileRepository implements ProfileRepository {
 
   Profile profile;
   Failure? error;
+  Failure? updateError;
+
+  /// Se è impostato, il salvataggio aspetta che si completi.
+  Completer<void>? updateGate;
+
+  final updateCalls =
+      <({String firstName, String lastName, DateTime? birthDate})>[];
 
   @override
   Future<Profile> getMyProfile() async {
     if (error != null) throw error!;
     return profile;
+  }
+
+  @override
+  Future<Profile> updateMyProfile({
+    required String firstName,
+    required String lastName,
+    DateTime? birthDate,
+  }) async {
+    updateCalls.add((
+      firstName: firstName,
+      lastName: lastName,
+      birthDate: birthDate,
+    ));
+    if (updateGate != null) await updateGate!.future;
+    if (updateError != null) throw updateError!;
+    // Lo username non cambia mai.
+    return profile = Profile(
+      id: profile.id,
+      username: profile.username,
+      firstName: firstName,
+      lastName: lastName,
+      birthDate: birthDate,
+    );
   }
 }
 
@@ -350,6 +420,7 @@ Spot makeSpot(
   String? content,
   SpotStats stats = const SpotStats(),
   SpotStatus status = SpotStatus.published,
+  List<String> tags = const [],
 }) {
   return Spot(
     id: 's$i',
@@ -359,12 +430,17 @@ Spot makeSpot(
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     stats: stats,
     status: status,
+    tags: tags,
   );
 }
 
-SpotWithChannel makeMySpot(int i, {String channelName = 'Spotted Pisa'}) {
+SpotWithChannel makeMySpot(
+  int i, {
+  String channelName = 'Spotted Pisa',
+  SpotStatus status = SpotStatus.published,
+}) {
   return SpotWithChannel(
-    spot: makeSpot(i),
+    spot: makeSpot(i, status: status),
     channelName: channelName,
     channelSlug: 'canale-1',
   );
@@ -396,8 +472,16 @@ class FakeSpotsRepository implements SpotsRepository {
   /// Il testo cercato in ogni chiamata di `getChannelSpots` (`null` se non si
   /// cercava), nello stesso ordine di [listCalls].
   final queries = <String?>[];
+
+  /// I tag scelti in ogni chiamata di `getChannelSpots`, nello stesso ordine
+  /// di [listCalls] (vuoti se non c'era un filtro).
+  final tagFilters = <List<String>>[];
   final mineCalls = <({int offset, int limit})>[];
   final createCalls = <Map<String, String>>[];
+
+  /// I tag di ogni chiamata di `createSpot`, nello stesso ordine di
+  /// [createCalls] (`null` se non c'erano: l'utente non è il proprietario).
+  final createTagCalls = <List<String>?>[];
   final deleteCalls = <String>[];
 
   static String _plain(String text) => text
@@ -414,9 +498,11 @@ class FakeSpotsRepository implements SpotsRepository {
     required int offset,
     required int limit,
     String? query,
+    List<String> tags = const [],
   }) async {
     listCalls.add((channelId: channelId, offset: offset, limit: limit));
     queries.add(query);
+    tagFilters.add(tags);
     if (listError != null) throw listError!;
     if (offset > 0 && gate != null) await gate!.future;
     final text = query == null ? null : _plain(query.trim());
@@ -424,6 +510,8 @@ class FakeSpotsRepository implements SpotsRepository {
         .where(
           (s) => s.channelId == channelId && s.status == SpotStatus.published,
         )
+        // Come l'RPC: almeno uno dei tag scelti.
+        .where((s) => tags.isEmpty || s.tags.any(tags.contains))
         // Come l'RPC: titolo o testo contengono il testo, senza maiuscole e
         // accenti.
         .where(
@@ -487,19 +575,25 @@ class FakeSpotsRepository implements SpotsRepository {
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   }) async {
     createCalls.add({
       'channelId': channelId,
       'title': title,
       'content': content,
     });
+    createTagCalls.add(tags);
     if (createError != null) throw createError!;
+    // Come il database: con i tag (solo il proprietario) lo spot è
+    // pubblicato, senza nasce in attesa.
     final spot = Spot(
       id: 'new-${createCalls.length}',
       channelId: channelId,
       title: title,
       content: content,
       createdAt: DateTime(2026),
+      status: tags == null ? SpotStatus.pending : SpotStatus.published,
+      tags: tags ?? const [],
     );
     spots = [spot, ...spots];
     return spot;
@@ -635,6 +729,19 @@ class FakeModerationRepository implements ModerationRepository {
   final commentCalls = <({String commentId, bool hidden})>[];
   final authorCalls = <String>[];
   final hiddenCalls = <({String channelId, int offset, int limit})>[];
+  final pendingCalls = <({String channelId, int offset, int limit})>[];
+  final blockCalls = <({String chatId, bool blocked})>[];
+  final unblockCalls = <String>[];
+  Failure? blockError;
+
+  /// Le chat (con un canale) il cui utente è bloccato.
+  Set<String> blockedChats = {};
+
+  /// Gli utenti bloccati che si vedono nell'elenco (id del blocco, username).
+  List<BlockedUser> blockedUsers = [];
+  final approveCalls = <({String spotId, List<String> tags})>[];
+  final rejectCalls = <String>[];
+  Failure? approveError;
 
   @override
   Future<bool> isChannelOwner(String channelId) async {
@@ -694,6 +801,100 @@ class FakeModerationRepository implements ModerationRepository {
         else
           c,
     ];
+  }
+
+  void _setSpot(String spotId, SpotStatus status, {List<String>? tags}) {
+    final repository = spotsRepository;
+    if (repository == null) return;
+    repository.spots = [
+      for (final s in repository.spots)
+        if (s.id == spotId)
+          Spot(
+            id: s.id,
+            channelId: s.channelId,
+            title: s.title,
+            content: s.content,
+            createdAt: s.createdAt,
+            stats: s.stats,
+            status: status,
+            tags: tags ?? s.tags,
+          )
+        else
+          s,
+    ];
+  }
+
+  Iterable<Spot> _pending(String channelId) =>
+      (spotsRepository?.spots ?? const <Spot>[]).where(
+        (s) => s.channelId == channelId && s.status == SpotStatus.pending,
+      );
+
+  @override
+  Future<List<Spot>> getPendingSpots({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    pendingCalls.add((channelId: channelId, offset: offset, limit: limit));
+    if (listError != null) throw listError!;
+    return _pending(channelId).skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<int> getPendingSpotsCount(String channelId) async {
+    if (listError != null) throw listError!;
+    return _pending(channelId).length;
+  }
+
+  @override
+  Future<void> approveSpot(String spotId, List<String> tags) async {
+    approveCalls.add((spotId: spotId, tags: tags));
+    if (approveError != null) throw approveError!;
+    _setSpot(spotId, SpotStatus.published, tags: tags);
+  }
+
+  @override
+  Future<void> rejectSpot(String spotId) async {
+    rejectCalls.add(spotId);
+    if (approveError != null) throw approveError!;
+    _setSpot(spotId, SpotStatus.rejected);
+  }
+
+  @override
+  Future<void> setChatUserBlocked(
+    String chatId, {
+    required bool blocked,
+  }) async {
+    blockCalls.add((chatId: chatId, blocked: blocked));
+    if (blockError != null) throw blockError!;
+    if (blocked) {
+      blockedChats = {...blockedChats, chatId};
+    } else {
+      blockedChats = {...blockedChats}..remove(chatId);
+    }
+  }
+
+  @override
+  Future<bool> isChatUserBlocked(String chatId) async {
+    if (listError != null) throw listError!;
+    return blockedChats.contains(chatId);
+  }
+
+  @override
+  Future<List<BlockedUser>> getBlockedUsers({
+    required String channelId,
+    required int offset,
+    required int limit,
+  }) async {
+    if (listError != null) throw listError!;
+    return blockedUsers.skip(offset).take(limit).toList();
+  }
+
+  @override
+  Future<void> unblockChannelUser(String blockId) async {
+    unblockCalls.add(blockId);
+    if (blockError != null) throw blockError!;
+    blockedUsers = blockedUsers.where((u) => u.id != blockId).toList();
   }
 
   @override
@@ -797,9 +998,11 @@ ChatSummary makeChat(
   bool identityRevealed = false,
   String? lastMessage,
   bool? lastMessageIsMine,
+  bool unread = false,
 }) {
   return ChatSummary(
     id: 'ch$i',
+    unread: unread,
     spotId: 's1',
     spotTitle: 'Ombrello perso',
     channelName: 'Spotted Pisa',
@@ -816,12 +1019,51 @@ ChatSummary makeChat(
   );
 }
 
-ChatMessage makeMessage(int i, {String? content, bool isMine = false}) {
+ChatMessage makeMessage(
+  int i, {
+  String? content,
+  bool isMine = false,
+  ChatMessageKind kind = ChatMessageKind.text,
+  String? spotId,
+}) {
   return ChatMessage(
     id: 'm$i',
     content: content ?? 'Messaggio $i',
     createdAt: DateTime(2026).subtract(Duration(minutes: i)),
     isMine: isMine,
+    kind: kind,
+    spotId: spotId,
+  );
+}
+
+/// Una chat tra un utente e il canale "Spotted Pisa". [owner] è il punto di
+/// vista del proprietario, che vede lo username dell'utente e risponde a nome
+/// del canale; l'utente vede solo il canale.
+ChatSummary makeChannelChat(
+  int i, {
+  bool owner = false,
+  String? userName = 'giulia_77',
+  String? lastMessage,
+  bool? lastMessageIsMine,
+  ChatMessageKind? lastMessageKind,
+  bool unread = false,
+}) {
+  return ChatSummary(
+    id: 'cc$i',
+    unread: unread,
+    channelName: 'Spotted Pisa',
+    channelSlug: 'canale-1',
+    kind: ChatKind.channel,
+    iAmAuthor: owner,
+    otherUsername: owner ? userName : null,
+    identityRevealed: true,
+    createdAt: DateTime(2026).subtract(Duration(minutes: i)),
+    lastMessage: lastMessage,
+    lastMessageAt: lastMessage == null
+        ? null
+        : DateTime(2026).subtract(Duration(minutes: i)),
+    lastMessageIsMine: lastMessageIsMine,
+    lastMessageKind: lastMessageKind,
   );
 }
 
@@ -844,6 +1086,8 @@ class FakeChatRepository implements ChatRepository {
 
   Failure? authorError;
   Failure? startError;
+  Failure? channelChatError;
+  Failure? unreadError;
   Failure? revealError;
   Failure? listError;
   Failure? detailError;
@@ -852,6 +1096,9 @@ class FakeChatRepository implements ChatRepository {
   Completer<void>? gate;
 
   final startCalls = <String>[];
+  final channelChatCalls = <String>[];
+  final readCalls = <String>[];
+  int unreadCountCalls = 0;
   final revealCalls = <String>[];
   final listCalls = <({int offset, int limit})>[];
   final messageCalls = <({String chatId, int offset, int limit})>[];
@@ -868,6 +1115,33 @@ class FakeChatRepository implements ChatRepository {
     startCalls.add(commentId);
     if (startError != null) throw startError!;
     return chats.isEmpty ? 'ch-new' : chats.first.id;
+  }
+
+  @override
+  Future<void> markChatRead(String chatId) async {
+    readCalls.add(chatId);
+    chats = [
+      for (final c in chats)
+        if (c.id == chatId) c.withUnread(unread: false) else c,
+    ];
+  }
+
+  @override
+  Future<int> getUnreadChatsCount() async {
+    unreadCountCalls++;
+    if (unreadError != null) throw unreadError!;
+    return chats.where((c) => c.unread).length;
+  }
+
+  @override
+  Future<String> startChannelChat(String channelId) async {
+    channelChatCalls.add(channelId);
+    if (channelChatError != null) throw channelChatError!;
+    return chats
+            .where((c) => c.isChannelChat && !c.iAmAuthor)
+            .firstOrNull
+            ?.id ??
+        'cc-new';
   }
 
   @override
@@ -1031,4 +1305,24 @@ class FakeMunicipalitiesRepository implements MunicipalitiesRepository {
     };
     return found.values.toList()..sort((a, b) => a.name.compareTo(b.name));
   }
+}
+
+/// Un pin della mappa. Con [channel] è un comune con un solo canale; senza, un
+/// comune con [count] canali.
+ChannelMapPin makePin(
+  String code, {
+  String label = 'Pisa (PI)',
+  double latitude = 43.7228,
+  double longitude = 10.4017,
+  int count = 1,
+  MapChannel? channel,
+}) {
+  return ChannelMapPin(
+    municipalityId: code,
+    municipalityLabel: label,
+    latitude: latitude,
+    longitude: longitude,
+    channelCount: channel == null ? count : 1,
+    channel: channel,
+  );
 }

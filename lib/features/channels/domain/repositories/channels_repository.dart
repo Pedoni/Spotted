@@ -1,4 +1,5 @@
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 
 /// Contratto dei canali. Le implementazioni lanciano un `Failure`.
 abstract interface class ChannelsRepository {
@@ -7,6 +8,17 @@ abstract interface class ChannelsRepository {
   Future<List<Channel>> getChannels({
     required int offset,
     required int limit,
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  });
+
+  /// I pin della mappa: un pin per ogni comune che ha almeno un canale, con le
+  /// coordinate e quanti canali ci sono (e il canale, se è uno solo). Stessi
+  /// filtri di [getChannels].
+  Future<List<ChannelMapPin>> getChannelsMap({
     String? query,
     String? topicId,
     String? regionName,

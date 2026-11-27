@@ -2,6 +2,13 @@ abstract final class SpotValidators {
   static const maxTitleLength = 100;
   static const maxContentLength = 2000;
 
+  /// I tag di uno spot pubblicato: da 1 a 3.
+  static const minTags = 1;
+  static const maxTags = 3;
+
+  static bool isValidTagCount(int count) =>
+      count >= minTags && count <= maxTags;
+
   /// Sotto questa lunghezza non si cerca: una lettera sola trova quasi tutto.
   static const minSearchLength = 2;
 

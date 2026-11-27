@@ -21,6 +21,7 @@ class SpotWithChannelDto {
     required this.commentCount,
     required this.likedByMe,
     this.status = SpotStatus.published,
+    this.tags = const [],
   });
 
   factory SpotWithChannelDto.fromJson(Map<String, dynamic> json) =>
@@ -43,6 +44,9 @@ class SpotWithChannelDto {
   )
   final SpotStatus status;
 
+  @JsonKey(defaultValue: <String>[])
+  final List<String> tags;
+
   SpotWithChannel toEntity() => SpotWithChannel(
     spot: Spot(
       id: id,
@@ -56,6 +60,7 @@ class SpotWithChannelDto {
         likedByMe: likedByMe,
       ),
       status: status,
+      tags: tags,
     ),
     channelName: channelName,
     channelSlug: channelSlug,

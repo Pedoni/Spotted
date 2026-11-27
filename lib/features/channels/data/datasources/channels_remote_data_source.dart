@@ -1,7 +1,9 @@
 import 'package:spotted/core/error/failure.dart';
 import 'package:spotted/features/channels/data/models/channel_dto.dart';
+import 'package:spotted/features/channels/data/models/channel_map_pin_dto.dart';
 import 'package:spotted/features/channels/data/models/create_channel_dto.dart';
 import 'package:spotted/features/channels/domain/entities/channel.dart';
+import 'package:spotted/features/channels/domain/entities/channel_map_pin.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChannelsRemoteDataSource {
@@ -41,6 +43,31 @@ class ChannelsRemoteDataSource {
         .order('id')
         .range(offset, offset + limit - 1);
     return rows.map((row) => ChannelDto.fromJson(row).toEntity()).toList();
+  }
+
+  /// Usa l'RPC `channels_map`: un pin per comune, con i canali già contati.
+  /// Manda solo i filtri attivi, come `getChannels`.
+  Future<List<ChannelMapPin>> getChannelsMap({
+    String? query,
+    String? topicId,
+    String? regionName,
+    String? provinceCode,
+    String? municipalityId,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'channels_map',
+      params: {
+        'p_query': ?query,
+        'p_topic_id': ?topicId,
+        'p_region_name': ?regionName,
+        'p_province_code': ?provinceCode,
+        'p_municipality_id': ?municipalityId,
+      },
+    );
+    return rows
+        .cast<Map<String, dynamic>>()
+        .map((row) => ChannelMapPinDto.fromJson(row).toEntity())
+        .toList();
   }
 
   Future<Channel> getChannelBySlug(String slug) async {

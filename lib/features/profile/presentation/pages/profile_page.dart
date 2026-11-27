@@ -15,8 +15,9 @@ import 'package:spotted/features/profile/domain/entities/profile.dart';
 import 'package:spotted/features/profile/presentation/providers/profile_providers.dart';
 import 'package:spotted/l10n/app_localizations.dart';
 
-/// Profilo: foto e nome in alto, poi tema e account (password ed eliminazione
-/// in arrivo) e uscita. I propri spot stanno nella Home.
+/// Profilo: foto e nome in alto, poi tema e account (email e password si
+/// cambiano; il resto arriva più avanti) e uscita. I propri spot stanno nella
+/// Home.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -66,6 +67,7 @@ class ProfilePage extends ConsumerWidget {
     BuildContext context, {
     required Profile profile,
     required String? email,
+    String? pendingEmail,
   }) {
     final theme = Theme.of(context);
     return Column(
@@ -81,6 +83,16 @@ class ProfilePage extends ConsumerWidget {
           Text(profile.fullName!, textAlign: TextAlign.center),
         if (email != null && email.isNotEmpty)
           Text(email, textAlign: TextAlign.center),
+        // Ha chiesto un altro indirizzo e non l'ha ancora confermato.
+        if (pendingEmail != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              AppLocalizations.of(context).pendingEmailNote(pendingEmail),
+              style: theme.textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ),
       ],
     );
   }
@@ -90,7 +102,8 @@ class ProfilePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final profile = ref.watch(myProfileProvider);
-    final email = ref.watch(authStateProvider).value?.email;
+    final user = ref.watch(authStateProvider).value;
+    final email = user?.email;
     final mode = ref.watch(themeModeSettingProvider);
     final signingOut = ref.watch(signOutControllerProvider).isLoading;
 
@@ -119,7 +132,12 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ],
             ),
-            data: (profile) => _header(context, profile: profile, email: email),
+            data: (profile) => _header(
+              context,
+              profile: profile,
+              email: email,
+              pendingEmail: user?.pendingEmail,
+            ),
           ),
           const SizedBox(height: 32),
           Text(l10n.settingsAppearance, style: theme.textTheme.titleMedium),
@@ -148,14 +166,23 @@ class ProfilePage extends ConsumerWidget {
           Text(l10n.settingsAccount, style: theme.textTheme.titleMedium),
           // Queste voci ci sono ma per ora non fanno nulla: arrivano più
           // avanti.
-          _SoonTile(
-            icon: Icons.manage_accounts_rounded,
-            title: l10n.editMyData,
+          ListTile(
+            leading: const Icon(Icons.manage_accounts_rounded),
+            title: Text(l10n.editMyData),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => unawaited(context.push(AppRoutes.editProfile)),
           ),
-          _SoonTile(icon: Icons.mail_outline_rounded, title: l10n.changeEmail),
-          _SoonTile(
-            icon: Icons.lock_outline_rounded,
-            title: l10n.changePassword,
+          ListTile(
+            leading: const Icon(Icons.mail_outline_rounded),
+            title: Text(l10n.changeEmail),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => unawaited(context.push(AppRoutes.changeEmail)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.lock_outline_rounded),
+            title: Text(l10n.changePassword),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => unawaited(context.push(AppRoutes.changePassword)),
           ),
           _SoonTile(
             icon: Icons.notifications_none_rounded,

@@ -25,6 +25,7 @@ class SpotsRemoteDataSource {
     required int offset,
     required int limit,
     String? query,
+    List<String> tags = const [],
   }) async {
     final text = SpotValidators.searchText(query);
     final rows = await _client.rpc<List<dynamic>>(
@@ -35,6 +36,8 @@ class SpotsRemoteDataSource {
         'p_offset': offset,
         // Solo se si cerca: senza ricerca la richiesta è quella di sempre.
         'p_query': ?text,
+        // Idem per i tag: senza filtro la richiesta è quella di sempre.
+        if (tags.isNotEmpty) 'p_tags': tags,
       },
     );
     return _toSpots(rows);
@@ -80,11 +83,27 @@ class SpotsRemoteDataSource {
         .toList();
   }
 
+  /// Senza [tags] lo spot nasce `pending`, in attesa del proprietario. Con
+  /// [tags] lo pubblica subito il proprietario del canale (RPC
+  /// `publish_owner_spot`: per chiunque altro risponde `42501`).
   Future<Spot> createSpot({
     required String channelId,
     required String title,
     required String content,
+    List<String>? tags,
   }) async {
+    if (tags != null) {
+      final rows = await _client.rpc<List<dynamic>>(
+        'publish_owner_spot',
+        params: {
+          'p_channel_id': channelId,
+          'p_title': title,
+          'p_content': content,
+          'p_tags': tags,
+        },
+      );
+      return _toSpots(rows).single;
+    }
     final authorId = _currentUserId();
     if (authorId == null) {
       throw const AuthFailure(AuthFailureReason.unknown);

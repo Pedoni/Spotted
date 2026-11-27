@@ -34,7 +34,10 @@ void main() {
   test('slug già usato: riprova con un suffisso', () async {
     repository.takenSlugs = {'spotted-pisa'};
 
-    final channel = await createChannel(name: 'Spotted Pisa');
+    final channel = await createChannel(
+      name: 'Spotted Pisa',
+      municipalityId: '050026',
+    );
 
     expect(channel.slug, matches(RegExp(r'^spotted-pisa-[a-z0-9]{4}$')));
     expect(repository.createCalls, hasLength(2));
@@ -44,7 +47,7 @@ void main() {
     repository.createError = const ConflictFailure();
 
     await expectLater(
-      createChannel(name: 'Spotted Pisa'),
+      createChannel(name: 'Spotted Pisa', municipalityId: '050026'),
       throwsA(isA<ConflictFailure>()),
     );
     expect(repository.createCalls, hasLength(CreateChannel.maxAttempts));
@@ -54,7 +57,7 @@ void main() {
     repository.createError = const NetworkFailure();
 
     await expectLater(
-      createChannel(name: 'Spotted Pisa'),
+      createChannel(name: 'Spotted Pisa', municipalityId: '050026'),
       throwsA(isA<NetworkFailure>()),
     );
     expect(repository.createCalls, hasLength(1));
@@ -62,17 +65,21 @@ void main() {
 
   test('dati non validi: ValidationFailure e nessuna chiamata', () async {
     await expectLater(
-      createChannel(name: 'ab'),
+      createChannel(name: 'ab', municipalityId: '050026'),
       throwsA(isA<ValidationFailure>()),
     );
     expect(repository.createCalls, isEmpty);
   });
 
-  test('senza comune: il comune è vuoto, non un testo vuoto', () async {
-    await createChannel(name: 'Università online');
-    await createChannel(name: 'Altro canale', municipalityId: '   ');
-
-    expect(repository.createCalls[0]['municipalityId'], isNull);
-    expect(repository.createCalls[1]['municipalityId'], isNull);
+  test('il comune è obbligatorio: senza, ValidationFailure', () async {
+    await expectLater(
+      createChannel(name: 'Università online'),
+      throwsA(isA<ValidationFailure>()),
+    );
+    await expectLater(
+      createChannel(name: 'Altro canale', municipalityId: '   '),
+      throwsA(isA<ValidationFailure>()),
+    );
+    expect(repository.createCalls, isEmpty);
   });
 }

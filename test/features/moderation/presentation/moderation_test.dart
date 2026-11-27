@@ -10,7 +10,13 @@ import '../../../helpers/fake_repositories.dart';
 import '../../../helpers/pump_app.dart';
 
 void main() {
-  final channel = makeChannel(1, name: 'Spotted Pisa');
+  // Con una città: senza, al proprietario si mostra l'invito ad aggiungerla e
+  // gli spot scendono fuori dallo schermo.
+  final channel = makeChannel(
+    1,
+    name: 'Spotted Pisa',
+    municipalityId: '050026',
+  );
 
   late FakeSpotsRepository spots;
   late FakeCommentsRepository comments;

@@ -31,6 +31,30 @@ class ChatRemoteDataSource {
     return chatId;
   }
 
+  /// L'RPC restituisce `null` se il canale non esiste e risponde `42501` al
+  /// proprietario del canale.
+  Future<String> startChannelChat(String channelId) async {
+    final chatId = await _client.rpc<String?>(
+      'start_channel_chat',
+      params: {'p_channel_id': channelId},
+    );
+    if (chatId == null) throw const NotFoundFailure();
+    return chatId;
+  }
+
+  /// Non fa niente se la chat non esiste o non è dell'utente.
+  Future<void> markChatRead(String chatId) async {
+    await _client.rpc<void>(
+      'mark_chat_read',
+      params: {'p_chat_id': chatId},
+    );
+  }
+
+  Future<int> getUnreadChatsCount() async {
+    final count = await _client.rpc<int>('unread_chats_count');
+    return count;
+  }
+
   /// L'RPC restituisce `false` se la chat non esiste o l'identità era già
   /// rivelata.
   Future<void> revealIdentity(String chatId) async {

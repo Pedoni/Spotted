@@ -33,9 +33,29 @@ void main() {
       expect(channel.slug, 'canale-1');
     });
 
+    test('il comune è obbligatorio, anche modificando un canale vecchio', () {
+      expect(
+        () => UpdateChannel(repository)(channelId: 'c1', name: 'Spotted Pisa'),
+        throwsA(isA<ValidationFailure>()),
+      );
+      expect(
+        () => UpdateChannel(repository)(
+          channelId: 'c1',
+          name: 'Spotted Pisa',
+          municipalityId: '  ',
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+      expect(repository.updateCalls, isEmpty);
+    });
+
     test('un nome troppo corto non arriva al repository', () {
       expect(
-        () => UpdateChannel(repository)(channelId: 'c1', name: 'No'),
+        () => UpdateChannel(repository)(
+          channelId: 'c1',
+          name: 'No',
+          municipalityId: '050026',
+        ),
         throwsA(isA<ValidationFailure>()),
       );
       expect(repository.updateCalls, isEmpty);
@@ -47,6 +67,7 @@ void main() {
           channelId: 'c1',
           name: 'Spotted Pisa',
           description: 'x' * 501,
+          municipalityId: '050026',
         ),
         throwsA(isA<ValidationFailure>()),
       );
@@ -57,7 +78,11 @@ void main() {
       repository.updateError = const PermissionFailure();
 
       expect(
-        () => UpdateChannel(repository)(channelId: 'c1', name: 'Spotted'),
+        () => UpdateChannel(repository)(
+          channelId: 'c1',
+          name: 'Spotted',
+          municipalityId: '050026',
+        ),
         throwsA(isA<PermissionFailure>()),
       );
     });

@@ -1,4 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:spotted/features/chat/domain/entities/chat_kind.dart';
+import 'package:spotted/features/chat/domain/entities/chat_message_kind.dart';
 import 'package:spotted/features/chat/domain/entities/chat_summary.dart';
 
 part 'chat_summary_dto.g.dart';
@@ -8,13 +10,16 @@ part 'chat_summary_dto.g.dart';
 class ChatSummaryDto {
   const ChatSummaryDto({
     required this.id,
-    required this.spotId,
-    required this.spotTitle,
     required this.channelName,
     required this.channelSlug,
     required this.iAmAuthor,
     required this.identityRevealed,
     required this.createdAt,
+    this.spotId,
+    this.spotTitle,
+    this.kind = ChatKind.spot,
+    this.lastMessageKind,
+    this.unread = false,
     this.otherUsername,
     this.lastMessage,
     this.lastMessageAt,
@@ -25,8 +30,8 @@ class ChatSummaryDto {
       _$ChatSummaryDtoFromJson(json);
 
   final String id;
-  final String spotId;
-  final String spotTitle;
+  final String? spotId;
+  final String? spotTitle;
   final String channelName;
   final String channelSlug;
   final bool iAmAuthor;
@@ -36,6 +41,15 @@ class ChatSummaryDto {
   final String? lastMessage;
   final DateTime? lastMessageAt;
   final bool? lastMessageIsMine;
+
+  /// Assente nelle risposte di prima: erano tutte chat degli spot.
+  @JsonKey(defaultValue: ChatKind.spot, unknownEnumValue: ChatKind.spot)
+  final ChatKind kind;
+  @JsonKey(unknownEnumValue: ChatMessageKind.text)
+  final ChatMessageKind? lastMessageKind;
+
+  @JsonKey(defaultValue: false)
+  final bool unread;
 
   ChatSummary toEntity() => ChatSummary(
     id: id,
@@ -50,5 +64,8 @@ class ChatSummaryDto {
     lastMessage: lastMessage,
     lastMessageAt: lastMessageAt,
     lastMessageIsMine: lastMessageIsMine,
+    kind: kind,
+    lastMessageKind: lastMessageKind,
+    unread: unread,
   );
 }
