@@ -53,13 +53,52 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() => _guard(_dataSource.signOut);
 
   @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return _guard(() async {
+      await _verifyPassword(currentPassword);
+      await _dataSource.updatePassword(newPassword);
+    });
+  }
+
+  @override
+  Future<void> changeEmail({
+    required String currentPassword,
+    required String newEmail,
+  }) {
+    return _guard(() async {
+      await _verifyPassword(currentPassword);
+      await _dataSource.updateEmail(newEmail);
+    });
+  }
+
+  /// La password attuale sbagliata ha un messaggio suo (non "email o password
+  /// non corretti": l'email è quella dell'utente).
+  Future<void> _verifyPassword(String password) async {
+    try {
+      await _dataSource.verifyPassword(password);
+    } on AuthException catch (e) {
+      if (e.code == 'invalid_credentials') {
+        throw const AuthFailure(AuthFailureReason.wrongPassword);
+      }
+      rethrow;
+    }
+  }
+
+  @override
   Future<bool> isUsernameAvailable(String username) {
     return _guard(() => _dataSource.isUsernameAvailable(username));
   }
 
   AppUser? _toUser(User? user) {
     if (user == null) return null;
-    return AppUser(id: user.id, email: user.email ?? '');
+    return AppUser(
+      id: user.id,
+      email: user.email ?? '',
+      pendingEmail: user.newEmail,
+    );
   }
 
   Future<T> _guard<T>(Future<T> Function() action) async {
@@ -85,6 +124,8 @@ class AuthRepositoryImpl implements AuthRepository {
       'invalid_credentials' => AuthFailureReason.invalidCredentials,
       'user_already_exists' || 'email_exists' => AuthFailureReason.emailTaken,
       'weak_password' => AuthFailureReason.weakPassword,
+      'same_password' => AuthFailureReason.samePassword,
+      'email_address_invalid' => AuthFailureReason.invalidInput,
       _ when e.message.contains('Database error saving new user') =>
         AuthFailureReason.usernameTaken,
       _ => AuthFailureReason.unknown,

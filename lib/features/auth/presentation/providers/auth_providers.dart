@@ -4,6 +4,8 @@ import 'package:spotted/features/auth/data/datasources/auth_remote_data_source.d
 import 'package:spotted/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:spotted/features/auth/domain/entities/app_user.dart';
 import 'package:spotted/features/auth/domain/repositories/auth_repository.dart';
+import 'package:spotted/features/auth/domain/usecases/change_email.dart';
+import 'package:spotted/features/auth/domain/usecases/change_password.dart';
 import 'package:spotted/features/auth/domain/usecases/check_username_available.dart';
 import 'package:spotted/features/auth/domain/usecases/sign_in.dart';
 import 'package:spotted/features/auth/domain/usecases/sign_out.dart';
@@ -25,6 +27,16 @@ Stream<AppUser?> authState(Ref ref) {
 
 @riverpod
 SignIn signInUseCase(Ref ref) => SignIn(ref.watch(authRepositoryProvider));
+
+@riverpod
+ChangePassword changePasswordUseCase(Ref ref) {
+  return ChangePassword(ref.watch(authRepositoryProvider));
+}
+
+@riverpod
+ChangeEmail changeEmailUseCase(Ref ref) {
+  return ChangeEmail(ref.watch(authRepositoryProvider));
+}
 
 @riverpod
 SignUp signUpUseCase(Ref ref) => SignUp(ref.watch(authRepositoryProvider));

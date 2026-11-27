@@ -36,6 +36,25 @@ class AuthRemoteDataSource {
 
   Future<void> signOut() => _client.auth.signOut();
 
+  /// Controlla la password attuale accedendo di nuovo con l'email dell'utente.
+  /// Lancia `AuthException` (`invalid_credentials`) se è sbagliata.
+  Future<void> verifyPassword(String password) async {
+    final email = currentUser?.email;
+    if (email == null) throw AuthSessionMissingException();
+    await _client.auth.signInWithPassword(email: email, password: password);
+  }
+
+  Future<void> updatePassword(String newPassword) {
+    return _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  /// Supabase scrive all'indirizzo nuovo (e, secondo le impostazioni del
+  /// progetto, anche al vecchio) per la conferma: finché non è confermato
+  /// l'indirizzo valido resta il vecchio.
+  Future<void> updateEmail(String newEmail) {
+    return _client.auth.updateUser(UserAttributes(email: newEmail));
+  }
+
   Future<bool> isUsernameAvailable(String username) async {
     final row = await _client
         .from('profiles')

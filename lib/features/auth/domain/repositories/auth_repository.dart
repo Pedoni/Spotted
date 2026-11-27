@@ -19,5 +19,22 @@ abstract interface class AuthRepository {
 
   Future<void> signOut();
 
+  /// Cambia la password. Chiede quella attuale (riaccede per controllarla):
+  /// `AuthFailure(wrongPassword)` se è sbagliata, `AuthFailure(samePassword)`
+  /// se la nuova è uguale.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  /// Chiede di cambiare l'email. Chiede la password attuale. Supabase manda
+  /// una conferma: l'indirizzo cambia solo dopo (`AppUser.pendingEmail` lo
+  /// dice nel frattempo). `AuthFailure(emailTaken)` se esiste già un account
+  /// con quell'email.
+  Future<void> changeEmail({
+    required String currentPassword,
+    required String newEmail,
+  });
+
   Future<bool> isUsernameAvailable(String username);
 }

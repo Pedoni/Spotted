@@ -27,6 +27,15 @@ class FakeAuthRepository implements AuthRepository {
   Completer<void>? availabilityGate;
   final availabilityCalls = <String>[];
 
+  /// La password dell'utente: chi cambia password o email deve dare questa.
+  String password = 'vecchiapassword';
+  Failure? changeError;
+
+  /// Se è impostato, il cambio di password o email aspetta che si completi.
+  Completer<void>? changeGate;
+  final passwordChanges = <({String current, String next})>[];
+  final emailChanges = <({String current, String email})>[];
+
   final signInCalls = <({String email, String password})>[];
   final signUpCalls = <Map<String, String>>[];
 
@@ -77,6 +86,39 @@ class FakeAuthRepository implements AuthRepository {
     if (signOutGate != null) await signOutGate!.future;
     if (signOutError != null) throw signOutError!;
     if (!signOutEventFirst) _setUser(null);
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    passwordChanges.add((current: currentPassword, next: newPassword));
+    if (changeGate != null) await changeGate!.future;
+    if (changeError != null) throw changeError!;
+    if (currentPassword != password) {
+      throw const AuthFailure(AuthFailureReason.wrongPassword);
+    }
+    password = newPassword;
+  }
+
+  /// Come Supabase: l'email non cambia subito, resta quella vecchia con il
+  /// nuovo indirizzo in attesa di conferma.
+  @override
+  Future<void> changeEmail({
+    required String currentPassword,
+    required String newEmail,
+  }) async {
+    emailChanges.add((current: currentPassword, email: newEmail));
+    if (changeGate != null) await changeGate!.future;
+    if (changeError != null) throw changeError!;
+    if (currentPassword != password) {
+      throw const AuthFailure(AuthFailureReason.wrongPassword);
+    }
+    final current = user!;
+    _setUser(
+      AppUser(id: current.id, email: current.email, pendingEmail: newEmail),
+    );
   }
 
   @override

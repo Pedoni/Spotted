@@ -516,5 +516,36 @@
         "type": "String"
       }
     }
+  },
+  "errorWrongPassword": "La password attuale non è corretta",
+  "errorSamePassword": "La nuova password deve essere diversa da quella attuale",
+  "currentPasswordLabel": "Password attuale",
+  "newPasswordLabel": "Nuova password",
+  "confirmPasswordLabel": "Ripeti la nuova password",
+  "validationPasswordsDiffer": "Le due password non coincidono",
+  "validationSamePassword": "Deve essere diversa dalla password attuale",
+  "validationCurrentPassword": "Scrivi la password attuale",
+  "changePasswordSubmit": "Cambia password",
+  "passwordChanged": "Password cambiata",
+  "changePasswordHint": "Per sicurezza ti chiediamo la password attuale.",
+  "newEmailLabel": "Nuova email",
+  "validationSameEmail": "È già la tua email",
+  "changeEmailSubmit": "Invia la conferma",
+  "changeEmailHint": "Ti scriviamo per confermare il nuovo indirizzo: finché non lo confermi, resta valido quello di adesso. Per sicurezza ti chiediamo la password attuale.",
+  "emailConfirmationSent": "Ti abbiamo scritto a {email}: apri il messaggio per confermare il nuovo indirizzo.",
+  "@emailConfirmationSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingEmailNote": "In attesa di conferma: {email}",
+  "@pendingEmailNote": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   }
 }
